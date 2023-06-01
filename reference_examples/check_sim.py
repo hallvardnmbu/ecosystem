@@ -2,7 +2,7 @@
 Compatibility check for BioSim simulations.
 
 This script shall function with biosim packages written for
-the INF200 project January 2023.
+the INF200 project June 2023.
 """
 
 __author__ = "Hans Ekkehard Plesser, NMBU"
