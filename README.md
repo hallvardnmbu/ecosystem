@@ -1,5 +1,13 @@
 # Starting point for BioSim projects June 2023
 
+## Note
+
+**Due to technical problems on GitLab, the cloning process described
+below does not work. I am working on an alternative solution to get
+started.**
+
+## Instructions—Please ignore for now!
+
 1. Be sure that you are logged into Gitlab.
 1. One of the partners clicks the `Fork` button.
 1. Fill in the form that appears as follows (see also figure below):
