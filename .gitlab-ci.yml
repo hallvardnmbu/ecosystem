@@ -1,6 +1,6 @@
 # Official language image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/python/tags/
-image: python:3.10
+image: python:3.11
 
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
@@ -22,7 +22,7 @@ before_script:
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
-  - pip install flake8=6.0 tox
+  - pip install flake8==6.0 tox
 
 test-code-style:
   stage: test
