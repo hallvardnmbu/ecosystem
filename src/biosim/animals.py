@@ -1,5 +1,6 @@
 import random
 random.seed(1)
+from math import exp
 
 class Animal:
     @classmethod
@@ -40,7 +41,7 @@ class Animal:
         Increments the age of the animal by one year.
         """
 
-        self.age += 1
+        self.a += 1
 
     def gain_weight(self, food):
         """
@@ -83,27 +84,24 @@ class Animal:
 
     @property
     def fitness(self):
+        """
+        Calculates the fitness of the animal.
+        """
 
-        #get parametres
+        # Get parameters
         phi_age = self.parameters["phi_age"]
         phi_weight = self.parameters["phi_weight"]
-        a = self.age
         a_half = self.parameters["a_half"]
         w_half = self.parameters["w_half"]
 
-        def qpos(x,xhalf,phi):
-            return (1+exp(phi(x-xhalf)))**(-1)
-        def qneg(x,xhalf,phi):
-            return (1+exp(-phi(x-xhalf)))**(-1)
+        # Calculates parts of the fitness function
+        qpos = (1 + exp(phi_age * (self.a - a_half)))**(-1)
+        qneg = (1 + exp(-phi_weight * (self.w - w_half)))**(-1)
 
-        if self.weight<=0:
-            self.fitness=0
+        if self.weight <= 0:
+            return 0
         else:
-            self.fitness=qpos(a,a_half,phi_age)*qneg(w,w_half,phi_weight)
-
-
-
-
+            return qpos * qneg
 
 class Herbivore(Animal):
     @classmethod
