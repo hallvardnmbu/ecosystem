@@ -28,13 +28,24 @@ class Animal:
             class_parameters[key] = parameters[key]
         cls.parameters = class_parameters
 
+    @classmethod
+    def get_parameters(cls):
+        """
+        Get the parameters for an animal.
+        """
+
+        try:
+            return cls.parameters
+        except:
+            return cls.default_parameters()
+
     def __init__(self, position, weight, age):
         self.position = position
         self.a = age
         if not weight:
-            self.weight = random.lognormvariate(self.parameters["w_birth"], self.parameters["sigma_birth"])
+            self.w = random.lognormvariate(self.get_parameters()["w_birth"], self.get_parameters()["sigma_birth"])
         else:
-            self.weight = weight
+            self.w = weight
 
     def aging(self):
         """
@@ -48,36 +59,36 @@ class Animal:
         Increments the weight of the animal by the factor beta and the amount of food eaten.
         """
 
-        self.weight += self.parameters["beta"] * food
+        self.w += self.get_parameters()["beta"] * food
 
     def lose_weight(self):
         """
         Decrements the weight of the animal by the factor eta.
         """
 
-        self.weight -= self.parameters["eta"] * self.weight
+        self.w -= self.get_parameters()["eta"] * self.w
 
     def lose_weight_birth(self, baby_weight):
         """
         Decrements the weight of the animal by the factor xi and the weight of the baby.
         """
 
-        self.weight -= self.parameters["xi"] * baby_weight
+        self.w -= self.get_parameters()["xi"] * baby_weight
 
     def baby_weight(self):
         """
         Calculates the weight of the baby.
         """
 
-        if random.random() < min(1, self.parameters["gamma"] * self.fitness * 10): # BYTT "10" MED: "self.count_animals_cell()" COUNT ANIMAL CELL!):
-            return random.lognormvariate(self.parameters["w_birth"], self.parameters["sigma_birth"])
+        if random.random() < min(1, self.get_parameters()["gamma"] * self.fitness * 10): # BYTT "10" MED: "self.count_animals_cell()" COUNT ANIMAL CELL!):
+            return random.lognormvariate(self.get_parameters()["w_birth"], self.get_parameters()["sigma_birth"])
 
     def give_birth(self, baby_weight):
         """
         Creates a new animal with the given weight at the same position as the parent.
         """
 
-        if baby_weight > self.weight:
+        if baby_weight > self.w:
             return
         self.lose_weight_birth(baby_weight)
         self.__class__(position=self.position, weight=baby_weight)
@@ -89,16 +100,16 @@ class Animal:
         """
 
         # Get parameters
-        phi_age = self.parameters["phi_age"]
-        phi_weight = self.parameters["phi_weight"]
-        a_half = self.parameters["a_half"]
-        w_half = self.parameters["w_half"]
+        phi_age = self.get_parameters()["phi_age"]
+        phi_weight = self.get_parameters()["phi_weight"]
+        a_half = self.get_parameters()["a_half"]
+        w_half = self.get_parameters()["w_half"]
 
         # Calculates parts of the fitness function
         qpos = (1 + exp(phi_age * (self.a - a_half)))**(-1)
         qneg = (1 + exp(-phi_weight * (self.w - w_half)))**(-1)
 
-        if self.weight <= 0:
+        if self.w <= 0:
             return 0
         else:
             return qpos * qneg
@@ -126,7 +137,6 @@ class Herbivore(Animal):
                 "F": 10.0}
 
     def __init__(self, position, weight=None, age=0):
-        self.parameters = self.default_parameters()
         super().__init__(position, weight, age)
 
 class Carnivore(Animal):
@@ -143,7 +153,7 @@ class Carnivore(Animal):
                 "a_half": 40.0,
                 "phi_age": 0.3,
                 "w_half": 4.0,
-                "i_weight": 0.4,
+                "phi_weight": 0.4,
                 "mu": 0.4,
                 "gamma": 0.8,
                 "zeta": 3.5,
@@ -153,5 +163,4 @@ class Carnivore(Animal):
                 "DeltaPhiMax": 10.0}
 
     def __init__(self, position, weight=None, age=0):
-        self.parameters = self.default_parameters()
         super().__init__(position, weight, age)
