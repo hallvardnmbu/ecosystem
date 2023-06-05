@@ -29,7 +29,7 @@ class Animal:
 
     def __init__(self, position, weight, age):
         self.position = position
-        self.age = age
+        self.a = age
         if not weight:
             self.weight = random.lognormvariate(self.parameters["w_birth"], self.parameters["sigma_birth"])
         else:
@@ -87,7 +87,7 @@ class Animal:
         #get parametres
         phi_age = self.parameters["phi_age"]
         phi_weight = self.parameters["phi_weight"]
-        a = self.parameters["a"]
+        a = self.age
         a_half = self.parameters["a_half"]
         w_half = self.parameters["w_half"]
 
