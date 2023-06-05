@@ -31,7 +31,7 @@ class Animal:
         self.position = position
         self.age = age
         if not weight:
-            self.weight = random.lognormal(self.parameters["w_birth"], self.parameters["sigma_birth"])
+            self.weight = random.lognormvariate(self.parameters["w_birth"], self.parameters["sigma_birth"])
         else:
             self.weight = weight
 
@@ -69,7 +69,7 @@ class Animal:
         """
 
         if random.random() < min(1, self.parameters["gamma"] * self.fitness * 10): # BYTT "10" MED: "self.count_animals_cell()" COUNT ANIMAL CELL!):
-            return random.lognormal(self.parameters["w_birth"], self.parameters["sigma_birth"])
+            return random.lognormvariate(self.parameters["w_birth"], self.parameters["sigma_birth"])
 
     def give_birth(self, baby_weight):
         """
@@ -128,8 +128,8 @@ class Herbivore(Animal):
                 "F": 10.0}
 
     def __init__(self, position, weight=None, age=0):
-        super().__init__(position, weight, age)
         self.parameters = self.default_parameters()
+        super().__init__(position, weight, age)
 
 class Carnivore(Animal):
     @classmethod
@@ -155,5 +155,5 @@ class Carnivore(Animal):
                 "DeltaPhiMax": 10.0}
 
     def __init__(self, position, weight=None, age=0):
-        super().__init__(position, weight, age)
         self.parameters = self.default_parameters()
+        super().__init__(position, weight, age)
