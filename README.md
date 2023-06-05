@@ -2,11 +2,8 @@
 
 ## Note
 
-**Due to technical problems on GitLab, the cloning process described
-below does not work. I am working on an alternative solution to get
-started.**
 
-## Instructions—Please ignore for now!
+## Instructions
 
 1. Be sure that you are logged into Gitlab.
 1. One of the partners clicks the `Fork` button.
