@@ -113,13 +113,13 @@ class Animal:
         Calculates the fitness of the animal.
         """
 
-        # Get parameters
+        # Get parameters:
         phi_age = self.get_parameters()["phi_age"]
         phi_weight = self.get_parameters()["phi_weight"]
         a_half = self.get_parameters()["a_half"]
         w_half = self.get_parameters()["w_half"]
 
-        # Calculates parts of the fitness function
+        # Calculates parts of the fitness function:
         qpos = (1 + exp(phi_age * (self.a - a_half)))**(-1)
         qneg = (1 + exp(-phi_weight * (self.w - w_half)))**(-1)
 
@@ -153,6 +153,8 @@ class Herbivore(Animal):
     def __init__(self, position, weight=None, age=0):
         super().__init__(position, weight, age)
 
+        # Add to the cell.
+
 class Carnivore(Animal):
     @classmethod
     def default_parameters(cls):
@@ -178,3 +180,13 @@ class Carnivore(Animal):
 
     def __init__(self, position, weight=None, age=0):
         super().__init__(position, weight, age)
+
+        # Add to the cell.
+
+# I morgen:
+#
+# Lage cellene.
+#   - Gjør at hvert dyr som blir laget blir plassert i cellen osv.
+#
+# Lage en funksjon som teller antall dyr i en celle.
+#   - I "baby_weight": endre "10" med "self.count_animals_cell()" (eller tilsvarende).
