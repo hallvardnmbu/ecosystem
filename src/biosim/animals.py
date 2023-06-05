@@ -1,7 +1,14 @@
 class Animal:
     @classmethod
     def set_parameters(cls, parameters=None):
-        print(cls.default_parameters())
+        if parameters is None:
+            return
+        class_parameters = cls.default_parameters()
+        for key in parameters:
+            if key not in class_parameters:
+                raise ValueError("Invalid parameter: {}".format(key))
+            class_parameters[key] = parameters[key]
+        cls.parameters = class_parameters
 
     def __init__(self, position, weight, age):
         self.position = position
@@ -15,7 +22,7 @@ class Animal:
 class Herbivore(Animal):
     @classmethod
     def default_parameters(cls):
-        return {"birth": 8.0,
+        return {"w_birth": 8.0,
                 "sigma_birth": 1.5,
                 "beta": 0.9,
                 "eta": 0.05,
@@ -32,6 +39,7 @@ class Herbivore(Animal):
 
     def __init__(self, position, weight=None, age=0):
         super().__init__(position, weight, age)
+        self.parameters = self.default_parameters()
 
 class Carnivore(Animal):
     @classmethod
@@ -53,3 +61,4 @@ class Carnivore(Animal):
                 "DeltaPhiMax": 10.0}
     def __init__(self, position, weight=None, age=0):
         super().__init__(position, weight, age)
+        self.parameters = self.default_parameters()
