@@ -4,7 +4,7 @@ random.seed(1)
 
 class Animal:
     @classmethod
-    def set_parameters(cls, parameters=None):
+    def set_parameters(cls, new_parameters=None):
         """
         Set the parameters for a species.
         When calling the function, one can call it on both the subclass and the object, with the same result.
@@ -22,42 +22,49 @@ class Animal:
             If invalid parameters are passed.
         """
 
-        if parameters is None:
+        if new_parameters is None:
             return
 
         # Check if parameters are valid:
-        for key, val in parameters.items():
+        for key, val in new_parameters.items():
             if val < 0:
                 raise ValueError("Value for: {0} should be nonzero or positive.".format(key))
             if key == "DeltaPhiMax" and val <= 0:
                 raise ValueError("Value for: {0} should be positive.".format(key))
             if key == "eta" and val > 1:
                 raise ValueError("Value for: {0} should be less than or equal to 1.".format(key))
-        class_parameters = cls.default_parameters()
 
         # Update new parameters:
-        for key in parameters:
-            if key not in class_parameters:
+        for key, value in new_parameters.items():
+            if key not in cls.default_parameters():
                 raise ValueError("Invalid parameter: {0}".format(key))
-            class_parameters[key] = parameters[key]
-        cls.parameters = class_parameters
+            setattr(cls, key, value)
 
     @classmethod
     def get_parameters(cls):
-        """
-        Get the parameters for an animal.
-        """
-
-        try:
-            return cls.parameters
-        except:
-            return cls.default_parameters()
+        parameters = {"w_birth": cls.w_birth,
+                      "sigma_birth": cls.sigma_birth,
+                      "beta": cls.beta,
+                      "eta": cls.eta,
+                      "a_half": cls.a_half,
+                      "phi_age": cls.phi_age,
+                      "w_half": cls.w_half,
+                      "phi_weight": cls.phi_weight,
+                      "mu": cls.mu,
+                      "gamma": cls.gamma,
+                      "zeta": cls.zeta,
+                      "xi": cls.xi,
+                      "omega": cls.omega,
+                      "F": cls.F}
+        if cls is Carnivore:
+            parameters["DeltaPhiMax"] = cls.DeltaPhiMax
+        return parameters
 
     def __init__(self, position, weight, age):
         self.position = position
         self.a = age
         if not weight:
-            self.w = random.lognormvariate(self.get_parameters()["w_birth"], self.get_parameters()["sigma_birth"])
+            self.w = random.lognormvariate(self.w_birth, self.sigma_birth)
         else:
             self.w = weight
 
@@ -73,29 +80,29 @@ class Animal:
         Increments the weight of the animal by the factor beta and the amount of food eaten.
         """
 
-        self.w += self.get_parameters()["beta"] * food
+        self.w += self.beta * food
 
     def lose_weight(self):
         """
         Decrements the weight of the animal by the factor eta.
         """
 
-        self.w -= self.get_parameters()["eta"] * self.w
+        self.w -= self.eta * self.w
 
     def lose_weight_birth(self, baby_weight):
         """
         Decrements the weight of the animal by the factor xi and the weight of the baby.
         """
 
-        self.w -= self.get_parameters()["xi"] * baby_weight
+        self.w -= self.xi * baby_weight
 
     def baby_weight(self):
         """
         Calculates the weight of the baby.
         """
 
-        if random.random() < min(1, self.get_parameters()["gamma"] * self.fitness * 10): # BYTT "10" MED: "self.count_animals_cell()" COUNT ANIMAL CELL!):
-            return random.lognormvariate(self.get_parameters()["w_birth"], self.get_parameters()["sigma_birth"])
+        if random.random() < min(1, self.gamma * self.fitness * 10): # BYTT "10" MED: "self.count_animals_cell()" COUNT ANIMAL CELL!):
+            return random.lognormvariate(self.w_birth, self.sigma_birth)
 
     def give_birth(self, baby_weight):
         """
@@ -113,20 +120,12 @@ class Animal:
         Calculates the fitness of the animal.
         """
 
-        # Get parameters:
-        phi_age = self.get_parameters()["phi_age"]
-        phi_weight = self.get_parameters()["phi_weight"]
-        a_half = self.get_parameters()["a_half"]
-        w_half = self.get_parameters()["w_half"]
-
-        # Calculates parts of the fitness function:
-        qpos = (1 + exp(phi_age * (self.a - a_half)))**(-1)
-        qneg = (1 + exp(-phi_weight * (self.w - w_half)))**(-1)
-
         if self.w <= 0:
             return 0
-        else:
-            return qpos * qneg
+        # Calculates parts of the fitness function:
+        q_pos = (1 + exp(self.phi_age * (self.a - self.a_half))) ** (-1)
+        q_neg = (1 + exp(-self.phi_weight * (self.w - self.w_half))) ** (-1)
+        return q_pos * q_neg
 
 class Herbivore(Animal):
     @classmethod
@@ -151,6 +150,10 @@ class Herbivore(Animal):
                 "F": 10.0}
 
     def __init__(self, position, weight=None, age=0):
+        try:
+            self.set_parameters(Herbivore.get_parameters())
+        except:
+            self.set_parameters(Herbivore.default_parameters())
         super().__init__(position, weight, age)
 
         # Add to the cell.
@@ -179,6 +182,10 @@ class Carnivore(Animal):
                 "DeltaPhiMax": 10.0}
 
     def __init__(self, position, weight=None, age=0):
+        try:
+            self.set_parameters(Carnivore.get_parameters())
+        except:
+            self.set_parameters(Carnivore.default_parameters())
         super().__init__(position, weight, age)
 
         # Add to the cell.
