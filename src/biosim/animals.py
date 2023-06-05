@@ -17,7 +17,8 @@ class Animal:
 
     @property
     def fitness(self):
-        pass
+        phi_age = self.parameters["phi_age"] # osv. for å hente ut parametrene
+        self.fitness = phi_age * 2
 
 class Herbivore(Animal):
     @classmethod
