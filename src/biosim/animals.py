@@ -83,8 +83,27 @@ class Animal:
 
     @property
     def fitness(self):
-        phi_age = self.parameters["phi_age"] # osv. for å hente ut parametrene
-        self.fitness = phi_age * 2
+
+        #get parametres
+        phi_age = self.parameters["phi_age"]
+        phi_weight = self.parameters["phi_weight"]
+        a = self.parameters["a"]
+        a_half = self.parameters["a_half"]
+        w_half = self.parameters["w_half"]
+
+        def qpos(x,xhalf,phi):
+            return (1+exp(phi(x-xhalf)))**(-1)
+        def qneg(x,xhalf,phi):
+            return (1+exp(-phi(x-xhalf)))**(-1)
+
+        if self.weight<=0:
+            self.fitness=0
+        else:
+            self.fitness=qpos(a,a_half,phi_age)*qneg(w,w_half,phi_weight)
+
+
+
+
 
 class Herbivore(Animal):
     @classmethod
