@@ -1,12 +1,15 @@
+from math import exp
 import random
 random.seed(1)
-from math import exp
 
 class Animal:
     @classmethod
     def set_parameters(cls, parameters=None):
         """
-        Set the parameters for an animal.
+        Set the parameters for a species.
+        When calling the function, one can call it on both the subclass and the object, with the same result.
+            Subclass.set_parameters() or
+            Object.set_parameters()
 
         Parameters
         ----------
@@ -16,15 +19,26 @@ class Animal:
         Raises
         ------
         - ValueError
-            If invalid parameter values are passed.
+            If invalid parameters are passed.
         """
 
         if parameters is None:
             return
+
+        # Check if parameters are valid:
+        for key, val in parameters.items():
+            if val < 0:
+                raise ValueError("Value for: {0} should be nonzero or positive.".format(key))
+            if key == "DeltaPhiMax" and val <= 0:
+                raise ValueError("Value for: {0} should be positive.".format(key))
+            if key == "eta" and val > 1:
+                raise ValueError("Value for: {0} should be less than or equal to 1.".format(key))
         class_parameters = cls.default_parameters()
+
+        # Update new parameters:
         for key in parameters:
             if key not in class_parameters:
-                raise ValueError("Invalid parameter: {}".format(key))
+                raise ValueError("Invalid parameter: {0}".format(key))
             class_parameters[key] = parameters[key]
         cls.parameters = class_parameters
 
