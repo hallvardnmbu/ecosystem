@@ -37,10 +37,12 @@ check()
 
 print("Changing parameters")
 new_parameters_1 = {"w_birth": 100}
-new_parameters_2 = {"test": 50}
+# new_parameters_2 = {"DeltaPhiMax": 0}
 
 Thyra.set_parameters(parameters=new_parameters_1)
 Herbivore.set_parameters({"F": 100})
-# Hallvard.set_parameters(new_parameters_2) # Raises error.
+# Hallvard.set_parameters(new_parameters_2)
+# Carnivore.set_parameters({"feil": 100}) # Raises error
+# Carnivore.set_parameters({"DeltaPhiMax": 0}) # Raises error
 
 check()
