@@ -1,7 +1,9 @@
+# FIKSE:
+# Change random.lognormvariate with own function.
+# baby_weight: BYTT "10" MED: "self.count_animals_cell()" COUNT ANIMAL CELL!):
+
 from math import exp
 import random
-
-# Change random.lognormvariate with own function.
 
 class Animal:
     @classmethod
@@ -161,12 +163,6 @@ class Herbivore(Animal):
             self.set_parameters(Herbivore.default_parameters())
         super().__init__(weight, age)
 
-        @property
-        def unlivable_terrain(self):
-            """define unlibable terrain"""
-            return "W"
-        # Add to the cell.
-
 class Carnivore(Animal):
     @classmethod
     def default_parameters(cls):
@@ -198,13 +194,11 @@ class Carnivore(Animal):
             self.set_parameters(Carnivore.default_parameters())
         super().__init__(weight, age)
 
-    @property
-    def unlivable_terrain(self):
-        """define unlibable terrain"""
-        return "W"
-
-
-        # Add to the cell.
+if __name__ == "__main__":
+    Thyra = Herbivore(weight=10, age=10)
+    Hallvard = Carnivore(weight=10, age=10)
+    # Herbivore.count
+    # Carnivore.count
 
 # I morgen:
 #
