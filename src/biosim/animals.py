@@ -1,6 +1,9 @@
 # FIKSE:
 # Change random.lognormvariate with own function.
-# baby_weight: BYTT "10" MED: "self.count_animals_cell()" COUNT ANIMAL CELL!):
+# baby_weight: BYTT "10" MED: "self.count_animals_cell()" COUNT ANIMAL CELL!)
+# (Endre til relative imports "."? Hvis vi bruker noen andre filer?)
+
+
 
 from math import exp
 import random
@@ -193,17 +196,3 @@ class Carnivore(Animal):
         except:
             self.set_parameters(Carnivore.default_parameters())
         super().__init__(weight, age)
-
-if __name__ == "__main__":
-    Thyra = Herbivore(weight=10, age=10)
-    Hallvard = Carnivore(weight=10, age=10)
-    # Herbivore.count
-    # Carnivore.count
-
-# I morgen:
-#
-# Lage cellene.
-#   - Gjør at hvert dyr som blir laget blir plassert i cellen osv.
-#
-# Lage en funksjon som teller antall dyr i en celle.
-#   - I "baby_weight": endre "10" med "self.count_animals_cell()" (eller tilsvarende).

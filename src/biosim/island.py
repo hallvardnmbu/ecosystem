@@ -1,6 +1,8 @@
 # FIKSE:
 # n_animals: Lage de FIRE forskjellige om til én funksjon.
 # Endre til relative imports "."
+# Lage metode som flytter dyr mellom celler.
+# Lage metode som fjerner dyr (ved død).
 
 
 import textwrap
@@ -234,19 +236,6 @@ class Cell(Island):
             self.animals["Herbivores"].append(Herbivore(age=age, weight=weight))
         else:
             self.animals["Carnivores"].append(Carnivore(age=age, weight=weight))
-
-    # class Cell:
-    # {Herbivores: [], Carnivores: []}
-    # ini_herbs = [{’loc’: (10, 10),
-    # ’pop’: [{’species’: ’Herbivore’, ’age’: 5, ’weight’: 20} for _ in range(150)]}
-    # __init__ ^
-    # Get older
-    # Lose weight
-    # etc.
-
-    # Die
-    # Loop over elements in lists in dict,
-    # remove dead animals from list(s)
 
 if __name__ == "__main__":
     geogr = """\
