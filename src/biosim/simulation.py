@@ -9,6 +9,10 @@ Template for BioSim class.
 from .island import Island
 # RELATIVE IMPORTS
 
+import random
+
+random.seed(1)
+
 class BioSim:
     """
     Top-level interface to BioSim package.

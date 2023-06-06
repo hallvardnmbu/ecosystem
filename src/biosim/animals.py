@@ -1,6 +1,5 @@
 from math import exp
 import random
-random.seed(1)
 
 class Animal:
     @classmethod
