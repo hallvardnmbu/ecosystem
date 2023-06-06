@@ -10,39 +10,30 @@ class Island:
         random.seed(seed)
         self.geography = geography
         self.terrain, self.coordinates = self.terraform()
+        self.add_population(population=ini_pop)
 
-    def add_population(self, ini_pop):
+    def add_population(self, population):
         """
         Adds a population to the island.
 
         Parameters
         ----------
-        - ini_pop: list of dictionaries.
+        - population: list of dictionaries.
             [{"loc": (x, y), "pop": [{"species": val, "age": val, "weight": val}]}]
         """
 
-        for animals in ini_pop:
+        for animals in population:
             location = (animals["loc"][0]-1, animals["loc"][1]-1) # Convert to 0-indexing.
             if location not in self.coordinates:
                 raise ValueError("Invalid location: {0}".format(location))
             for animal in animals["pop"]:
-                Cell(coordinates=location,
-                     species=animal["species"],
-                     age=animal["age"],
-                     weight=animal["weight"])
-
-    # class Cell:
-    # {Herbivores: [], Carnivores: []}
-# ini_herbs = [{’loc’: (10, 10),
-            # ’pop’: [{’species’: ’Herbivore’, ’age’: 5, ’weight’: 20} for _ in range(150)]}
-    # __init__ ^
-    # Get older
-    # Lose weight
-    # etc.
-
-    # Die
-    # Loop over elements in lists in dict,
-    # remove dead animals from list(s)
+                try:
+                    Cell(coordinates=location,
+                         species=animal["species"],
+                         age=animal["age"],
+                         weight=animal["weight"])
+                except:
+                    raise ValueError("Error in adding animal: {0}".format(animal))
 
     def terraform(self, visualise=False, colours=None):
         """
@@ -149,11 +140,29 @@ class Island:
         return terrain, coordinates
 
 class Cell(Island):
+
+    animals = {"Herbivores": [], "Carnivores": []}
+
     def __init__(self, coordinates, species, age=0, weight=None):
         self.coordinates = coordinates
-        self.species = species
-        self.age = age
-        self.weight = weight
+
+        if species == "Herbivore":
+            animals["Herbivores"].append(Herbivore(age=age, weight=weight))
+        else:
+            animal["Carnivores"].append(Carnivore(age=age, weight=weight))
+
+    # class Cell:
+    # {Herbivores: [], Carnivores: []}
+    # ini_herbs = [{’loc’: (10, 10),
+    # ’pop’: [{’species’: ’Herbivore’, ’age’: 5, ’weight’: 20} for _ in range(150)]}
+    # __init__ ^
+    # Get older
+    # Lose weight
+    # etc.
+
+    # Die
+    # Loop over elements in lists in dict,
+    # remove dead animals from list(s)
 
 geogr = """\
                WWWWWWWWWWWWWWWWWWWWW
