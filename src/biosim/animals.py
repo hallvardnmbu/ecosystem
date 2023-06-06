@@ -1,7 +1,7 @@
 from math import exp
 import random
 
-# Is lognormvariate wrong?
+# Change random.lognormvariate with own function.
 
 class Animal:
     @classmethod

@@ -203,7 +203,7 @@ if __name__ == "__main__":
     a = Island(geogr)
 
     new_animals = [{"loc": (2, 2),
-                    "pop": [{"species": "Herbivore", "age": 5, "weight": 20}]}]
+                    "pop": [{"species": "Herbivore"}]}]
     a.add_population(new_animals)
 
-    print(a.cells[1][1].animals["Herbivores"][0].a)
+    print(a.cells[1][1].animals["Herbivores"][0].w)
