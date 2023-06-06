@@ -16,6 +16,15 @@ class Island:
         # Runs add_population if ini_pop is not None:
         self.add_population(population=ini_pop) if ini_pop is not None else None
 
+    @property
+    def terrain_condition(self, location):
+        terrain =self.terrain[location[0]-1][location[1]-1] # -1 because of indexing in our map to python indexing
+        if terrain == self.unlivable_terrain:
+            print(f"Location {location} is unlivable terrain for animal")
+            return True
+        return False
+
+
     def add_population(self, population):
         """
         Adds a population to the island.
@@ -25,15 +34,18 @@ class Island:
         - population: list of dictionaries.
             [{"loc": (x, y), "pop": [{"species": val, "age": val, "weight": val}]}]
         """
+        if self.terrain_condition:  # Checks if the terrain is unlivable
+            return
 
         for animals in population:
             location = animals["loc"]
             if location not in self.coordinates:
                 raise ValueError("Invalid location: {0}".format(location))
-
-            # Check if location is "W" here.
-
             for animal in animals["pop"]:
+                if "age" not in animals.keys():
+                    animal["age"] = None
+                if "weight" not in animals.keys():
+                    animal["weight"] = None
                 try:
                     self.add_animal(species=animal["species"],
                                     age=animal["age"],
