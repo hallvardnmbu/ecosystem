@@ -3,7 +3,7 @@ import random
 
 class Animal:
     @classmethod
-    def set_parameters(cls, new_parameters=None):
+    def set_parameters(cls, new_parameters):
         """
         Set the parameters for a species.
         When calling the function, one can call it on both the subclass and the object, with the same result.
@@ -20,9 +20,6 @@ class Animal:
         - ValueError
             If invalid parameters are passed.
         """
-
-        if new_parameters is None:
-            return
 
         # Check if parameters are valid:
         for key, val in new_parameters.items():
@@ -68,11 +65,9 @@ class Animal:
         return parameters
 
     def __init__(self, weight, age):
-        self.a = age
-        if not weight:
-            self.w = random.lognormvariate(self.w_birth, self.sigma_birth)
-        else:
-            self.w = weight
+        self.a = age if age is not None else 0
+        self.weight = weight if weight is not None else random.lognormvariate(self.w_birth,
+                                                                              self.sigma_birth)
 
     def aging(self):
         """
@@ -155,7 +150,7 @@ class Herbivore(Animal):
                 "omega": 0.4,
                 "F": 10.0}
 
-    def __init__(self, weight=None, age=0):
+    def __init__(self, age=None, weight=None):
         try:
             self.set_parameters(Herbivore.get_parameters())
         except:
@@ -187,7 +182,7 @@ class Carnivore(Animal):
                 "F": 50.0,
                 "DeltaPhiMax": 10.0}
 
-    def __init__(self, weight=None, age=0):
+    def __init__(self, age=None, weight=None):
         try:
             self.set_parameters(Carnivore.get_parameters())
         except:

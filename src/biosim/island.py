@@ -11,8 +11,9 @@ class Island:
     def __init__(self, geography, ini_pop=None):
         self.geography = geography
         self.terrain, self.coordinates = self.terraform()
-        if ini_pop:
-            self.add_population(population=ini_pop)
+
+        # Runs add_population if ini_pop is not None:
+        self.add_population(population=ini_pop) if ini_pop is not None else None
 
     def add_population(self, population):
         """
@@ -159,7 +160,7 @@ class Cell(Island):
         self.coordinate = coordinate
         self.animals = {"Herbivores": [], "Carnivores": []}
 
-    def add_animal(self, species, age=0, weight=None):
+    def add_animal(self, species, age=None, weight=None):
         if species == "Herbivore":
             self.animals["Herbivores"].append(Herbivore(age=age, weight=weight))
         else:
