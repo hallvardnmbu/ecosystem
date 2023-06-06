@@ -6,10 +6,18 @@ Template for BioSim class.
 # https://opensource.org/licenses/BSD-3-Clause
 # (C) Copyright 2023 Hans Ekkehard Plesser / NMBU
 
-from .island import Island
-# RELATIVE IMPORTS
+
+
+# FIKSE
+# Relative imports "."
+# Annual cycle
+
+
 
 import random
+
+from src.biosim.island import Island
+from src.biosim.animals import Herbivore, Carnivore
 
 class BioSim:
     """
@@ -83,6 +91,18 @@ class BioSim:
 
         random.seed(seed)
 
+        self.island = Island(geography=island_map, ini_pop=ini_pop)
+
+        self.vis_years = vis_years
+        self.ymax_animals = ymax_animals
+        self.cmax_animals = cmax_animals
+        self.hist_specs = hist_specs
+        self.img_years = img_years
+        self.img_dir = img_dir
+        self.img_base = img_base
+        self.img_fmt = img_fmt
+        self.log_file = log_file
+
     def set_animal_parameters(self, species, params):
         """
         Set parameters for animal species.
@@ -99,6 +119,13 @@ class BioSim:
         ValueError
             If invalid parameter values are passed.
         """
+
+        if species == "Herbivore":
+            Herbivore.set_parameters(params)
+        elif species == "Carnivore":
+            Carnivore.set_parameters(params)
+        else:
+            raise ValueError("Invalid species name")
 
     def set_landscape_parameters(self, landscape, params):
         """
@@ -137,6 +164,8 @@ class BioSim:
             See BioSim Task Description, Sec 3.3.3 for details.
         """
 
+        self.island.add_population(population)
+
     @property
     def year(self):
         """Last year simulated."""
@@ -145,9 +174,34 @@ class BioSim:
     def num_animals(self):
         """Total number of animals on island."""
 
+        return self.island.n_animals["Herbivores"] + self.island.n_animals["Carnivores"]
+
     @property
     def num_animals_per_species(self):
         """Number of animals per species in island, as dictionary."""
 
+        return self.island.n_animals
+
     def make_movie(self):
         """Create MPEG4 movie from visualization images saved."""
+
+if __name__ == "__main__":
+    geogr = """\
+                   WWWWWWWWWWWWWWWWWWWWW
+                   WHWWWWWWHWWWWLLLLLLLW
+                   WHHHHHLLLLWWLLLLLLLWW
+                   WHHHHHHHHHWWLLLLLLWWW
+                   WHHHHHLLLLLLLLLLLLWWW
+                   WHHHHHLLLDDLLLHLLLWWW
+                   WHHLLLLLDDDLLLHHHHWWW
+                   WWHHHHLLLDDLLLHWWWWWW
+                   WHHHLLLLLDDLLLLLLLWWW
+                   WHHHHLLLLDDLLLLWWWWWW
+                   WWHHHHLLLLLLLLWWWWWWW
+                   WWWHHHHLLLLLLLWWWWWWW
+                   WWWWWWWWWWWWWWWWWWWWW"""
+
+    new_animals = [{"loc": (2, 2),
+                    "pop": [{"species": "Herbivore"}]}]
+
+    b = BioSim(island_map=geogr, ini_pop=new_animals, seed=1)
