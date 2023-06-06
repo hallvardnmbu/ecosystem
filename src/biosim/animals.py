@@ -98,31 +98,6 @@ class Animal:
 
         self.w -= self.eta * self.w
 
-    def lose_weight_birth(self, baby_weight):
-        """
-        Decrements the weight of the animal by the factor xi and the weight of the baby.
-        """
-
-        self.w -= self.xi * baby_weight
-
-    def baby_weight(self):
-        """
-        Calculates the weight of the baby.
-        """
-
-        if random.random() < min(1, self.gamma * self.fitness * 10): # BYTT "10" MED: "self.count_animals_cell()" COUNT ANIMAL CELL!):
-            return random.lognormvariate(self.w_birth, self.sigma_birth)
-
-    def give_birth(self, baby_weight):
-        """
-        Creates a new animal with the given weight at the same position as the parent.
-        """
-
-        if baby_weight > self.w:
-            return
-        self.lose_weight_birth(baby_weight)
-        self.__class__(weight=baby_weight)
-
     @property
     def fitness(self):
         """
@@ -166,6 +141,10 @@ class Herbivore(Animal):
             self.set_parameters(Herbivore.default_parameters())
         super().__init__(weight, age)
 
+    @property
+    def species(self):
+        return "Herbivore"
+
 class Carnivore(Animal):
     @classmethod
     def default_parameters(cls):
@@ -196,3 +175,7 @@ class Carnivore(Animal):
         except:
             self.set_parameters(Carnivore.default_parameters())
         super().__init__(weight, age)
+
+    @property
+    def species(self):
+        return "Carnivore"
