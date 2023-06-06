@@ -3,13 +3,33 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import random
 
 class Island:
     def __init__(self, geography, ini_pop=None, seed=None):
+        random.seed(seed)
         self.geography = geography
-        self.terrain = self.terraform()
-        self.ini_pop = ini_pop
-        self.seed = seed
+        self.terrain, self.coordinates = self.terraform()
+
+    def add_population(self, ini_pop):
+        """
+        Adds a population to the island.
+
+        Parameters
+        ----------
+        - ini_pop: list of dictionaries.
+            [{"loc": (x, y), "pop": [{"species": val, "age": val, "weight": val}]}]
+        """
+
+        for animals in ini_pop:
+            location = (animals["loc"][0]-1, animals["loc"][1]-1) # Convert to 0-indexing.
+            if location not in self.coordinates:
+                raise ValueError("Invalid location: {0}".format(location))
+            for animal in animals["pop"]:
+                Cell(coordinates=location,
+                     species=animal["species"],
+                     age=animal["age"],
+                     weight=animal["weight"])
 
     # class Cell:
     # {Herbivores: [], Carnivores: []}
@@ -51,6 +71,8 @@ class Island:
         -------
         - terrain: nested list
             A nested list representing the terrain of the island.
+        - coordinates: nested list
+            A nested list representing the coordinates of the island.
         """
 
         island = textwrap.dedent(self.geography)
@@ -76,6 +98,14 @@ class Island:
             for j in range(Y):
                 if terrain[i][j] not in ["W", "L", "H", "D"]:
                     raise ValueError("Cell {0} contains an invalid letter ({1}).".format((i, j), terrain[i][j]))
+
+        # Creates the coordinate map:
+        coordinates = []
+        for i in range(X):
+            row = []
+            for j in range(Y):
+                row.append((i, j))
+            coordinates.append(row)
 
         # Visualise the map:
         if visualise:
@@ -116,21 +146,28 @@ class Island:
 
             plt.show()
 
-        return terrain
+        return terrain, coordinates
+
+class Cell(Island):
+    def __init__(self, coordinates, species, age=0, weight=None):
+        self.coordinates = coordinates
+        self.species = species
+        self.age = age
+        self.weight = weight
 
 geogr = """\
-           WWWWWWWWWWWWWWWWWWWWW
-           WWWWWWWWHWWWWLLLLLLLW
-           WHHHHHLLLLWWLLLLLLLWW
-           WHHHHHHHHHWWLLLLLLWWW
-           WHHHHHLLLLLLLLLLLLWWW
-           WHHHHHLLLDDLLLHLLLWWW
-           WHHLLLLLDDDLLLHHHHWWW
-           WWHHHHLLLDDLLLHWWWWWW
-           WHHHLLLLLDDLLLLLLLWWW
-           WHHHHLLLLDDLLLLWWWWWW
-           WWHHHHLLLLLLLLWWWWWWW
-           WWWHHHHLLLLLLLWWWWWWW
-           WWWWWWWWWWWWWWWWWWWWW"""
+               WWWWWWWWWWWWWWWWWWWWW
+               WWWWWWWWHWWWWLLLLLLLW
+               WHHHHHLLLLWWLLLLLLLWW
+               WHHHHHHHHHWWLLLLLLWWW
+               WHHHHHLLLLLLLLLLLLWWW
+               WHHHHHLLLDDLLLHLLLWWW
+               WHHLLLLLDDDLLLHHHHWWW
+               WWHHHHLLLDDLLLHWWWWWW
+               WHHHLLLLLDDLLLLLLLWWW
+               WHHHHLLLLDDLLLLWWWWWW
+               WWHHHHLLLLLLLLWWWWWWW
+               WWWHHHHLLLLLLLWWWWWWW
+               WWWWWWWWWWWWWWWWWWWWW"""
 
-Island(geography=geogr).terraform(visualise=True)
+a = Island(geogr)
