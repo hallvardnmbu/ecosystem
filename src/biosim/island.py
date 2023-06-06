@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import random
 
+from src.biosim.animals import Herbivore, Carnivore # Endre til relative imports "."
+
 class Island:
     def __init__(self, geography, ini_pop=None, seed=None):
         random.seed(seed)
@@ -24,17 +26,20 @@ class Island:
         """
 
         for animals in population:
-            if animals["loc"] not in self.coordinates:
-                raise ValueError("Invalid location: {0}".format(animals["loc"]))
+            location = animals["loc"]
+            if location not in self.coordinates:
+                raise ValueError("Invalid location: {0}".format(location))
 
             # Check if location is "W" here.
 
             for animal in animals["pop"]:
                 try:
-                    Cell(coordinates=location,
-                         species=animal["species"],
-                         age=animal["age"],
-                         weight=animal["weight"])
+                    self.add_animal(species=animal["species"],
+                                    age=animal["age"],
+                                    weight=animal["weight"])
+
+                    # Her sliter jeg. Jeg vil legge til animals i den rette cellen. Hvordan gjør jeg det?
+
                 except:
                     raise ValueError("Error in adding animal: {0}".format(animal))
 
@@ -94,6 +99,7 @@ class Island:
         coordinates = []
         for i in range(X):
             for j in range(Y):
+                Cell(coordinate=(i+1, j+1))
                 coordinates.append((i+1, j+1))
 
         return terrain, coordinates
@@ -150,15 +156,15 @@ class Island:
 
 class Cell(Island):
 
-    animals = {"Herbivores": [], "Carnivores": []}
+    def __init__(self, coordinate):
+        self.coordinate = coordinate
+        self.animals = {"Herbivores": [], "Carnivores": []}
 
-    def __init__(self, coordinates, species, age=0, weight=None):
-        self.coordinates = coordinates
-
+    def add_animal(self, species, age=0, weight=None):
         if species == "Herbivore":
-            animals["Herbivores"].append(Herbivore(age=age, weight=weight))
+            self.animals["Herbivores"].append(Herbivore(age=age, weight=weight))
         else:
-            animal["Carnivores"].append(Carnivore(age=age, weight=weight))
+            self.animals["Carnivores"].append(Carnivore(age=age, weight=weight))
 
     # class Cell:
     # {Herbivores: [], Carnivores: []}
