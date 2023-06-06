@@ -1,3 +1,8 @@
+# FIKSE:
+# n_animals: Lage de FIRE forskjellige om til én funksjon.
+# Endre til relative imports "."
+
+
 import textwrap
 import numpy as np
 import pandas as pd
@@ -5,7 +10,6 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import random
 
-# Endre til relative imports "."
 from src.biosim.animals import Herbivore, Carnivore
 
 class Island:
@@ -45,6 +49,66 @@ class Island:
 
                 except:
                     raise ValueError("Error in adding animal: {0}".format(animal))
+
+    def n_herbivores(self):
+        """
+        Counts the number of animals on the island.
+
+        Returns
+        -------
+        - n_herbivores: int
+        """
+
+        n_herbivores = 0
+        for cells in self.cells:
+            for cell in cells:
+                n_herbivores += len(cell.animals["Herbivores"])
+        return n_herbivores
+
+    def n_herbivores_cell(self, position):
+        """
+        Counts the number of herbivores in the cell.
+
+        Parameters
+        ----------
+        - position: tuple
+
+        Returns
+        -------
+        - n_herbivores_cell: int
+        """
+
+        return len(self.cells[position[0]-1][position[1]-1].animals["Herbivores"])
+
+    def n_carnivores(self):
+        """
+        Counts the number of animals on the island.
+
+        Returns
+        -------
+        - n_carnivores: int
+        """
+
+        n_carnivores = 0
+        for cells in self.cells:
+            for cell in cells:
+                n_carnivores += len(cell.animals["Carnivores"])
+        return n_carnivores
+
+    def n_carnivores_cell(self, position):
+        """
+        Counts the number of carnivores in the cell.
+
+        Parameters
+        ----------
+        - position: tuple
+
+        Returns
+        -------
+        - n_carnivores_cell: int
+        """
+
+        return len(self.cells[position[0]-1][position[1]-1].animals["Carnivores"])
 
     def terraform(self):
         """
