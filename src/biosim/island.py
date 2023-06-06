@@ -8,8 +8,7 @@ import random
 from src.biosim.animals import Herbivore, Carnivore # Endre til relative imports "."
 
 class Island:
-    def __init__(self, geography, ini_pop=None, seed=None):
-        random.seed(seed)
+    def __init__(self, geography, ini_pop=None):
         self.geography = geography
         self.terrain, self.coordinates = self.terraform()
         if ini_pop:
