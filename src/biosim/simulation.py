@@ -11,8 +11,6 @@ from .island import Island
 
 import random
 
-random.seed(1)
-
 class BioSim:
     """
     Top-level interface to BioSim package.
@@ -82,6 +80,8 @@ class BioSim:
 
         - `img_dir` and `img_base` must either be both None or both strings.
         """
+
+        random.seed(seed)
 
     def set_animal_parameters(self, species, params):
         """
