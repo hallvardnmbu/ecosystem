@@ -64,12 +64,14 @@ def test_fitness(animals):
         assert animal.fitness == fitness, f"Fitness for {type(animal).__name__} did not match the formulas."
 
 def test_set_parameters(animals):
+    """Tests that the parameters are set correctly."""
     for animal in animals:
         new_parameters = {"eta": 0.1}
         animal.set_parameters(new_parameters)
         assert animal.eta == 0.1, f"Parameter eta for {type(animal).__name__} was not set correctly."
 
 def test_get_parameters(animals):
+    """Tests that the parameters are retrieved correctly."""
     for animal in animals:
         parameters = animal.get_parameters()
         assert parameters["eta"] == animal.eta, f"Parameter eta for {type(animal).__name__} was not retrieved correctly."
