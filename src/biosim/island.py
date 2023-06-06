@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import random
 
-from src.biosim.animals import Herbivore, Carnivore # Endre til relative imports "."
+# Endre til relative imports "."
+from src.biosim.animals import Herbivore, Carnivore
 
 class Island:
     def __init__(self, geography, ini_pop=None):
