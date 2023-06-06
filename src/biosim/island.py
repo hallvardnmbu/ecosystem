@@ -3,6 +3,9 @@
 # Lage metode som flytter dyr mellom celler.
 # Lage metode som fjerner dyr (ved død).
 # Annual cycle
+# I annual cycle methods: sorter animals først i alle.
+# lognormvariate: bruk egen funksjon. [i procreate()]
+
 
 
 import textwrap
@@ -111,6 +114,11 @@ class Island:
         X = len(terrain)
         Y = len(terrain[0])
 
+        # Checks whether the map is rectangular:
+        for i in range(X):
+            if len(terrain[i]) != Y:
+                raise ValueError("The map must be rectangular.")
+
         # Checks whether the edges are "W" (Water):
         for i in range(X):
             if terrain[i][0] != "W" or terrain[i][Y-1] != "W":
@@ -118,11 +126,6 @@ class Island:
         for j in range(Y):
             if terrain[0][j] != "W" or terrain[X-1][j] != "W":
                 raise ValueError("The edges of the map must be 'W' (Water).")
-
-        # Checks whether the map is rectangular:
-        for i in range(X):
-            if len(terrain[i]) != Y:
-                raise ValueError("The map must be rectangular.")
 
         # Checks whether the map contains only valid characters:
         for i in range(X):
@@ -194,7 +197,77 @@ class Island:
 
         plt.show()
 
-class Cell(Island):
+    def procreate(self):
+        """
+        Iterates through all the animals on the island.
+        An animal gives birth to a baby if the following conditions are met:
+        - A probability of min(1, gamma * fitness * N).
+        - The baby's weight is less than the parent's weight.
+        If a baby is born, it is added to the cell of the parent.
+        """
+
+        N = self.n_animals
+        for cells in self.cells:
+            for cell in cells:
+                if cell.animals["Herbivores"] or cell.animals["Carnivores"]:
+                    for animal in cell.animals["Herbivores"] + cell.animals["Carnivores"]:
+                        if random.random > min(1, animal.gamma * animal.fitness * N):
+                            return
+                        baby_weight = random.lognormvariate(animal.w_birth, animal.sigma_birth)
+                        if baby_weight > animal.w:
+                            return
+                        cell.add_animal(species=animal.species, age=0, weight=baby_weight)
+
+    def feed(self):
+        for cells in self.cells:
+            for cell in cells:
+                if cell.animals["Herbivores"] or cell.animals["Carnivores"]:
+                    cell.reset_fodder()
+                    for herbivore in cell.animals["Herbivores"]:
+                        pass
+                    for carnivore in cell.animals["Carnivores"]:
+                        pass
+
+    def migrate(self):
+        pass
+
+    def aging(self):
+        pass
+
+    def weight_loss(self):
+        pass
+
+    def death(self):
+        pass
+
+    def yearly_cycle(self):
+        # All animals undergo steps simultaneously.
+
+        # 1. Procreation
+
+        self.procreate()
+
+        # 2. Feeding
+
+        self.feed()
+
+        # 3. Migration
+
+        self.migrate()
+
+        # 4. Aging
+
+        self.aging()
+
+        # 5. Weight loss
+
+        self.weight_loss()
+
+        # 6. Death
+
+        self.death()
+
+class Cell:
 
     def __init__(self):
         self.animals = {"Herbivores": [], "Carnivores": []}
@@ -225,6 +298,13 @@ class Cell(Island):
         else:
             self.animals["Carnivores"].append(Carnivore(age=age, weight=weight))
 
+    def reset_fodder(self):
+        """
+        Resets the amount of fodder in the cell.
+        """
+
+        self.fodder = 0
+
 if __name__ == "__main__":
     geogr = """\
                    WWWWWWWWWWWWWWWWWWWWW
@@ -251,7 +331,7 @@ if __name__ == "__main__":
 
     print(a.n_animals)
 
-    new_animal = [{"loc": (1, 1),
+    new_animal = [{"loc": (2, 2),
                     "pop": [{"species": "Herbivore"}]}]
     a.add_population(new_animal)
     print(a.n_animals)
