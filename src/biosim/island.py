@@ -5,6 +5,7 @@
 # Annual cycle
 # I annual cycle methods: sorter animals først i alle.
 # lognormvariate: bruk egen funksjon. [i procreate()]
+# Cell reset fodder.
 
 
 
