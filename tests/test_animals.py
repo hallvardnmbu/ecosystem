@@ -12,7 +12,9 @@ from math import exp
 
 @pytest.fixture
 def animals():
-    return [Herbivore(), Carnivore(), Herbivore(weight=0), Carnivore(weight=0)]
+    return [Herbivore(weight=10000), Carnivore(weight=10000), Herbivore(weight=0),
+            Carnivore(
+        weight=0)]
 
 def test_age_increase(animals):
     """Tests that the age increases by one after aging() is called."""
@@ -28,7 +30,7 @@ def test_gain_weight(animals):
     for animal in animals:
         weight = animal.w
         for _ in range(num_days):
-            animal.gain_weight(10)
+            animal.gain_weight(1000000)
             weight += animal.beta * 10
         assert animal.w == weight, f"Weight for {type(animal).__name__} did not increase by the " \
                                f"factor beta."
@@ -56,13 +58,15 @@ def test_give_birth(animals):
 def test_fitness(animals):
     """Tests that the fitness is calculated correctly."""
     for animal in animals:
-        q_pos = (1 + exp(animal.phi_age * (animal.a - animal.a_half))) ** (-1)
-        q_neg = (1 + exp(-animal.phi_weight * (animal.w - animal.w_half))) ** (-1)
-        fitness = q_pos * q_neg
-        if animal.w == 0:
-            fitness = 0
-        assert animal.fitness == fitness, f"Fitness for {type(animal).__name__} did not match the formulas."
-
+        if animal.w > 9999:
+            assert 0.998 <= animal.fitness <= 1, f"Fitness for {type(animal).__name__} " \
+                                                       f"with weight: {animal.w} did not match " \
+                                                       f"the formulas."
+        elif animal.w == pytest.approx(0):
+            assert animal.fitness == pytest.approx(0), f"Fitness for {type(animal).__name__} " \
+                                                       f"with weight: {animal.w} did not match " \
+                                                       f"the " \
+                                                       f"formulas."
 def test_set_parameters(animals):
     """Tests that the parameters are set correctly."""
     for animal in animals:

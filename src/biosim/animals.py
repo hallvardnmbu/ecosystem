@@ -1,6 +1,8 @@
 from math import exp
 import random
 
+# Is lognormvariate wrong?
+
 class Animal:
     @classmethod
     def set_parameters(cls, new_parameters):
