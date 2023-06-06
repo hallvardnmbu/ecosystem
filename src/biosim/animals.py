@@ -59,8 +59,8 @@ class Animal:
                       "zeta": cls.zeta,
                       "xi": cls.xi,
                       "omega": cls.omega,
-                      "F": cls.F,
-                      "unlivable_terrain": cls.unlivable_terrain}
+                      "F": cls.F
+                        }
         if cls is Carnivore:
             parameters["DeltaPhiMax"] = cls.DeltaPhiMax
         return parameters
@@ -149,8 +149,8 @@ class Herbivore(Animal):
                 "zeta": 3.5,
                 "xi": 1.2,
                 "omega": 0.4,
-                "F": 10.0,
-                "unlivable_terrain":"W"}
+                "F": 10.0
+                }
 
     def __init__(self, age=None, weight=None):
         try:
@@ -159,6 +159,10 @@ class Herbivore(Animal):
             self.set_parameters(Herbivore.default_parameters())
         super().__init__(weight, age)
 
+        @property
+        def unlivable_terrain(self):
+            """define unlibable terrain"""
+            return "W"
         # Add to the cell.
 
 class Carnivore(Animal):
@@ -182,8 +186,8 @@ class Carnivore(Animal):
                 "xi": 1.1,
                 "omega": 0.8,
                 "F": 50.0,
-                "DeltaPhiMax": 10.0,
-                "unlivable_terrain": "W"}
+                "DeltaPhiMax": 10.0
+                }
 
     def __init__(self, age=None, weight=None):
         try:
@@ -191,6 +195,12 @@ class Carnivore(Animal):
         except:
             self.set_parameters(Carnivore.default_parameters())
         super().__init__(weight, age)
+
+    @property
+    def unlivable_terrain(self):
+        """define unlibable terrain"""
+        return "W"
+
 
         # Add to the cell.
 
