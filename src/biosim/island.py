@@ -41,7 +41,7 @@ class Island:
             location = animals["loc"]
             if location not in self.coordinates:
                 raise ValueError("Invalid location: {0}".format(location))
-            for animal in animals["pop"]:
+            for animal in animals["pop"]: #if weight or agenot specified, added to dictionary with value None
                 if "age" not in animals.keys():
                     animal["age"] = None
                 if "weight" not in animals.keys():
