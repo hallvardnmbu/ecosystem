@@ -67,7 +67,7 @@ class Animal:
 
     def __init__(self, weight, age):
         self.a = age if age is not None else 0
-        self.weight = weight if weight is not None else random.lognormvariate(self.w_birth,
+        self.w = weight if weight is not None else random.lognormvariate(self.w_birth,
                                                                               self.sigma_birth)
 
     def aging(self):
