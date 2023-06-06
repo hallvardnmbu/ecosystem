@@ -3,6 +3,7 @@
 # Endre til relative imports "."
 # Lage metode som flytter dyr mellom celler.
 # Lage metode som fjerner dyr (ved død).
+# Annual cycle
 
 
 import textwrap

@@ -6,10 +6,17 @@ Template for BioSim class.
 # https://opensource.org/licenses/BSD-3-Clause
 # (C) Copyright 2023 Hans Ekkehard Plesser / NMBU
 
-from .island import Island
-# RELATIVE IMPORTS
+
+
+# FIKSE
+# Relative imports "."
+# Annual cycle
+
+
 
 import random
+
+from src.biosim.island import Island
 
 class BioSim:
     """
