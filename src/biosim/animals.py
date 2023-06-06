@@ -183,7 +183,7 @@ class Carnivore(Animal):
                 "omega": 0.8,
                 "F": 50.0,
                 "DeltaPhiMax": 10.0,
-                "unlivable_terrain"="W"}
+                "unlivable_terrain"= "W"}
 
     def __init__(self, age=None, weight=None):
         try:
