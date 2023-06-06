@@ -1,5 +1,4 @@
 # FIKSE:
-# n_animals: Lage de FIRE forskjellige om til én funksjon.
 # Endre til relative imports "."
 # Lage metode som flytter dyr mellom celler.
 # Lage metode som fjerner dyr (ved død).
@@ -31,14 +30,23 @@ class Island:
         ----------
         - population: list of dictionaries.
             [{"loc": (x, y), "pop": [{"species": val, "age": val, "weight": val}]}]
+
+        Raises
+        ------
+        - ValueError
+            If the location is not on the map.
+            If the location is in Water ("W").
+            If the animal is invalid.
         """
 
         for animals in population:
             location = animals["loc"]
             if location not in self.coordinates:
                 raise ValueError("Invalid location: {0}".format(location))
-            for animal in animals["pop"]: #if weight or age not specified, added to dictionary
-                # with value None
+            if self.terrain[location[0]-1][location[1]-1] == "W":
+                raise ValueError("Animals cannot be placed in water (location: {0}).".format(
+                    location))
+            for animal in animals["pop"]:
                 if "age" not in animal:
                     animal["age"] = None
                 if "weight" not in animal:
@@ -48,70 +56,26 @@ class Island:
                                                                         age=animal["age"],
                                                                         weight=animal["weight"])
 
-                    # Her sliter jeg. Jeg vil legge til animals i den rette cellen. Hvordan gjør jeg det?
-
                 except:
-                    raise ValueError("Error in adding animal: {0}".format(animal))
+                    raise ValueError("Error when adding: {0}".format(animal))
 
-    def n_herbivores(self):
+    @property
+    def n_animals(self):
         """
         Counts the number of animals on the island.
 
         Returns
         -------
-        - n_herbivores: int
+        - n_herbivores: dictionary
+            {"Herbivores": n_herbivores, "Carnivores": n_carnivores}
         """
 
-        n_herbivores = 0
+        n_animals = {"Herbivores": 0, "Carnivores": 0}
         for cells in self.cells:
             for cell in cells:
-                n_herbivores += len(cell.animals["Herbivores"])
-        return n_herbivores
-
-    def n_herbivores_cell(self, position):
-        """
-        Counts the number of herbivores in the cell.
-
-        Parameters
-        ----------
-        - position: tuple
-
-        Returns
-        -------
-        - n_herbivores_cell: int
-        """
-
-        return len(self.cells[position[0]-1][position[1]-1].animals["Herbivores"])
-
-    def n_carnivores(self):
-        """
-        Counts the number of animals on the island.
-
-        Returns
-        -------
-        - n_carnivores: int
-        """
-
-        n_carnivores = 0
-        for cells in self.cells:
-            for cell in cells:
-                n_carnivores += len(cell.animals["Carnivores"])
-        return n_carnivores
-
-    def n_carnivores_cell(self, position):
-        """
-        Counts the number of carnivores in the cell.
-
-        Parameters
-        ----------
-        - position: tuple
-
-        Returns
-        -------
-        - n_carnivores_cell: int
-        """
-
-        return len(self.cells[position[0]-1][position[1]-1].animals["Carnivores"])
+                n_animals["Herbivores"] += len(cell.animals["Herbivores"])
+                n_animals["Carnivores"] += len(cell.animals["Carnivores"])
+        return n_animals
 
     def terraform(self):
         """
@@ -134,10 +98,12 @@ class Island:
 
         Returns
         -------
-        - terrain: nested list
-            A nested list representing the terrain of the island.
+        - terrain: list of strings
+            A list of strings representing the terrain of the island.
         - coordinates: list
-            A list representing the coordinates of the island.
+            A list representing the coordinates of the island. Each letter in the terrain
+            corresponds to its own cell.
+            The top left corner has the coordinates (1, 1).
         """
 
         island = textwrap.dedent(self.geography)
@@ -165,7 +131,7 @@ class Island:
                     raise ValueError("Cell {0} contains an invalid letter ({1}).".format((i+1, j+1),
                                                                                          terrain[i][j]))
 
-        # Creates the coordinate map:
+        # Creates the coordinate-map:
         self.cells = []
         coordinates = []
         for i in range(X):
@@ -187,6 +153,7 @@ class Island:
             {"Type": [R, G, B]}
             A dictionary containing the colours of the different terrains.
             Must contain types: "W", "L", "H" and "D".
+                If "None", the default colours will be used.
         """
 
         # Defining colours:
@@ -233,6 +200,26 @@ class Cell(Island):
         self.animals = {"Herbivores": [], "Carnivores": []}
 
     def add_animal(self, species, age=None, weight=None):
+        """
+        Adds an animal to the cell.
+
+        Parameters
+        ----------
+        - species: str
+            A string representing the species of the animal.
+        - age: int
+            An integer representing the age of the animal.
+        - weight: float
+            A float representing the weight of the animal.
+
+        Raises
+        ------
+        - ValueError
+            If the species is not "Herbivore" or "Carnivore".
+        """
+
+        if species not in ["Herbivore", "Carnivore"]:
+            raise ValueError("The species must be either 'Herbivore' or 'Carnivore'.")
         if species == "Herbivore":
             self.animals["Herbivores"].append(Herbivore(age=age, weight=weight))
         else:
@@ -261,3 +248,10 @@ if __name__ == "__main__":
     a.add_population(new_animals)
 
     print(a.cells[1][1].animals["Herbivores"][0].w)
+
+    print(a.n_animals)
+
+    new_animal = [{"loc": (1, 1),
+                    "pop": [{"species": "Herbivore"}]}]
+    a.add_population(new_animal)
+    print(a.n_animals)
