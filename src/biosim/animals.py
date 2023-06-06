@@ -42,6 +42,14 @@ class Animal:
 
     @classmethod
     def get_parameters(cls):
+        """
+        Get the parameters for a species.
+
+        Returns
+        -------
+        - parameters : dict
+
+        """
         parameters = {"w_birth": cls.w_birth,
                       "sigma_birth": cls.sigma_birth,
                       "beta": cls.beta,
@@ -60,8 +68,7 @@ class Animal:
             parameters["DeltaPhiMax"] = cls.DeltaPhiMax
         return parameters
 
-    def __init__(self, position, weight, age):
-        self.position = position
+    def __init__(self, weight, age):
         self.a = age
         if not weight:
             self.w = random.lognormvariate(self.w_birth, self.sigma_birth)
@@ -112,7 +119,7 @@ class Animal:
         if baby_weight > self.w:
             return
         self.lose_weight_birth(baby_weight)
-        self.__class__(position=self.position, weight=baby_weight)
+        self.__class__(weight=baby_weight)
 
     @property
     def fitness(self):
@@ -149,12 +156,12 @@ class Herbivore(Animal):
                 "omega": 0.4,
                 "F": 10.0}
 
-    def __init__(self, position, weight=None, age=0):
+    def __init__(self, weight=None, age=0):
         try:
             self.set_parameters(Herbivore.get_parameters())
         except:
             self.set_parameters(Herbivore.default_parameters())
-        super().__init__(position, weight, age)
+        super().__init__(weight, age)
 
         # Add to the cell.
 
@@ -181,12 +188,12 @@ class Carnivore(Animal):
                 "F": 50.0,
                 "DeltaPhiMax": 10.0}
 
-    def __init__(self, position, weight=None, age=0):
+    def __init__(self, weight=None, age=0):
         try:
             self.set_parameters(Carnivore.get_parameters())
         except:
             self.set_parameters(Carnivore.default_parameters())
-        super().__init__(position, weight, age)
+        super().__init__(weight, age)
 
         # Add to the cell.
 
