@@ -10,7 +10,8 @@ class Island:
         random.seed(seed)
         self.geography = geography
         self.terrain, self.coordinates = self.terraform()
-        self.add_population(population=ini_pop)
+        if ini_pop:
+            self.add_population(population=ini_pop)
 
     def add_population(self, population):
         """
@@ -23,9 +24,11 @@ class Island:
         """
 
         for animals in population:
-            location = (animals["loc"][0]-1, animals["loc"][1]-1) # Convert to 0-indexing.
-            if location not in self.coordinates:
-                raise ValueError("Invalid location: {0}".format(location))
+            if animals["loc"] not in self.coordinates:
+                raise ValueError("Invalid location: {0}".format(animals["loc"]))
+
+            # Check if location is "W" here.
+
             for animal in animals["pop"]:
                 try:
                     Cell(coordinates=location,
@@ -35,7 +38,7 @@ class Island:
                 except:
                     raise ValueError("Error in adding animal: {0}".format(animal))
 
-    def terraform(self, visualise=False, colours=None):
+    def terraform(self):
         """
         Creates a terrain from a given geography.
         Visualises the map if specified.
@@ -46,10 +49,6 @@ class Island:
             A string representing the geography of the island.
         - visualise: bool
             A boolean representing whether or not the map should be visualised.
-        - colours: dict
-            {"Type": [R, G, B]}
-            A dictionary containing the colours of the different terrains.
-            Must contain types: "W", "L", "H" and "D".
 
         Raises
         ------
@@ -62,8 +61,8 @@ class Island:
         -------
         - terrain: nested list
             A nested list representing the terrain of the island.
-        - coordinates: nested list
-            A nested list representing the coordinates of the island.
+        - coordinates: list
+            A list representing the coordinates of the island.
         """
 
         island = textwrap.dedent(self.geography)
@@ -88,56 +87,66 @@ class Island:
         for i in range(X):
             for j in range(Y):
                 if terrain[i][j] not in ["W", "L", "H", "D"]:
-                    raise ValueError("Cell {0} contains an invalid letter ({1}).".format((i, j), terrain[i][j]))
+                    raise ValueError("Cell {0} contains an invalid letter ({1}).".format((i+1, j+1),
+                                                                                         terrain[i][j]))
 
         # Creates the coordinate map:
         coordinates = []
         for i in range(X):
-            row = []
             for j in range(Y):
-                row.append((i, j))
-            coordinates.append(row)
-
-        # Visualise the map:
-        if visualise:
-
-            # Defining colours:
-            if type(colours) is not dict:  # Using default colours if not otherwise specified.
-                colours = {
-                    "L": [185, 214, 135],
-                    "H": [232, 236, 158],
-                    "D": [255, 238, 186],
-                    "W": [149, 203, 204]
-                }
-
-            coloured_map = np.empty((X, Y, 3), dtype="uint8")
-
-            # Inserting colours into the island:
-            for i in range(X):
-                for j in range(Y):
-                    if terrain[i][j] == "W":
-                        coloured_map[i, j] = colours["W"]
-                    elif terrain[i][j] == "L":
-                        coloured_map[i, j] = colours["L"]
-                    elif terrain[i][j] == "H":
-                        coloured_map[i, j] = colours["H"]
-                    elif terrain[i][j] == "D":
-                        coloured_map[i, j] = colours["D"]
-
-            # Visualising the island:
-            plt.imshow(coloured_map)
-            plt.xticks([]), plt.yticks([]), plt.title("Map of Pylandia")
-
-            description = {"L": "Lowland", "H": "Highland", "D": "Desert", "W": "Water"}
-            patches = [mpatches.Patch(color=(val[0] / 255, val[1] / 255, val[2] / 255),
-                                      label="{0}".format(
-                                          str(pd.DataFrame([key]).replace(description)[0][0]))) for
-                       key, val in colours.items()]
-            plt.legend(handles=patches, bbox_to_anchor=(0, -0.01), loc=2, borderaxespad=0)
-
-            plt.show()
+                coordinates.append((i+1, j+1))
 
         return terrain, coordinates
+
+    def visualise(self, colours=None):
+        """
+        Visualises the island.
+
+        Parameters
+        ----------
+        - colours: dict
+            {"Type": [R, G, B]}
+            A dictionary containing the colours of the different terrains.
+            Must contain types: "W", "L", "H" and "D".
+        """
+
+        # Defining colours:
+        if type(colours) is not dict:  # Using default colours if not otherwise specified.
+            colours = {
+                "L": [185, 214, 135],
+                "H": [232, 236, 158],
+                "D": [255, 238, 186],
+                "W": [149, 203, 204]
+            }
+
+        X = len(self.terrain)
+        Y = len(self.terrain[0])
+        coloured_map = np.empty((X, Y, 3), dtype="uint8")
+
+        # Inserting colours into the island:
+        for i in range(X):
+            for j in range(Y):
+                if self.terrain[i][j] == "W":
+                    coloured_map[i, j] = colours["W"]
+                elif self.terrain[i][j] == "L":
+                    coloured_map[i, j] = colours["L"]
+                elif self.terrain[i][j] == "H":
+                    coloured_map[i, j] = colours["H"]
+                elif self.terrain[i][j] == "D":
+                    coloured_map[i, j] = colours["D"]
+
+        # Visualising the island:
+        plt.imshow(coloured_map)
+        plt.xticks([]), plt.yticks([]), plt.title("Map of Pylandia")
+
+        description = {"L": "Lowland", "H": "Highland", "D": "Desert", "W": "Water"}
+        patches = [mpatches.Patch(color=(val[0] / 255, val[1] / 255, val[2] / 255),
+                                  label="{0}".format(
+                                      str(pd.DataFrame([key]).replace(description)[0][0]))) for
+                   key, val in colours.items()]
+        plt.legend(handles=patches, bbox_to_anchor=(0, -0.01), loc=2, borderaxespad=0)
+
+        plt.show()
 
 class Cell(Island):
 
