@@ -16,15 +16,6 @@ class Island:
         # Runs add_population if ini_pop is not None:
         self.add_population(population=ini_pop) if ini_pop is not None else None
 
-    @property
-    def terrain_condition(self, location):
-        terrain =self.terrain[location[0]-1][location[1]-1] # -1 because of indexing in our map to python indexing
-        if terrain == self.unlivable_terrain:
-            print(f"Location {location} is unlivable terrain for animal")
-            return True
-        return False
-
-
     def add_population(self, population):
         """
         Adds a population to the island.
@@ -34,22 +25,21 @@ class Island:
         - population: list of dictionaries.
             [{"loc": (x, y), "pop": [{"species": val, "age": val, "weight": val}]}]
         """
-        if self.terrain_condition:  # Checks if the terrain is unlivable
-            return
 
         for animals in population:
             location = animals["loc"]
             if location not in self.coordinates:
                 raise ValueError("Invalid location: {0}".format(location))
-            for animal in animals["pop"]: #if weight or agenot specified, added to dictionary with value None
-                if "age" not in animals.keys():
+            for animal in animals["pop"]: #if weight or age not specified, added to dictionary
+                # with value None
+                if "age" not in animal:
                     animal["age"] = None
-                if "weight" not in animals.keys():
+                if "weight" not in animal:
                     animal["weight"] = None
                 try:
-                    self.add_animal(species=animal["species"],
-                                    age=animal["age"],
-                                    weight=animal["weight"])
+                    self.cells[location[0]-1][location[1]-1].add_animal(species=animal["species"],
+                                                                        age=animal["age"],
+                                                                        weight=animal["weight"])
 
                     # Her sliter jeg. Jeg vil legge til animals i den rette cellen. Hvordan gjør jeg det?
 
@@ -109,11 +99,14 @@ class Island:
                                                                                          terrain[i][j]))
 
         # Creates the coordinate map:
+        self.cells = []
         coordinates = []
         for i in range(X):
+            row = []
             for j in range(Y):
-                Cell(coordinate=(i+1, j+1))
+                row.append(Cell())
                 coordinates.append((i+1, j+1))
+            self.cells.append(row)
 
         return terrain, coordinates
 
@@ -169,8 +162,7 @@ class Island:
 
 class Cell(Island):
 
-    def __init__(self, coordinate):
-        self.coordinate = coordinate
+    def __init__(self):
         self.animals = {"Herbivores": [], "Carnivores": []}
 
     def add_animal(self, species, age=None, weight=None):
@@ -192,19 +184,26 @@ class Cell(Island):
     # Loop over elements in lists in dict,
     # remove dead animals from list(s)
 
-geogr = """\
-               WWWWWWWWWWWWWWWWWWWWW
-               WWWWWWWWHWWWWLLLLLLLW
-               WHHHHHLLLLWWLLLLLLLWW
-               WHHHHHHHHHWWLLLLLLWWW
-               WHHHHHLLLLLLLLLLLLWWW
-               WHHHHHLLLDDLLLHLLLWWW
-               WHHLLLLLDDDLLLHHHHWWW
-               WWHHHHLLLDDLLLHWWWWWW
-               WHHHLLLLLDDLLLLLLLWWW
-               WHHHHLLLLDDLLLLWWWWWW
-               WWHHHHLLLLLLLLWWWWWWW
-               WWWHHHHLLLLLLLWWWWWWW
-               WWWWWWWWWWWWWWWWWWWWW"""
+if __name__ == "__main__":
+    geogr = """\
+                   WWWWWWWWWWWWWWWWWWWWW
+                   WHWWWWWWHWWWWLLLLLLLW
+                   WHHHHHLLLLWWLLLLLLLWW
+                   WHHHHHHHHHWWLLLLLLWWW
+                   WHHHHHLLLLLLLLLLLLWWW
+                   WHHHHHLLLDDLLLHLLLWWW
+                   WHHLLLLLDDDLLLHHHHWWW
+                   WWHHHHLLLDDLLLHWWWWWW
+                   WHHHLLLLLDDLLLLLLLWWW
+                   WHHHHLLLLDDLLLLWWWWWW
+                   WWHHHHLLLLLLLLWWWWWWW
+                   WWWHHHHLLLLLLLWWWWWWW
+                   WWWWWWWWWWWWWWWWWWWWW"""
 
-a = Island(geogr)
+    a = Island(geogr)
+
+    new_animals = [{"loc": (2, 2),
+                    "pop": [{"species": "Herbivore", "age": 5, "weight": 20}]}]
+    a.add_population(new_animals)
+
+    print(a.cells[1][1].animals["Herbivores"][0].a)
