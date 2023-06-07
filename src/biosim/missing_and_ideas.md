@@ -14,6 +14,7 @@ Mangler:
           breeding season.
         * Migrasjon
         * Død (fjerne dyr)
+        * Mat. Endre fodder parametre og få det til å funke for cellene og Island.
 
     simulation.py
     -------------
