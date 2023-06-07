@@ -19,9 +19,54 @@ import random
 from src.biosim.animals import Herbivore, Carnivore
 
 class Island:
+    @classmethod
+    def default_fodder_parameters(cls):
+        """
+        Returns the default parameters for the fodder on the island in the different terrain types.
+        """
+
+        return {"H": 800, "L": 300, "D": 0, "W": 0}
+
+    def set_fodder_parameters(self, new_parameters=None):
+        """
+        Set the parameters for the fodder on the island in the different terrain types.
+
+        Parameters
+        ----------
+        - new_parameters: dict
+            {"terrain": value}
+            If None, the default parameters are set.
+
+        Raises
+        ------
+        - ValueError
+            If negative parameters are passed.
+            If invalid parameters are passed.
+        """
+        if new_parameters is None:
+            self.available_fodder = self.default_fodder_parameters()
+        else:
+            for key, val in new_parameters.items():
+                if key not in self.available_fodder:
+                    raise ValueError("Invalid parameter: {0}".format(key))
+                if type(val) != int and val < 0:
+                    raise ValueError("Value for: {0} should be a positive integer.".format(key))
+                self.available_fodder[key] = val
+
+    def get_fodder_parameters(self):
+        """
+        Get the parameters for the fodder on the island in the different terrain types.
+        """
+
+        return {"H": self.available_fodder["H"],
+                "L": self.available_fodder["L"],
+                "D": self.available_fodder["D"],
+                "W": self.available_fodder["W"]}
+
     def __init__(self, geography, ini_pop=None):
         self.geography = geography
         self.terrain, self.coordinates = self.terraform()
+        self.available_fodder = self.default_fodder_parameters()
 
         # Runs add_population if ini_pop is not None:
         self.add_population(population=ini_pop) if ini_pop is not None else None
@@ -77,8 +122,8 @@ class Island:
         n_animals = {"Herbivores": 0, "Carnivores": 0}
         for cells in self.cells:
             for cell in cells:
-                n_animals["Herbivores"] += len(cell.animals["Herbivores"])
-                n_animals["Carnivores"] += len(cell.animals["Carnivores"])
+                n_animals["Herbivores"] += len(cell.herbivores)
+                n_animals["Carnivores"] += len(cell.carnivores)
         return n_animals
 
     def terraform(self):
@@ -141,7 +186,7 @@ class Island:
         for i in range(X):
             row = []
             for j in range(Y):
-                row.append(Cell())
+                row.append(Cell(cell_type=terrain[i][j]))
                 coordinates.append((i+1, j+1))
             self.cells.append(row)
 
@@ -207,12 +252,12 @@ class Island:
         If a baby is born, it is added to the cell of the parent.
         """
 
-        N = self.n_animals
         for cells in self.cells:
             for cell in cells:
-                if cell.animals["Herbivores"] or cell.animals["Carnivores"]:
-                    for animal in cell.animals["Herbivores"] + cell.animals["Carnivores"]:
-                        if random.random > min(1, animal.gamma * animal.fitness * N):
+                if cell.herbivores or cell.carnivores:
+                    N = len(cell.herbivores) + len(cell.carnivores)
+                    for animal in cell.herbivores + cell.carnivores:
+                        if random.random() > min(1, animal.gamma * animal.fitness * N):
                             return
                         baby_weight = random.lognormvariate(animal.w_birth, animal.sigma_birth)
                         if baby_weight > animal.w:
@@ -222,11 +267,12 @@ class Island:
     def feed(self):
         for cells in self.cells:
             for cell in cells:
-                if cell.animals["Herbivores"] or cell.animals["Carnivores"]:
+                if cell.herbivores or cell.carnivores:
                     cell.reset_fodder()
-                    for herbivore in cell.animals["Herbivores"]:
+                    for herbivore in cell.herbivores:
+                        # self.eat_fodder(amount)
                         pass
-                    for carnivore in cell.animals["Carnivores"]:
+                    for carnivore in cell.carnivores:
                         pass
 
     def migrate(self):
@@ -270,8 +316,17 @@ class Island:
 
 class Cell:
 
-    def __init__(self):
-        self.animals = {"Herbivores": [], "Carnivores": []}
+    def __init__(self, fodder, cell_type=None):
+        self.cell_type = cell_type if cell_type is not None else "W"
+        self.fodder = fodder
+        self.herbivores = []
+        self.carnivores = []
+
+    def eat_fodder(self, amount):
+        self.fodder -= amount
+
+    def reset_fodder(self):
+        self.fodder = Island.get_fodder_parameters()[self.cell_type]
 
     def add_animal(self, species, age=None, weight=None):
         """
@@ -292,19 +347,12 @@ class Cell:
             If the species is not "Herbivore" or "Carnivore".
         """
 
-        if species not in ["Herbivore", "Carnivore"]:
-            raise ValueError("The species must be either 'Herbivore' or 'Carnivore'.")
         if species == "Herbivore":
-            self.animals["Herbivores"].append(Herbivore(age=age, weight=weight))
+            self.herbivores.append(Herbivore(age=age, weight=weight))
+        elif species == "Carnivore":
+            self.carnivores.append(Carnivore(age=age, weight=weight))
         else:
-            self.animals["Carnivores"].append(Carnivore(age=age, weight=weight))
-
-    def reset_fodder(self):
-        """
-        Resets the amount of fodder in the cell.
-        """
-
-        self.fodder = 0
+            raise ValueError("The species must be either 'Herbivore' or 'Carnivore'.")
 
 if __name__ == "__main__":
     geogr = """\
@@ -325,14 +373,9 @@ if __name__ == "__main__":
     a = Island(geogr)
 
     new_animals = [{"loc": (2, 2),
-                    "pop": [{"species": "Herbivore"}]}]
+                    "pop": [{"species": "Herbivore"} for _ in range(10)] + [{"species":
+                                                                                 "Carnivore"} for _ in range(10)]}]
     a.add_population(new_animals)
 
-    print(a.cells[1][1].animals["Herbivores"][0].w)
-
     print(a.n_animals)
-
-    new_animal = [{"loc": (2, 2),
-                    "pop": [{"species": "Herbivore"}]}]
-    a.add_population(new_animal)
-    print(a.n_animals)
+    print(a.cells[1][1].herbivores)
