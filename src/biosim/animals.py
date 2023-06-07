@@ -1,10 +1,5 @@
-# FIKSE:
-# (Endre til relative imports "."? Hvis vi bruker noen andre filer?)
-
-
-
-from math import exp, sqrt, log
 import random
+from math import exp, sqrt, log
 
 class Animal:
     @classmethod
