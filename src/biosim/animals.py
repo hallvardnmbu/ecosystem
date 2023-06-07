@@ -6,9 +6,6 @@
 
 from math import exp
 import random
-from .island import Island
-my_island = Island()
-
 
 
 class Animal:
