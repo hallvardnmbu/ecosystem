@@ -7,9 +7,31 @@ import pytest
 # Should describe what was tested and failed
 # Should write a docstring to further explain the test
 
-def test_add_population(island):
+
+
+#organise test types in classes?
+
+
+def make_test_island():
+
+    """Creates a island with a simple geography and a single carnivore
+        to test functions on."""
+
+    test_geography = """\
+                        WWWWW
+                        WWLWW
+                        WWWWW"""
+
+    test_pop = [{"loc": (3, 3),"pop": [{"species": "Carnivore" }]}]
+
+    return Island(ini_pop=test_pop, geography=test_geography)
+
+
+def test_add_population():
+
     """Tests that the population is added correctly."""
-    test_island = Island(ini_pop=[{"loc": (2, 2),"pop": [{"species": "Carnivore" }]}])
+    test_island=make_test_island()
+
     test_island.add_population([{"loc": (2, 2),"pop": [{"species": "Herbivore" }]}])
-    assert animals.size() == 2, "The population was not added correctly."
+    assert len(test_island.population) == 1, "The population was not added correctly."
 
