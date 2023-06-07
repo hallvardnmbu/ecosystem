@@ -12,6 +12,7 @@
 import textwrap
 import numpy as np
 import pandas as pd
+import math as m
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import random
@@ -26,19 +27,22 @@ class Island:
         # Runs add_population if ini_pop is not None:
         self.add_population(population=ini_pop) if ini_pop is not None else None
 
-    def lognormv(self, w_birth, sigma_birth):
+    def lognormv(self):
         """
         a continuous probability distribution of a random variable whose
         logarithm is normally distributed
 
-        parameters
-        ----------
-        w_birth: float
-        sigma_birth: float
+        Used to draw birth weights
         """
-        #return log()
 
-        pass
+        w_birth=self.w_birth
+        sigma_birth=self.sigma_birth
+
+
+        mu=m.log((w_birth**2)/m.sqrt(sigma_birth**2+w_birth**2))
+        sigma=m.sqrt(m.log(1+((sigma_birth**2)/(w_birth**2))))
+        return random.lognormvariate(mu,sigma)
+
 
     def add_population(self, population):
         """
@@ -228,7 +232,7 @@ class Island:
                     for animal in cell.animals["Herbivores"] + cell.animals["Carnivores"]:
                         if random.random > min(1, animal.gamma * animal.fitness * N):
                             return
-                        baby_weight = random.lognormvariate(animal.w_birth, animal.sigma_birth)
+                        baby_weight = lognormv(self)
                         if baby_weight > animal.w:
                             return
                         cell.add_animal(species=animal.species, age=0, weight=baby_weight)
