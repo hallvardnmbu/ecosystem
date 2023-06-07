@@ -3,19 +3,12 @@ Mangler:
     animals.py
     ----------
         * Relative imports "."
-        * random.lognormvariate -> egen funksjon
 
     island.py
     ---------
         * Relative imports "."
-        * Angi default "fodder" i hver celle (hvert år)
-        * Sortere dyr etter fitness(?)
-        * Fødsel: N is the number of animals of the same species in the cell at the start of the
-          breeding season.
         * Migrasjon
         * Død (fjerne dyr)
-        * Mat. Endre fodder parametre og få det til å funke for cellene og Island. (fra 
-          classmethod til én og én)
         * Endre fra "if 'Herbivore'" osv. til type() [se forelesning 3].
 
     simulation.py
