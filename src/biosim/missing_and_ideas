@@ -55,3 +55,17 @@ Ideer:
     * Dør av overpopulasjon (er vel på en måte sånn allerede, med at det ikke er nok mat?)
     * Dyr kan bli syke (og kan dø)
     * PANDEMI/METEOR! (alle dyr dør)
+
+
+---------------------------------------------------------------------------------------------------
+Tips:
+-----
+    * når dyr dør, ikke slett de fra listen mens du går gjennom den.
+     gjør slik:
+
+     keep the good ones
+
+        d = list(range(10))
+
+        d = [n for n in d if not (n % 2 == 0 or n % 3 == 0)]
+        print(d)
