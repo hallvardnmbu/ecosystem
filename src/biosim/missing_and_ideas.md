@@ -17,6 +17,8 @@ Mangler:
         * Mat. Endre fodder parametre og få det til å funke for cellene og Island. (fra 
           classmethod til én og én)
         * Endre fra "if 'Herbivore'" osv. til type() [se forelesning 3].
+        * Endre listene .herbivores og .carnivores til dictionaries (med .species som key)
+          Gjør slik at jeg ikke sjekker "if 'Herbivore'" osv., men heller animal.species osv.
 
     simulation.py
     -------------
