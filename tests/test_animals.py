@@ -26,10 +26,10 @@ def test_age_increase(animals):
 
 def test_gain_weight(animals):
     """Tests that the weight increases by the factor beta after gain_weight() is called."""
-    num_days = 10
+    num_years = 10
     for animal in animals:
         weight = animal.w
-        for _ in range(num_days):
+        for _ in range(num_years):
             animal.gain_weight(1000000)
             weight += animal.beta * 10
         assert animal.w == weight, f"Weight for {type(animal).__name__} did not increase by the " \
@@ -37,10 +37,10 @@ def test_gain_weight(animals):
 
 def test_lose_weight(animals):
     """Tests that the weight decreases by the factor eta after lose_weight() is called."""
-    num_days = 10
+    num_years = 10
     for animal in animals:
         weight = animal.w
-        for _ in range(num_days):
+        for _ in range(num_years:
             animal.lose_weight()
             weight -= animal.eta * weight
         assert animal.w == weight, f"Weight for {type(animal).__name__} did not decrease by the " \
