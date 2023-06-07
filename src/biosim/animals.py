@@ -1,5 +1,4 @@
 # FIKSE:
-# Change random.lognormvariate with own function.
 # baby_weight: BYTT "10" MED: "self.count_animals_cell()" COUNT ANIMAL CELL!)
 # (Endre til relative imports "."? Hvis vi bruker noen andre filer?)
 
@@ -7,6 +6,10 @@
 
 from math import exp
 import random
+from .island import Island
+my_island = Island()
+
+
 
 class Animal:
     @classmethod
@@ -72,10 +75,11 @@ class Animal:
             parameters["DeltaPhiMax"] = cls.DeltaPhiMax
         return parameters
 
+
+
     def __init__(self, weight, age):
         self.a = age if age is not None else 0
-        self.w = weight if weight is not None else random.lognormvariate(self.w_birth,
-                                                                              self.sigma_birth)
+        self.w = weight if weight is not None else my_island.lognormv(self)
 
     def aging(self):
         """
