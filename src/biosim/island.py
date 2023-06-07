@@ -4,7 +4,6 @@
 # Lage metode som fjerner dyr (ved død).
 # Annual cycle
 # I annual cycle methods: sorter animals først i alle.
-# lognormvariate: bruk egen funksjon. [i procreate()]
 # Cell reset fodder.
 
 
@@ -250,14 +249,22 @@ class Island:
                 if cell.herbivores or cell.carnivores:
                     N = len(cell.herbivores) + len(cell.carnivores)
                     for animal in cell.herbivores + cell.carnivores:
-                        if random.random() > min(1, animal.gamma * animal.fitness * N):
-                            return
-                        baby_weight = random.lognormvariate(animal.w_birth, animal.sigma_birth)
-                        if baby_weight > animal.w:
-                            return
-                        cell.add_animal(species=animal.species, age=0, weight=baby_weight)
+                        if random.random() < min(1, animal.gamma * animal.fitness * N):
+                            baby_weight = animal.lognormv()
+                            if baby_weight < animal.w:
+                                cell.add_animal(species=animal.species, age=0, weight=baby_weight)
 
     def feed(self):
+        """
+        Iterates through all the animals on the island.
+        Herbivores eat fodder. The fittest herbivores eat first.
+        Carnivores eat herbivores. They hunt in random order and prey on the weakest herbivores
+        first.
+        Returns
+        -------
+
+        """
+
         for cells in self.cells:
             for cell in cells:
                 if cell.herbivores or cell.carnivores:
@@ -268,18 +275,26 @@ class Island:
                                         reverse=True)
 
                     for herbivore in cell.herbivores:
-                        self.herbivore_eat_fodder(amount=herbivore.F, animal=herbivore)
+                        cell.herbivore_eat_fodder(amount=herbivore.F, animal=herbivore)
 
                     # Sort herbivores by ascending fitness (flip^):
                     herbivores = herbivores[::-1]
                     # Sort carnivores randomly:
-                    carnivores = random.shuffle(cell.carnivores)
+                    carnivores = cell.carnivores
+                    random.shuffle(carnivores)
 
-                    for carnivore in cell.carnivores:
-                        self.carnivore_kill(carnivore, herbivores)
+                    for carnivore in carnivores:
+                        killed = cell.carnivore_kill(carnivore, herbivores)
+                        herbivores = [herbivore for herbivore in herbivores if herbivore not in killed]
 
     def migrate(self):
-        pass
+        for cells in self.cells:
+            for cell in cells:
+                if cell.herbivores or cell.carnivores:
+                    N = len(cell.herbivores) + len(cell.carnivores)
+                    for animal in cell.herbivores + cell.carnivores:
+
+        direction = random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
 
     def aging(self):
         pass
@@ -338,7 +353,7 @@ class Cell:
             food = amount
 
         self.fodder -= food
-        animal.gain_weight(amount=food)
+        animal.gain_weight(food=food)
 
     def carnivore_kill(self, carnivore, herbivores):
         """
@@ -350,6 +365,7 @@ class Cell:
         """
 
         food = 0
+        killed = []
         for herbivore in herbivores:
             if food >= carnivore.F:
                 food = carnivore.F
@@ -361,11 +377,13 @@ class Cell:
             else:
                 p = 1
             if random.random() < p:
-                food += herbivore.weight
+                food += herbivore.w
 
                 self.herbivores.remove(herbivore)
+                killed.append(herbivore)
 
-        carnivore.gain_weight(amount=food)
+        carnivore.gain_weight(food=food)
+        return killed
 
     def reset_fodder(self):
         """
@@ -420,8 +438,9 @@ if __name__ == "__main__":
     b = Island(geogr)
 
     new_animals = [{"loc": (2, 2),
-                    "pop": [{"species": "Herbivore"} for _ in range(10)] + [{"species":
-                                                                                 "Carnivore"} for _ in range(10)]}]
+                    "pop": [{"species": "Herbivore"} for _ in range(20)] + [{"species":
+                                                                                 "Carnivore"} for
+                                                                            _ in range(20)]}]
     a.add_population(new_animals)
 
     print("a", a.available_fodder)
@@ -431,10 +450,6 @@ if __name__ == "__main__":
 
     print("a", a.available_fodder)
     print("b", b.available_fodder)
-
-    print("a", a.cells[1][1].fodder)
-    a.cells[1][1].eat_fodder(20)
-    print("a", a.cells[1][1].fodder)
 
     print("a", a.n_animals)
     print("a", a.cells[1][1].herbivores)
