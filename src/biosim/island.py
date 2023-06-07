@@ -27,6 +27,17 @@ class Island:
         self.add_population(population=ini_pop) if ini_pop is not None else None
 
     def lognormv(self, w_birth, sigma_birth):
+        """
+        a continuous probability distribution of a random variable whose
+        logarithm is normally distributed
+
+        parameters
+        ----------
+        w_birth: float
+        sigma_birth: float
+        """
+        #return log()
+
         pass
 
     def add_population(self, population):
