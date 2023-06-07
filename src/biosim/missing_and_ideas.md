@@ -25,6 +25,17 @@ Mangler:
         * Relative imports "."
         * Annual cycle
 
+    /tests
+    ------
+        test_animals.py
+        ---------------
+            * Teste alle metodene
+
+        test_island.py
+        --------------
+            * Teste alle metodene
+            * Legge til dyr, teste at det blir lagt til riktig osv.
+
 ---------------------------------------------------------------------------------------------------
 
 Kan forbedres:
