@@ -18,11 +18,11 @@ def animals():
 
 def test_age_increase(animals):
     """Tests that the age increases by one after aging() is called."""
-    num_days = 10
+    num_years = 10
     for animal in animals:
-        for _ in range(num_days):
+        for _ in range(num_years):
             animal.aging()
-        assert animal.a == num_days, f"Age for {type(animal).__name__} did not increase by one."
+        assert animal.a == num_years, f"Age for {type(animal).__name__} did not increase by one."
 
 def test_gain_weight(animals):
     """Tests that the weight increases by the factor beta after gain_weight() is called."""
