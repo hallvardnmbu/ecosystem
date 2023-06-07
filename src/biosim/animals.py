@@ -69,8 +69,7 @@ class Animal:
                       "zeta": cls.zeta,
                       "xi": cls.xi,
                       "omega": cls.omega,
-                      "F": cls.F
-                        }
+                      "F": cls.F}
         if cls is Carnivore:
             parameters["DeltaPhiMax"] = cls.DeltaPhiMax
         return parameters
