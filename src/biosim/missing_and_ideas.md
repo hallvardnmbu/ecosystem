@@ -3,22 +3,12 @@ Mangler:
     animals.py
     ----------
         * Relative imports "."
-        * random.lognormvariate -> egen funksjon
 
     island.py
     ---------
         * Relative imports "."
-        * Angi default "fodder" i hver celle (hvert år)
-        * Sortere dyr etter fitness(?)
-        * Fødsel: N is the number of animals of the same species in the cell at the start of the
-          breeding season.
         * Migrasjon
         * Død (fjerne dyr)
-        * Mat. Endre fodder parametre og få det til å funke for cellene og Island. (fra 
-          classmethod til én og én)
-        * Endre fra "if 'Herbivore'" osv. til type() [se forelesning 3].
-        * Endre listene .herbivores og .carnivores til dictionaries (med .species som key)
-          Gjør slik at jeg ikke sjekker "if 'Herbivore'" osv., men heller animal.species osv.
 
     simulation.py
     -------------
@@ -35,6 +25,7 @@ Mangler:
         --------------
             * Teste alle metodene
             * Legge til dyr, teste at det blir lagt til riktig osv.
+            * Sjekke at dyr blir lagt til i både Cell.herbivore/carnivore OG Cell.animals
 
 ---------------------------------------------------------------------------------------------------
 
@@ -54,11 +45,20 @@ Kan forbedres:
         * Forbedre procreation
         * Generelt: forbedre celle-systemet.
         * Forbedre Cell.add_animal()
+        * Gjøre det umulig å legge til "ugyldige" fager i .visualise()
 
     GUI:
     ----
         * Tegne kartet
         * Plassere dyr på kartet
+
+    Endre if-testene. Lage metoder i klassene, som gjør dette lettere.
+    ------------------------------------------------------------------
+        island.py:
+        ----------
+            80: if self.terrain[location[0]-1][location[1]-1] == "W":
+            156: if terrain[i][0] != "W" or terrain[i][Y-1] != "W"
+            159: if terrain[0][j] != "W" or terrain[X-1][j] != "W":
 
 ---------------------------------------------------------------------------------------------------
 
