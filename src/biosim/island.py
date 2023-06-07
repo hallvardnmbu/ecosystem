@@ -262,11 +262,21 @@ class Island:
             for cell in cells:
                 if cell.herbivores or cell.carnivores:
                     cell.reset_fodder()
+
+                    # Sort herbivores by descending fitness:
+                    herbivores = sorted(cell.herbivores, key=lambda herbivore: herbivore.fitness,
+                                        reverse=True)
+
                     for herbivore in cell.herbivores:
-                        # self.eat_fodder(amount)
-                        pass
+                        self.herbivore_eat_fodder(amount=herbivore.F, animal=herbivore)
+
+                    # Sort herbivores by ascending fitness (flip^):
+                    herbivores = herbivores[::-1]
+                    # Sort carnivores randomly:
+                    carnivores = random.shuffle(cell.carnivores)
+
                     for carnivore in cell.carnivores:
-                        pass
+                        self.carnivore_kill(carnivore, herbivores)
 
     def migrate(self):
         pass
@@ -285,11 +295,11 @@ class Island:
 
         # 1. Procreation
 
-        self.procreate()
+        self.procreate() # Funker, tror jeg.
 
         # 2. Feeding
 
-        self.feed()
+        self.feed() # Funker, tror jeg.
 
         # 3. Migration
 
@@ -311,15 +321,58 @@ class Cell:
 
     def __init__(self, fodder, cell_type=None):
         self.cell_type = cell_type if cell_type is not None else "W"
+        self.fodder_max = fodder
         self.fodder = fodder
         self.herbivores = []
         self.carnivores = []
 
-    def eat_fodder(self, amount):
-        self.fodder -= amount
+    def herbivore_eat_fodder(self, amount, animal):
+        """
+        Removes fodder from the cell.
+        If the amount to be removed is greater than the amount of fodder in the cell, the fodder is set to 0.
+        """
 
-    # def reset_fodder(self):
-    #     self.fodder = Island.get_fodder_parameters()[self.cell_type]
+        if self.fodder < amount:
+            food = self.fodder
+        else:
+            food = amount
+
+        self.fodder -= food
+        animal.gain_weight(amount=food)
+
+    def carnivore_kill(self, carnivore, herbivores):
+        """
+        Carnivores tries to kill Herbivores in the same cell.
+        Parameters
+        ----------
+        - animals: list
+            Herbivores in the cell sorted by ascending fitness.
+        """
+
+        food = 0
+        for herbivore in herbivores:
+            if food >= carnivore.F:
+                food = carnivore.F
+                break
+            if carnivore.fitness <= herbivore.fitness:
+                p = 0
+            elif 0 < carnivore.fitness - herbivore.fitness < carnivore.DeltaPhiMax:
+                p = (carnivore.fitness - herbivore.fitness) / carnivore.DeltaPhiMax
+            else:
+                p = 1
+            if random.random() < p:
+                food += herbivore.weight
+
+                self.herbivores.remove(herbivore)
+
+        carnivore.gain_weight(amount=food)
+
+    def reset_fodder(self):
+        """
+        Resets the amount of fodder in the cell to the maximum amount of that terrain type.
+        """
+
+        self.fodder = self.fodder_max
 
     def add_animal(self, species, age=None, weight=None):
         """
@@ -371,5 +424,17 @@ if __name__ == "__main__":
                                                                                  "Carnivore"} for _ in range(10)]}]
     a.add_population(new_animals)
 
-    print(a.n_animals)
-    print(a.cells[1][1].herbivores)
+    print("a", a.available_fodder)
+    print("b", b.available_fodder)
+
+    a.set_fodder_parameters({"H": 1})
+
+    print("a", a.available_fodder)
+    print("b", b.available_fodder)
+
+    print("a", a.cells[1][1].fodder)
+    a.cells[1][1].eat_fodder(20)
+    print("a", a.cells[1][1].fodder)
+
+    print("a", a.n_animals)
+    print("a", a.cells[1][1].herbivores)
