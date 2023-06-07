@@ -14,7 +14,9 @@ Mangler:
           breeding season.
         * Migrasjon
         * Død (fjerne dyr)
-        * Mat. Endre fodder parametre og få det til å funke for cellene og Island.
+        * Mat. Endre fodder parametre og få det til å funke for cellene og Island. (fra 
+          classmethod til én og én)
+        * Endre fra "if 'Herbivore'" osv. til type() [se forelesning 3].
 
     simulation.py
     -------------
