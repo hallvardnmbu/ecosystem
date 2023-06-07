@@ -103,6 +103,9 @@ class BioSim:
         self.img_fmt = img_fmt
         self.log_file = log_file
 
+        self.animal_map = {"Herbivore": Herbivore,
+                           "Carnivore": Carnivore}
+
     def set_animal_parameters(self, species, params):
         """
         Set parameters for animal species.
@@ -120,12 +123,10 @@ class BioSim:
             If invalid parameter values are passed.
         """
 
-        if species == "Herbivore":
-            Herbivore.set_parameters(params)
-        elif species == "Carnivore":
-            Carnivore.set_parameters(params)
-        else:
-            raise ValueError("Invalid species name")
+        try:
+            self.animal_map[species].set_parameters(params)
+        except:
+            raise ValueError("Invalid species or parameters.")
 
     def set_landscape_parameters(self, landscape, params):
         """
