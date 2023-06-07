@@ -26,6 +26,9 @@ class Island:
         # Runs add_population if ini_pop is not None:
         self.add_population(population=ini_pop) if ini_pop is not None else None
 
+    def lognormv(self, w_birth, sigma_birth):
+        pass
+
     def add_population(self, population):
         """
         Adds a population to the island.
