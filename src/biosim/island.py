@@ -25,7 +25,7 @@ class Island:
         Returns the default parameters for the fodder on the island in the different terrain types.
         """
 
-        return {"H": 800, "L": 300, "D": 0, "W": 0}
+        return {"H": 300, "L": 800, "D": 0, "W": 0}
 
     def set_fodder_parameters(self, new_parameters=None):
         """
@@ -43,8 +43,9 @@ class Island:
             If negative parameters are passed.
             If invalid parameters are passed.
         """
+
         if new_parameters is None:
-            self.available_fodder = self.default_fodder_parameters()
+            self.available_fodder = Island.default_fodder_parameters()
         else:
             for key, val in new_parameters.items():
                 if key not in self.available_fodder:
@@ -53,20 +54,11 @@ class Island:
                     raise ValueError("Value for: {0} should be a positive integer.".format(key))
                 self.available_fodder[key] = val
 
-    def get_fodder_parameters(self):
-        """
-        Get the parameters for the fodder on the island in the different terrain types.
-        """
-
-        return {"H": self.available_fodder["H"],
-                "L": self.available_fodder["L"],
-                "D": self.available_fodder["D"],
-                "W": self.available_fodder["W"]}
-
     def __init__(self, geography, ini_pop=None):
+        self.available_fodder = Island.default_fodder_parameters()
+
         self.geography = geography
         self.terrain, self.coordinates = self.terraform()
-        self.available_fodder = self.default_fodder_parameters()
 
         # Runs add_population if ini_pop is not None:
         self.add_population(population=ini_pop) if ini_pop is not None else None
@@ -186,7 +178,8 @@ class Island:
         for i in range(X):
             row = []
             for j in range(Y):
-                row.append(Cell(cell_type=terrain[i][j]))
+                fodder = self.available_fodder[terrain[i][j]]
+                row.append(Cell(cell_type=terrain[i][j], fodder=fodder))
                 coordinates.append((i+1, j+1))
             self.cells.append(row)
 
@@ -325,8 +318,8 @@ class Cell:
     def eat_fodder(self, amount):
         self.fodder -= amount
 
-    def reset_fodder(self):
-        self.fodder = Island.get_fodder_parameters()[self.cell_type]
+    # def reset_fodder(self):
+    #     self.fodder = Island.get_fodder_parameters()[self.cell_type]
 
     def add_animal(self, species, age=None, weight=None):
         """
@@ -371,6 +364,7 @@ if __name__ == "__main__":
                    WWWWWWWWWWWWWWWWWWWWW"""
 
     a = Island(geogr)
+    b = Island(geogr)
 
     new_animals = [{"loc": (2, 2),
                     "pop": [{"species": "Herbivore"} for _ in range(10)] + [{"species":
