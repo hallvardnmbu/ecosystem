@@ -1,18 +1,21 @@
 Mangler:
 --------
+    For alle:
+    ---------
+        * Relative imports "." (".."?)
+
     animals.py
     ----------
-        * Relative imports "."
 
     island.py
     ---------
-        * Relative imports "."
+        * Fjerne "if ...": i hver annual cycle (for å sjekke om det er dyr i cellen).
+        * Forbedre celle-oppsettet (forenkle for-løkkene).
         * Migrasjon
         * Død (fjerne dyr)
 
     simulation.py
     -------------
-        * Relative imports "."
         * Annual cycle
 
     /tests
