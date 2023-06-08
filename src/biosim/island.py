@@ -25,6 +25,8 @@ class Island:
         # Runs add_population if ini_pop is not None:
         self.add_population(population=ini_pop) if ini_pop is not None else None
 
+        self.year = 0
+
     def set_fodder_parameters(self, new_parameters=None):
         """
         Set the parameters for the fodder on the island in the different terrain types.
@@ -95,21 +97,36 @@ class Island:
                         animal))
 
     @property
+    def n_animals_per_species(self):
+        """
+        Counts the number of animals per species on the island.
+
+        Returns
+        -------
+        - n_animals_per_species: dictionary
+            {"Herbivores": n_herbivores, "Carnivores": n_carnivores}
+        """
+
+        n_animals_per_species = {"Herbivores": 0, "Carnivores": 0}
+        for cells in self.cells:
+            for cell in cells:
+                n_animals_per_species["Herbivores"] += len(cell.herbivores)
+                n_animals_per_species["Carnivores"] += len(cell.carnivores)
+        return n_animals_per_species
+
+    @property
     def n_animals(self):
         """
         Counts the number of animals on the island.
 
         Returns
         -------
-        - n_herbivores: dictionary
-            {"Herbivores": n_herbivores, "Carnivores": n_carnivores}
+        - n_animals: int
         """
 
-        n_animals = {"Herbivores": 0, "Carnivores": 0}
-        for cells in self.cells:
-            for cell in cells:
-                n_animals["Herbivores"] += len(cell.herbivores)
-                n_animals["Carnivores"] += len(cell.carnivores)
+        both = self.n_animals_per_species
+        n_animals = both["Herbivores"] + both["Carnivores"]
+
         return n_animals
 
     def terraform(self):
@@ -287,40 +304,69 @@ class Island:
                                 new_cell.animals[animal.species].append(animal)
 
     def aging(self):
-        pass
+        """
+        Iterates through all the animals on the island, and ages them by one year.
+        """
+
+        for i, cells in enumerate(self.cells):
+            for j, cell in enumerate(cells):
+                if cell.herbivores or cell.carnivores:
+                    for animal in cell.herbivores + cell.carnivores:
+                        animal.aging()
 
     def weight_loss(self):
-        pass
+        """
+        Iterates through all the animals on the island, and makes them lose weight.
+        """
+
+        for i, cells in enumerate(self.cells):
+            for j, cell in enumerate(cells):
+                if cell.herbivores or cell.carnivores:
+                    for animal in cell.herbivores + cell.carnivores:
+                        animal.lose_weight()
 
     def death(self):
-        pass
+        """
+        Iterates through all the animals on the island, and 'kills' them if:
+        - The animal's weight is 0.
+        - A probability of weight * (1 - fitness).
+        """
+
+        for i, cells in enumerate(self.cells):
+            for j, cell in enumerate(cells):
+                if cell.herbivores or cell.carnivores:
+                    for animal in cell.herbivores + cell.carnivores:
+                        if animal.a == 0:
+                            cell.animals[animal.species].remove(animal)
+                        if random.random() < animal.omega * (1 - animal.fitness):
+                            cell.animals[animal.species].remove(animal)
 
     def yearly_cycle(self):
-        # All animals undergo steps simultaneously.
+        """
+        Runs through the yearly cycle of the island in the following order:
+            1. Procreation
+            2. Feeding
+            3. Migration
+            4. Aging
+            5. Weight loss
+            6. Death
+        All animals undergo the same steps simultaneously.
+        """
 
-        # 1. Procreation
-
-        self.procreate() # Funker, tror jeg.
-
-        # 2. Feeding
-
-        self.feed() # Funker, tror jeg.
-
-        # 3. Migration
-
+        self.procreate()
+        self.feed()
         self.migrate()
-
-        # 4. Aging
-
         self.aging()
-
-        # 5. Weight loss
-
         self.weight_loss()
-
-        # 6. Death
-
         self.death()
+        self.new_year()
+
+    def new_year(self):
+        """
+        Adds a new year to the island.
+        """
+
+        self.year += 1
 
 class Cell:
 
