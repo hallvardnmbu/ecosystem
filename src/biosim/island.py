@@ -334,8 +334,8 @@ class Island:
         Iterates through all the animals on the island, and makes them lose weight.
         """
 
-        for i, cells in enumerate(self.cell_grid):
-            for j, cell in enumerate(cells):
+        for cells in self.cell_grid:
+            for cell in cells:
                 if cell.herbivores or cell.carnivores:
                     for animal in cell.herbivores + cell.carnivores:
                         animal.lose_weight()
