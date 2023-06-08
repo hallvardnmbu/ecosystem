@@ -1,11 +1,8 @@
 Mangler:
 --------
-    For alle:
-    ---------
-        * Relative imports "." (".."?)
-
     animals.py
     ----------
+        * Relative imports "."
 
     island.py
     ---------
