@@ -28,8 +28,9 @@ class Animal:
             If invalid parameters are passed.
         """
 
-        # Check if parameters are valid:
+
         for key, val in new_parameters.items():
+            # Check if parameters are valid:
             if val < 0:
                 raise ValueError("Value for: {0} should be nonzero or positive.".format(key))
             if key == "DeltaPhiMax" and val <= 0:
@@ -37,11 +38,10 @@ class Animal:
             if key == "eta" and val > 1:
                 raise ValueError("Value for: {0} should be less than or equal to 1.".format(key))
 
-        # Update new parameters:
-        for key, value in new_parameters.items():
+            # Update new parameters:
             if key not in cls.default_parameters():
                 raise ValueError("Invalid parameter: {0}".format(key))
-            setattr(cls, key, value)
+            setattr(cls, key, val)
 
     @classmethod
     def get_parameters(cls):
@@ -71,8 +71,6 @@ class Animal:
         if cls is Carnivore:
             parameters["DeltaPhiMax"] = cls.DeltaPhiMax
         return parameters
-
-
 
     def __init__(self, weight, age):
         self.a = age if age is not None else 0
@@ -141,10 +139,7 @@ class Herbivore(Animal):
         except:
             self.set_parameters(Herbivore.default_parameters())
         super().__init__(weight, age)
-
-    @property
-    def species(self):
-        return "Herbivore"
+        self.species = "Herbivore"
 
 class Carnivore(Animal):
     @classmethod
@@ -176,7 +171,4 @@ class Carnivore(Animal):
         except:
             self.set_parameters(Carnivore.default_parameters())
         super().__init__(weight, age)
-
-    @property
-    def species(self):
-        return "Carnivore"
+        self.species = "Carnivore"
