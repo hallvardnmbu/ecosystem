@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import random
 
-from src.biosim.animals import Herbivore, Carnivore
+from .animals import Herbivore, Carnivore
 
 class Island:
     @classmethod

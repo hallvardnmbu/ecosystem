@@ -11,51 +11,60 @@ from math import exp
 # tests.
 
 @pytest.fixture
+def reset_parameters():
+    """Resets the class parameters to their default values."""
+
+    yield
+    Herbivore.set_parameters()
+    Carnivore.set_parameters()
+
+@pytest.fixture(autouse=True)
 def animals():
-    return [Herbivore(weight=10000), Carnivore(weight=10000), Herbivore(weight=0),
-            Carnivore(
-        weight=0)]
+    return [Herbivore(weight=10000),
+            Carnivore(weight=10000),
+            Herbivore(weight=0),
+            Carnivore(weight=0)]
 
-def test_age_increase(animals):
+def test_age_increase():
     """Tests that the age increases by one after aging() is called."""
-    num_days = 10
+    num_years = 10
     for animal in animals:
-        for _ in range(num_days):
+        for _ in range(num_years):
             animal.aging()
-        assert animal.a == num_days, f"Age for {type(animal).__name__} did not increase by one."
+        assert animal.a == num_years, f"Age for {type(animal).__name__} did not increase by one."
 
-def test_gain_weight(animals):
+def test_gain_weight():
     """Tests that the weight increases by the factor beta after gain_weight() is called."""
-    num_days = 10
+    num_years = 10
     for animal in animals:
         weight = animal.w
-        for _ in range(num_days):
+        for _ in range(num_years):
             animal.gain_weight(1000000)
             weight += animal.beta * 10
         assert animal.w == weight, f"Weight for {type(animal).__name__} did not increase by the " \
                                f"factor beta."
 
-def test_lose_weight(animals):
+def test_lose_weight():
     """Tests that the weight decreases by the factor eta after lose_weight() is called."""
-    num_days = 10
+    num_years = 10
     for animal in animals:
         weight = animal.w
-        for _ in range(num_days):
+        for _ in range(num_years):
             animal.lose_weight()
             weight -= animal.eta * weight
         assert animal.w == weight, f"Weight for {type(animal).__name__} did not decrease by the " \
                                f"factor eta."
 
-def test_lose_weight_birth(animals):
+def test_lose_weight_birth():
     pass
 
-def test_baby_weight(animals):
+def test_baby_weight():
     pass
 
-def test_give_birth(animals):
+def test_give_birth():
     pass
 
-def test_fitness(animals):
+def test_fitness():
     """Tests that the fitness is calculated correctly."""
     for animal in animals:
         if animal.w > 9999:
@@ -67,14 +76,14 @@ def test_fitness(animals):
                                                        f"with weight: {animal.w} did not match " \
                                                        f"the " \
                                                        f"formulas."
-def test_set_parameters(animals):
+def test_set_parameters():
     """Tests that the parameters are set correctly."""
     for animal in animals:
         new_parameters = {"eta": 0.1}
         animal.set_parameters(new_parameters)
         assert animal.eta == 0.1, f"Parameter eta for {type(animal).__name__} was not set correctly."
 
-def test_get_parameters(animals):
+def test_get_parameters():
     """Tests that the parameters are retrieved correctly."""
     for animal in animals:
         parameters = animal.get_parameters()

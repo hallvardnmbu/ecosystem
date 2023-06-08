@@ -16,6 +16,17 @@ Mangler:
         * Relative imports "."
         * Annual cycle
 
+    package structure
+    ----------------
+       * directory layout
+       * configuration files
+        - license maybe the MIT or the BSD license
+        - readme.md
+        - pyproject.toml
+        - setup.cfg
+        - setup.py
+
+
 ---------------------------------------------------------------------------------------------------
 
 Kan forbedres:
@@ -66,3 +77,8 @@ Tips:
 
         d = [n for n in d if not (n % 2 == 0 or n % 3 == 0)]
         print(d)
+
+   * Tester løper i "tilfeldig" rekkefølge.
+        - husk å sette tilbake parapetre hvis duu endrer på dem i en test.
+
+   * bruk statistical tests på cases der alle carnivores eller alle herbivores dør
