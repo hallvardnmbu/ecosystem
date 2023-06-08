@@ -291,17 +291,16 @@ class Island:
                         killed = cell.carnivore_kill(carnivore, herbivores)
                         herbivores = [herbivore for herbivore in herbivores if herbivore not in killed]
 
-
     def migrate(self):
         """
         Iterates through all the animals on the island.
         An animal migrates with a probability of mu * fitness, and moves to a random neighbouring cell.
         """
 
+        moves = []
         for i, cells in enumerate(self.cell_grid):
             for j, cell in enumerate(cells):
                 if cell.herbivores or cell.carnivores:
-                    N = len(cell.herbivores) + len(cell.carnivores)
                     for animal in cell.herbivores + cell.carnivores:
                         if random.random() < animal.mu * animal.fitness:
                             direction = random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
@@ -309,8 +308,15 @@ class Island:
                             new_cell = self.cell_grid[i+direction[0]][j+direction[1]]
                             # Checks if the new cell is a valid cell (Cell.can_move = True/False):
                             if new_cell.can_move:
-                                cell.animals[animal.species].remove(animal)
-                                new_cell.animals[animal.species].append(animal)
+                                movement = (animal, cell, new_cell)
+                                moves.append(movement)
+
+        for move in moves:
+            animal = move[0]
+            from_cell = move[1]
+            to_cell = move[2]
+            from_cell.animals[animal.species].remove(animal)
+            to_cell.animals[animal.species].append(animal)
 
     def aging(self):
         """
