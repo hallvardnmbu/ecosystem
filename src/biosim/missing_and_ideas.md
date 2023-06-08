@@ -33,12 +33,10 @@ Mangler:
     ----------------
        * directory layout
        * configuration files
-        - license maybe the MIT or the BSD license
         - readme.md
-        - pyproject.toml
         - setup.cfg
-        - setup.py
-
+          -# Homepage for package and specific URLs
+        - tox.ini
 
 ---------------------------------------------------------------------------------------------------
 
@@ -64,6 +62,9 @@ Kan forbedres:
 
         * Island skal ikke "bruke" animals. Det skal skje i animals.
         * Flytte herbivore_eat_fodder og carnivore_eat_herbivore til animals.py (også andre metoder? fra island til animals)
+        * Hvis dyret beveger seg, bør ikke det tas hensyn til cellen med vann, 
+          altså er det 100% sjanse for at en av de tre andre blir flyttet til, ikke 75%
+
 
     GUI:
     ----
