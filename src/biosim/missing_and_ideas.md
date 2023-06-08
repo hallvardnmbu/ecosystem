@@ -10,6 +10,7 @@ Mangler:
         * Forbedre celle-oppsettet (forenkle for-løkkene).
         * Migrasjon
         * Død (fjerne dyr)
+        * Fjerne @classmethod for default parameter-funksjonene?
 
     simulation.py
     -------------
