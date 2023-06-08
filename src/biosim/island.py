@@ -347,8 +347,8 @@ class Island:
         - A probability of weight * (1 - fitness).
         """
 
-        for i, cells in enumerate(self.cell_grid):
-            for j, cell in enumerate(cells):
+        for cells in self.cell_grid:
+            for cell in cells:
                 if cell.herbivores or cell.carnivores:
                     for animal in cell.herbivores + cell.carnivores:
                         if animal.a == 0:
