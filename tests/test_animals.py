@@ -11,6 +11,14 @@ from math import exp
 # tests.
 
 @pytest.fixture
+def reset_parameters():
+    """Resets the class parameters to their default values."""
+
+    yield
+    Herbivore.set_parameters()
+    Carnivore.set_parameters()
+
+@pytest.fixture
 def animals():
     return [Herbivore(weight=10000), Carnivore(weight=10000), Herbivore(weight=0),
             Carnivore(
