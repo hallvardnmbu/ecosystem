@@ -6,18 +6,11 @@ Template for BioSim class.
 # https://opensource.org/licenses/BSD-3-Clause
 # (C) Copyright 2023 Hans Ekkehard Plesser / NMBU
 
-
-
-# FIKSE
-# Relative imports "."
-# Annual cycle
-
-
-
 import random
+import matplotlib.pyplot as plt
 
-from src.biosim.island import Island
-from src.biosim.animals import Herbivore, Carnivore
+from island import Island
+from animals import Herbivore, Carnivore
 
 class BioSim:
     """
@@ -103,6 +96,12 @@ class BioSim:
         self.img_fmt = img_fmt
         self.log_file = log_file
 
+        self.animal_map = {"Herbivore": Herbivore,
+                           "Carnivore": Carnivore}
+
+        self.vis_herbs = []
+        self.vis_carns = []
+
     def set_animal_parameters(self, species, params):
         """
         Set parameters for animal species.
@@ -120,12 +119,10 @@ class BioSim:
             If invalid parameter values are passed.
         """
 
-        if species == "Herbivore":
-            Herbivore.set_parameters(params)
-        elif species == "Carnivore":
-            Carnivore.set_parameters(params)
-        else:
-            raise ValueError("Invalid species name")
+        try:
+            self.animal_map[species].set_parameters(params)
+        except:
+            raise ValueError("Invalid species or parameters.")
 
     def set_landscape_parameters(self, landscape, params):
         """
@@ -154,6 +151,22 @@ class BioSim:
             Number of years to simulate
         """
 
+        simulate_years = num_years + self.year
+        while self.year < simulate_years:
+            self.island.yearly_cycle()
+            self.vis_herbs.append(self.island.n_animals_per_species["Herbivores"])
+            self.vis_carns.append(self.island.n_animals_per_species["Carnivores"])
+
+        self.vis(simulate_years)
+
+    def vis(self, simulate_years):
+        plt.plot(range(simulate_years), self.vis_herbs, label="Herbivores")
+        plt.plot(range(simulate_years), self.vis_carns, label="Carnivores")
+        plt.xlabel("Years")
+        plt.ylabel("Number of animals")
+        plt.legend()
+        plt.show()
+
     def add_population(self, population):
         """
         Add a population to the island
@@ -170,17 +183,19 @@ class BioSim:
     def year(self):
         """Last year simulated."""
 
+        return self.island.year
+
     @property
     def num_animals(self):
         """Total number of animals on island."""
 
-        return self.island.n_animals["Herbivores"] + self.island.n_animals["Carnivores"]
+        return self.island.n_animals
 
     @property
     def num_animals_per_species(self):
         """Number of animals per species in island, as dictionary."""
 
-        return self.island.n_animals
+        return self.island.n_animals_per_species
 
     def make_movie(self):
         """Create MPEG4 movie from visualization images saved."""
@@ -201,7 +216,9 @@ if __name__ == "__main__":
                    WWWHHHHLLLLLLLWWWWWWW
                    WWWWWWWWWWWWWWWWWWWWW"""
 
-    new_animals = [{"loc": (2, 2),
-                    "pop": [{"species": "Herbivore"}]}]
+    animals = [{'loc': (2, 2), 'pop': [{'species': 'Herbivore', 'age': 5, 'weight': 20} for _ in
+                                       range(5)]},
+               {'loc': (2, 2), 'pop': [{'species': 'Carnivore', 'age': 5, 'weight': 20} for _ in
+                                       range(5)]}]
 
-    b = BioSim(island_map=geogr, ini_pop=new_animals, seed=1)
+    b = BioSim(island_map=geogr, ini_pop=animals, seed=4)

@@ -1,19 +1,9 @@
-# FIKSE:
-# Endre til relative imports "."
-# Lage metode som flytter dyr mellom celler.
-# Lage metode som fjerner dyr (ved død).
-# Annual cycle
-# I annual cycle methods: sorter animals først i alle.
-# Cell reset fodder.
-
-
-
+import random
 import textwrap
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-import random
 
 from .animals import Herbivore, Carnivore
 
@@ -25,6 +15,17 @@ class Island:
         """
 
         return {"H": 300, "L": 800, "D": 0, "W": 0}
+
+    def __init__(self, geography, ini_pop=None):
+        self.available_fodder = Island.default_fodder_parameters()
+
+        self.geography = geography
+        self.terrain, self.coordinates = self.terraform()
+
+        # Runs add_population if ini_pop is not None:
+        self.add_population(population=ini_pop) if ini_pop is not None else None
+
+        self.year = 0
 
     def set_fodder_parameters(self, new_parameters=None):
         """
@@ -53,15 +54,6 @@ class Island:
                     raise ValueError("Value for: {0} should be a positive integer.".format(key))
                 self.available_fodder[key] = val
 
-    def __init__(self, geography, ini_pop=None):
-        self.available_fodder = Island.default_fodder_parameters()
-
-        self.geography = geography
-        self.terrain, self.coordinates = self.terraform()
-
-        # Runs add_population if ini_pop is not None:
-        self.add_population(population=ini_pop) if ini_pop is not None else None
-
     def add_population(self, population):
         """
         Adds a population to the island.
@@ -83,7 +75,11 @@ class Island:
             location = animals["loc"]
             if location not in self.coordinates:
                 raise ValueError("Invalid location: {0}".format(location))
-            if self.terrain[location[0]-1][location[1]-1] == "W":
+
+            # Convert location to 0-indexing:
+            i = location[0]-1
+            j = location[1]-1
+            if self.terrain[i][j] == "W":
                 raise ValueError("Animals cannot be placed in water (location: {0}).".format(
                     location))
             for animal in animals["pop"]:
@@ -92,12 +88,31 @@ class Island:
                 if "weight" not in animal:
                     animal["weight"] = None
                 try:
-                    self.cells[location[0]-1][location[1]-1].add_animal(species=animal["species"],
-                                                                        age=animal["age"],
-                                                                        weight=animal["weight"])
+                    self.cells[i][j].add_animal(species=animal["species"],
+                                                age=animal["age"],
+                                                weight=animal["weight"])
 
                 except:
-                    raise ValueError("Error when adding: {0}".format(animal))
+                    raise ValueError("Error when adding: {0}. Double check the parameters.".format(
+                        animal))
+
+    @property
+    def n_animals_per_species(self):
+        """
+        Counts the number of animals per species on the island.
+
+        Returns
+        -------
+        - n_animals_per_species: dictionary
+            {"Herbivores": n_herbivores, "Carnivores": n_carnivores}
+        """
+
+        n_animals_per_species = {"Herbivores": 0, "Carnivores": 0}
+        for cells in self.cells:
+            for cell in cells:
+                n_animals_per_species["Herbivores"] += len(cell.herbivores)
+                n_animals_per_species["Carnivores"] += len(cell.carnivores)
+        return n_animals_per_species
 
     @property
     def n_animals(self):
@@ -106,15 +121,12 @@ class Island:
 
         Returns
         -------
-        - n_herbivores: dictionary
-            {"Herbivores": n_herbivores, "Carnivores": n_carnivores}
+        - n_animals: int
         """
 
-        n_animals = {"Herbivores": 0, "Carnivores": 0}
-        for cells in self.cells:
-            for cell in cells:
-                n_animals["Herbivores"] += len(cell.herbivores)
-                n_animals["Carnivores"] += len(cell.carnivores)
+        both = self.n_animals_per_species
+        n_animals = both["Herbivores"] + both["Carnivores"]
+
         return n_animals
 
     def terraform(self):
@@ -165,11 +177,9 @@ class Island:
                 raise ValueError("The edges of the map must be 'W' (Water).")
 
         # Checks whether the map contains only valid characters:
-        for i in range(X):
-            for j in range(Y):
-                if terrain[i][j] not in ["W", "L", "H", "D"]:
-                    raise ValueError("Cell {0} contains an invalid letter ({1}).".format((i+1, j+1),
-                                                                                         terrain[i][j]))
+        invalid = any(letter not in ["W", "L", "H", "D"] for row in terrain for letter in row)
+        if invalid:
+            raise ValueError("The map contains invalid terrain types.")
 
         # Creates the coordinate-map:
         self.cells = []
@@ -184,7 +194,7 @@ class Island:
 
         return terrain, coordinates
 
-    def visualise(self, colours=None):
+    def visualise(self, my_colours=None):
         """
         Visualises the island.
 
@@ -193,38 +203,25 @@ class Island:
         - colours: dict
             {"Type": [R, G, B]}
             A dictionary containing the colours of the different terrains.
-            Must contain types: "W", "L", "H" and "D".
-                If "None", the default colours will be used.
+            Valid "Type"'s are: "L", "H", "D", "W".
         """
 
-        # Defining colours:
-        if type(colours) is not dict:  # Using default colours if not otherwise specified.
-            colours = {
-                "L": [185, 214, 135],
-                "H": [232, 236, 158],
-                "D": [255, 238, 186],
-                "W": [149, 203, 204]
-            }
+        colours = {"L": [185, 214, 135],
+                   "H": [232, 236, 158],
+                   "D": [255, 238, 186],
+                   "W": [149, 203, 204]}
 
-        X = len(self.terrain)
-        Y = len(self.terrain[0])
-        coloured_map = np.empty((X, Y, 3), dtype="uint8")
+        # Adds the user-defined colours:
+        if my_colours is not None:
+            for key, val in my_colours.items():
+                colours[key] = val
 
-        # Inserting colours into the island:
-        for i in range(X):
-            for j in range(Y):
-                if self.terrain[i][j] == "W":
-                    coloured_map[i, j] = colours["W"]
-                elif self.terrain[i][j] == "L":
-                    coloured_map[i, j] = colours["L"]
-                elif self.terrain[i][j] == "H":
-                    coloured_map[i, j] = colours["H"]
-                elif self.terrain[i][j] == "D":
-                    coloured_map[i, j] = colours["D"]
+        coloured_map = np.array([[colours[type] for type in row] for row in a.terrain],
+                                dtype=np.uint8)
 
         # Visualising the island:
         plt.imshow(coloured_map)
-        plt.xticks([]), plt.yticks([]), plt.title("Map of Pylandia")
+        plt.xticks([]), plt.yticks([]), plt.title("Map of Rossumøya (Pylandia)")
 
         description = {"L": "Lowland", "H": "Highland", "D": "Desert", "W": "Water"}
         patches = [mpatches.Patch(color=(val[0] / 255, val[1] / 255, val[2] / 255),
@@ -288,58 +285,104 @@ class Island:
                         herbivores = [herbivore for herbivore in herbivores if herbivore not in killed]
 
     def migrate(self):
-        for cells in self.cells:
-            for cell in cells:
+        """
+        Iterates through all the animals on the island.
+        An animal migrates with a probability of mu * fitness, and moves to a random neighbouring cell.
+        """
+
+        for i, cells in enumerate(self.cells):
+            for j, cell in enumerate(cells):
                 if cell.herbivores or cell.carnivores:
                     N = len(cell.herbivores) + len(cell.carnivores)
                     for animal in cell.herbivores + cell.carnivores:
-
-        direction = random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
+                        if random.random() < animal.mu * animal.fitness:
+                            direction = random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
+                            # Finds the new cell:
+                            new_cell = self.cells[i+direction[0]][j+direction[1]]
+                            # Checks if the new cell is a valid cell (Cell.can_move = True/False):
+                            if new_cell.can_move:
+                                cell.animals[animal.species].remove(animal)
+                                new_cell.animals[animal.species].append(animal)
 
     def aging(self):
-        pass
+        """
+        Iterates through all the animals on the island, and ages them by one year.
+        """
+
+        for i, cells in enumerate(self.cells):
+            for j, cell in enumerate(cells):
+                if cell.herbivores or cell.carnivores:
+                    for animal in cell.herbivores + cell.carnivores:
+                        animal.aging()
 
     def weight_loss(self):
-        pass
+        """
+        Iterates through all the animals on the island, and makes them lose weight.
+        """
+
+        for i, cells in enumerate(self.cells):
+            for j, cell in enumerate(cells):
+                if cell.herbivores or cell.carnivores:
+                    for animal in cell.herbivores + cell.carnivores:
+                        animal.lose_weight()
 
     def death(self):
-        pass
+        """
+        Iterates through all the animals on the island, and 'kills' them if:
+        - The animal's weight is 0.
+        - A probability of weight * (1 - fitness).
+        """
+
+        for i, cells in enumerate(self.cells):
+            for j, cell in enumerate(cells):
+                if cell.herbivores or cell.carnivores:
+                    for animal in cell.herbivores + cell.carnivores:
+                        if animal.a == 0:
+                            cell.animals[animal.species].remove(animal)
+                        if random.random() < animal.omega * (1 - animal.fitness):
+                            cell.animals[animal.species].remove(animal)
 
     def yearly_cycle(self):
-        # All animals undergo steps simultaneously.
+        """
+        Runs through the yearly cycle of the island in the following order:
+            1. Procreation
+            2. Feeding
+            3. Migration
+            4. Aging
+            5. Weight loss
+            6. Death
+        All animals undergo the same steps simultaneously.
+        """
 
-        # 1. Procreation
-
-        self.procreate() # Funker, tror jeg.
-
-        # 2. Feeding
-
-        self.feed() # Funker, tror jeg.
-
-        # 3. Migration
-
+        self.procreate()
+        self.feed()
         self.migrate()
-
-        # 4. Aging
-
         self.aging()
-
-        # 5. Weight loss
-
         self.weight_loss()
-
-        # 6. Death
-
         self.death()
+        self.new_year()
+
+    def new_year(self):
+        """
+        Adds a new year to the island.
+        """
+
+        self.year += 1
 
 class Cell:
 
     def __init__(self, fodder, cell_type=None):
-        self.cell_type = cell_type if cell_type is not None else "W"
+        self.can_move = True if cell_type != "W" else False
+
         self.fodder_max = fodder
         self.fodder = fodder
+
         self.herbivores = []
         self.carnivores = []
+        self.animals = {"Herbivore": self.herbivores,
+                        "Carnivore": self.carnivores}
+        self.animal_map = {"Herbivore": Herbivore,
+                           "Carnivore": Carnivore}
 
     def herbivore_eat_fodder(self, amount, animal):
         """
@@ -411,11 +454,9 @@ class Cell:
             If the species is not "Herbivore" or "Carnivore".
         """
 
-        if species == "Herbivore":
-            self.herbivores.append(Herbivore(age=age, weight=weight))
-        elif species == "Carnivore":
-            self.carnivores.append(Carnivore(age=age, weight=weight))
-        else:
+        try:
+            self.animals[species].append(self.animal_map[species](age=age, weight=weight))
+        except:
             raise ValueError("The species must be either 'Herbivore' or 'Carnivore'.")
 
 if __name__ == "__main__":

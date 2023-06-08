@@ -1,12 +1,5 @@
-# FIKSE:
-# baby_weight: BYTT "10" MED: "self.count_animals_cell()" COUNT ANIMAL CELL!)
-# (Endre til relative imports "."? Hvis vi bruker noen andre filer?)
-
-
-
-from math import exp
 import random
-
+from math import exp, sqrt, log
 
 class Animal:
     @classmethod
@@ -66,15 +59,35 @@ class Animal:
                       "zeta": cls.zeta,
                       "xi": cls.xi,
                       "omega": cls.omega,
-                      "F": cls.F
-                        }
+                      "F": cls.F}
         if cls is Carnivore:
             parameters["DeltaPhiMax"] = cls.DeltaPhiMax
         return parameters
 
+    def lognormv(self):
+        """
+        A continuous probability distribution of a random variable whose
+        logarithm is normally distributed
+
+        Used to draw birth weights
+
+        Returns
+        -------
+        - weight : float
+            From the normal distribution.
+        """
+
+        w_birth = self.w_birth
+        sigma_birth = self.sigma_birth
+
+        mu = log((w_birth**2)/sqrt(sigma_birth**2 + w_birth**2))
+        sigma = sqrt(log(1 + ((sigma_birth**2)/(w_birth**2))))
+
+        return random.lognormvariate(mu, sigma)
+
     def __init__(self, weight, age):
         self.a = age if age is not None else 0
-        self.w = weight if weight is not None else my_island.lognormv(self)
+        self.w = weight if weight is not None else self.lognormv()
 
     def aging(self):
         """
