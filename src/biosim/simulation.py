@@ -9,8 +9,8 @@ Template for BioSim class.
 import random
 import matplotlib.pyplot as plt
 
-from island import Island
-from animals import Herbivore, Carnivore
+from .island import Island
+from .animals import Herbivore, Carnivore
 
 class BioSim:
     """
