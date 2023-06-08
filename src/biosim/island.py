@@ -71,8 +71,8 @@ class Island:
             If the animal is invalid.
         """
 
-        for animals in population:
-            location = animals["loc"]
+        for location_animals in population:
+            location = location_animals["loc"]
             if location not in self.coordinates:
                 raise ValueError("Invalid location: {0}".format(location))
 
@@ -82,16 +82,18 @@ class Island:
             if self.terrain[i][j] == "W":
                 raise ValueError("Animals cannot be placed in water (location: {0}).".format(
                     location))
-            for animal in animals["pop"]:
+
+            # Iterate through the animals at the given location:
+            animals = location_animals["pop"]
+            for animal in animals:
                 if "age" not in animal:
                     animal["age"] = None
                 if "weight" not in animal:
                     animal["weight"] = None
                 try:
-                    self.cells[i][j].add_animal(species=animal["species"],
+                    self.cell_grid[i][j].add_animal(species=animal["species"],
                                                 age=animal["age"],
                                                 weight=animal["weight"])
-
                 except:
                     raise ValueError("Error when adding: {0}. Double check the parameters.".format(
                         animal))
@@ -108,7 +110,7 @@ class Island:
         """
 
         n_animals_per_species = {"Herbivores": 0, "Carnivores": 0}
-        for cells in self.cells:
+        for cells in self.cell_grid:
             for cell in cells:
                 n_animals_per_species["Herbivores"] += len(cell.herbivores)
                 n_animals_per_species["Carnivores"] += len(cell.carnivores)
@@ -138,8 +140,6 @@ class Island:
         ----------
         - geography: str
             A string representing the geography of the island.
-        - visualise: bool
-            A boolean representing whether or not the map should be visualised.
 
         Raises
         ------
@@ -181,8 +181,8 @@ class Island:
         if invalid:
             raise ValueError("The map contains invalid terrain types.")
 
-        # Creates the coordinate-map:
-        self.cells = []
+        # Creates the cells and coordinate-map:
+        self.cell_grid = []
         coordinates = []
         for i in range(X):
             row = []
@@ -190,7 +190,7 @@ class Island:
                 fodder = self.available_fodder[terrain[i][j]]
                 row.append(Cell(cell_type=terrain[i][j], fodder=fodder))
                 coordinates.append((i+1, j+1))
-            self.cells.append(row)
+            self.cell_grid.append(row)
 
         return terrain, coordinates
 
@@ -216,7 +216,7 @@ class Island:
             for key, val in my_colours.items():
                 colours[key] = val
 
-        coloured_map = np.array([[colours[type] for type in row] for row in a.terrain],
+        coloured_map = np.array([[colours[type] for type in row] for row in self.terrain],
                                 dtype=np.uint8)
 
         # Visualising the island:
@@ -241,12 +241,22 @@ class Island:
         If a baby is born, it is added to the cell of the parent.
         """
 
-        for cells in self.cells:
+        for cells in self.cell_grid:
             for cell in cells:
-                if cell.herbivores or cell.carnivores:
-                    N = len(cell.herbivores) + len(cell.carnivores)
-                    for animal in cell.herbivores + cell.carnivores:
-                        if random.random() < min(1, animal.gamma * animal.fitness * N):
+                # Procreation of herbivores if cell is habitated by them and if the conditions are met:
+                if cell.herbivores:
+                    H = len(cell.herbivores)
+                    for animal in cell.herbivores:
+                        if random.random() < min(1, animal.gamma * animal.fitness * H):
+                            baby_weight = animal.lognormv()
+                            if baby_weight < animal.w:
+                                cell.add_animal(species=animal.species, age=0, weight=baby_weight)
+
+                # Procreation of carnivores if cell is habitated by them and if the conditions are met:
+                if cell.carnivores:
+                    C = len(cell.carnivores)
+                    for animal in cell.carnivores:
+                        if random.random() < min(1, animal.gamma * animal.fitness * C):
                             baby_weight = animal.lognormv()
                             if baby_weight < animal.w:
                                 cell.add_animal(species=animal.species, age=0, weight=baby_weight)
@@ -257,12 +267,9 @@ class Island:
         Herbivores eat fodder. The fittest herbivores eat first.
         Carnivores eat herbivores. They hunt in random order and prey on the weakest herbivores
         first.
-        Returns
-        -------
-
         """
 
-        for cells in self.cells:
+        for cells in self.cell_grid:
             for cell in cells:
                 if cell.herbivores or cell.carnivores:
                     cell.reset_fodder()
@@ -271,7 +278,7 @@ class Island:
                     herbivores = sorted(cell.herbivores, key=lambda herbivore: herbivore.fitness,
                                         reverse=True)
 
-                    for herbivore in cell.herbivores:
+                    for herbivore in herbivores:
                         cell.herbivore_eat_fodder(amount=herbivore.F, animal=herbivore)
 
                     # Sort herbivores by ascending fitness (flip^):
@@ -284,13 +291,14 @@ class Island:
                         killed = cell.carnivore_kill(carnivore, herbivores)
                         herbivores = [herbivore for herbivore in herbivores if herbivore not in killed]
 
+
     def migrate(self):
         """
         Iterates through all the animals on the island.
         An animal migrates with a probability of mu * fitness, and moves to a random neighbouring cell.
         """
 
-        for i, cells in enumerate(self.cells):
+        for i, cells in enumerate(self.cell_grid):
             for j, cell in enumerate(cells):
                 if cell.herbivores or cell.carnivores:
                     N = len(cell.herbivores) + len(cell.carnivores)
@@ -298,7 +306,7 @@ class Island:
                         if random.random() < animal.mu * animal.fitness:
                             direction = random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
                             # Finds the new cell:
-                            new_cell = self.cells[i+direction[0]][j+direction[1]]
+                            new_cell = self.cell_grid[i+direction[0]][j+direction[1]]
                             # Checks if the new cell is a valid cell (Cell.can_move = True/False):
                             if new_cell.can_move:
                                 cell.animals[animal.species].remove(animal)
@@ -309,7 +317,7 @@ class Island:
         Iterates through all the animals on the island, and ages them by one year.
         """
 
-        for i, cells in enumerate(self.cells):
+        for i, cells in enumerate(self.cell_grid):
             for j, cell in enumerate(cells):
                 if cell.herbivores or cell.carnivores:
                     for animal in cell.herbivores + cell.carnivores:
@@ -320,7 +328,7 @@ class Island:
         Iterates through all the animals on the island, and makes them lose weight.
         """
 
-        for i, cells in enumerate(self.cells):
+        for i, cells in enumerate(self.cell_grid):
             for j, cell in enumerate(cells):
                 if cell.herbivores or cell.carnivores:
                     for animal in cell.herbivores + cell.carnivores:
@@ -333,7 +341,7 @@ class Island:
         - A probability of weight * (1 - fitness).
         """
 
-        for i, cells in enumerate(self.cells):
+        for i, cells in enumerate(self.cell_grid):
             for j, cell in enumerate(cells):
                 if cell.herbivores or cell.carnivores:
                     for animal in cell.herbivores + cell.carnivores:
@@ -403,7 +411,9 @@ class Cell:
         Carnivores tries to kill Herbivores in the same cell.
         Parameters
         ----------
-        - animals: list
+        - carnivore: class object
+            One of the carnivores in the cell.
+        - herbivores: list
             Herbivores in the cell sorted by ascending fitness.
         """
 
