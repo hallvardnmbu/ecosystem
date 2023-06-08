@@ -59,6 +59,8 @@ Kan forbedres:
         * Generelt: forbedre celle-systemet.
         * Forbedre Cell.add_animal()
         * Gjøre det umulig å legge til "ugyldige" fager i .visualise()
+        * Spare tid ved å ikke iterere gjennom vann
+          - Bruke itertools
 
     GUI:
     ----
