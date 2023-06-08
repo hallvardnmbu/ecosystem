@@ -65,6 +65,8 @@ Kan forbedres:
         * Spare tid ved å ikke iterere gjennom vann
           - Bruke itertools
 
+        * Island skal ikke "bruke" animals. Det skal skje i animals.
+
     GUI:
     ----
         * Tegne kartet
