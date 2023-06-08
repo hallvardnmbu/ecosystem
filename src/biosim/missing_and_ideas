@@ -26,9 +26,9 @@ Mangler:
        * configuration files
         - license maybe the MIT or the BSD license
         - readme.md
-        - setup.cfg
         - pyproject.toml
-        - requirements.txt
+        - setup.cfg
+        - setup.py
 
 
 ---------------------------------------------------------------------------------------------------
@@ -81,7 +81,6 @@ Tips:
 
         d = [n for n in d if not (n % 2 == 0 or n % 3 == 0)]
         print(d)
-
 
    * Tester løper i "tilfeldig" rekkefølge.
         - husk å sette tilbake parapetre hvis duu endrer på dem i en test.
