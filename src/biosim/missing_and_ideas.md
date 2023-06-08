@@ -63,6 +63,7 @@ Kan forbedres:
           - Bruke itertools
 
         * Island skal ikke "bruke" animals. Det skal skje i animals.
+        * Flytte herbivore_eat_fodder og carnivore_eat_herbivore til animals.py (også andre metoder?)
 
     GUI:
     ----
