@@ -318,6 +318,33 @@ class Island:
             from_cell.animals[animal.species].remove(animal)
             to_cell.animals[animal.species].append(animal)
 
+
+# possible_objects = [obj for obj in objects if obj.position == position and obj not in self.moved_objects]
+
+    #skal denne være i animal kanskje??
+    def possible_move(cls, animal):
+
+        new_cell = True #to be able to make the first move
+
+        for i, cells in enumerate(self.cell_grid):
+            for j, cell in enumerate(cells):
+                if cell.herbivores or cell.carnivores:
+                    for animal in cell.herbivores + cell.carnivores:
+
+
+
+    #vil at dyr skal kunne beveges hvis sannsynligheten sier det, altså at vann da utelukkes. sjekke dette først?
+                        while  new_cell.can_move:
+                            if random.random() < animal.mu * animal.fitness:
+                            direction = random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
+                            # Finds the new cell:
+                            new_cell = self.cell_grid[i+direction[0]][j+direction[1]]
+                            # Checks if the new cell is a valid cell (Cell.can_move = True/False):
+                            if new_cell.can_move:
+                                movement = (animal, cell, new_cell)
+                                moves.append(movement)
+
+
     def aging(self):
         """
         Iterates through all the animals on the island, and ages them by one year.
@@ -340,7 +367,7 @@ class Island:
                     for animal in cell.herbivores + cell.carnivores:
                         animal.lose_weight()
 
-    def death(self):
+    def survive(self):
         """
         Iterates through all the animals on the island, and 'kills' them if:
         - The animal's weight is 0.
@@ -350,25 +377,10 @@ class Island:
         for cells in self.cell_grid:
             for cell in cells:
                 if cell.herbivores:
-                    cell.herbivores=[d for d in cell.herbivores if not d.a == 0 or not random.random() < d.omega * (1 - d.fitness)]
+                    cell.herbivores=[s for s in cell.herbivores if not s.w == 0 or not random.random() < s.omega * (1 - d.fitness)]
                 if cell.carnivores:
-                    cell.carnivores=[d for d in cell.carnivores if not d.a == 0 or not random.random() < d.omega * (1 - d.fitness)]
+                    cell.carnivores=[s for s in cell.carnivores if not s.w == 0 or not random.random() < s.omega * (1 - d.fitness)]
 
-
-                    #copy_animals = cell.herbivores + cell.carnivores
-                    #for animal in copy_animals:
-                    #    if not d.a == 0 or not random.random() < d.omega * (1 - d.fitness)]:
-                    #        amimals.append(animal)
-                    #alive =[d for d in copy_animals if not d.a == 0 or not random.random() < d.omega * (1 - d.fitness)]
-                    #animals = [d for d in copy_animals if d not in dead]
-
-
-                    #for animal in cell.herbivores + cell.carnivores:
-
-                       # if animal.a == 0:
-                       #     cell.animals[animal.species].remove(animal)
-                       # if random.random() < animal.omega * (1 - animal.fitness):
-                       #     cell.animals[animal.species].remove(animal)
 
     def yearly_cycle(self):
         """
@@ -387,7 +399,7 @@ class Island:
         self.migrate()
         self.aging()
         self.weight_loss()
-        self.death()
+        self.survive()
         self.new_year()
 
     def new_year(self):
