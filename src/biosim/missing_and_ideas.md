@@ -1,5 +1,35 @@
 Mangler:
 --------
+    to make html
+    ------------
+     * file and class docstrings
+     * do not commit build directory
+        - only the "red" files
+     * advanced sphinxs features is appreciated
+     * add the math formulas (nicely formatted)
+        - by a good sphinxs theme 
+     * Use NEST guide to write good documentation, see
+       https://www.nest-simulator.readthedocs.io/en/latest/developer_space/guidelines/styleguide.html
+     * Formler:
+          Bruke "r": raw string, for å kunne bruke backslash i latex-kode.
+          - r"""
+            Dockstring
+            .. math::
+               latex code
+            """
+          :math:`\frac{1}{2}`
+
+    plotting pycharm
+    ----------------
+        * call plot at the end of the simulation, dont call it 350 times!
+          - call plot once and update data 350 times
+               -see plot_update.py  
+        * fig.canas.flush_events()  # flush the GUI events
+        * plt.pause(1e-6)  # pause 1e-6 seconds
+        * counter with help from time_counter.py
+
+        
+
     animals.py
     ----------
         * Relative imports "."
