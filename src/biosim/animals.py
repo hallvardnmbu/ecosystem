@@ -88,6 +88,7 @@ class Animal:
     def __init__(self, weight, age):
         self.a = age if age is not None else 0
         self.w = weight if weight is not None else self.lognormv()
+        self.migrated = False
 
     def aging(self):
         """
@@ -109,6 +110,25 @@ class Animal:
         """
 
         self.w -= self.eta * self.w
+
+
+    def migrate(self):
+        """
+        If fitness allows it, the animal migrates, but only if new location is able to hold the animal.
+        Sets the animal to have migrated.
+        """
+        if self.migrated == False and random.random() < animal.mu * animal.fitness:
+
+
+    def random_move(self):
+        """
+        gives a random move
+        """
+        if random.random() < animal.mu * animal.fitness:
+            return (random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)]))
+
+
+
 
     @property
     def fitness(self):
