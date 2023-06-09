@@ -28,7 +28,6 @@ Mangler:
         * plt.pause(1e-6)  # pause 1e-6 seconds
         * counter with help from time_counter.py
 
-        
 
     animals.py
     ----------
