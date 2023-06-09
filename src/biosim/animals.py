@@ -117,8 +117,13 @@ class Animal:
         If fitness allows it, the animal migrates, but only if new location is able to hold the animal.
         Sets the animal to have migrated.
         """
-        if self.migrated == False and random.random() < animal.mu * animal.fitness:
+        if not self.migrated  and random.random() < animal.mu * animal.fitness:
+            move_x, move_y = self.random_move()
+        else:
+            move_x, move_y= (0, 0)
 
+        self.migrated = True
+        return move_x, move_y
 
     def random_move(self):
         """
@@ -127,7 +132,11 @@ class Animal:
         if random.random() < animal.mu * animal.fitness:
             return (random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)]))
 
-
+    def reset_migrated(self):
+        """
+        Resets the migrated attribute to False.
+        """
+        self.migrated = False
 
 
     @property

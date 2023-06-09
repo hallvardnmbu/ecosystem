@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
-from .animals import Herbivore, Carnivore
+from animals import Herbivore, Carnivore
 
 class Island:
     @classmethod
@@ -291,32 +291,57 @@ class Island:
                         killed = cell.carnivore_kill(carnivore, herbivores)
                         herbivores = [herbivore for herbivore in herbivores if herbivore not in killed]
 
-    def migrate(self):
-        """
-        Iterates through all the animals on the island.
-        An animal migrates with a probability of mu * fitness, and moves to a random neighbouring cell.
-        """
+    # def migrate(self):
+    #     """
+    #     Iterates through all the animals on the island.
+    #     An animal migrates with a probability of mu * fitness, and moves to a random neighbouring cell.
+    #     """
+    #
+    #     moves = []
+    #     for i, cells in enumerate(self.cell_grid):
+    #         for j, cell in enumerate(cells):
+    #             if cell.herbivores or cell.carnivores:
+    #                 for animal in cell.herbivores + cell.carnivores:
+    #                     if random.random() < animal.mu * animal.fitness:
+    #                         x, y = random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
+    #                         # Finds the new cell:
+    #                         new_cell = self.cell_grid[i+x][j+y]
+    #                         # Checks if the new cell is a valid cell (Cell.can_move = True/False):
+    #                         if new_cell.can_move:
+    #                             movement = (animal, cell, new_cell)
+    #                             moves.append(movement)
+    #
+    #     for move in moves:
+    #         animal = move[0]
+    #         from_cell = move[1]
+    #         to_cell = move[2]
+    #         from_cell.animals[animal.species].remove(animal)
+    #         to_cell.animals[animal.species].append(animal)
 
-        moves = []
+    def migration(self):
+        """
+        Iterates through all the animals on all the locations of the island and moves
+        them to a random neighbouring cell if fitness allows it
+        """
         for i, cells in enumerate(self.cell_grid):
             for j, cell in enumerate(cells):
                 if cell.herbivores or cell.carnivores:
                     for animal in cell.herbivores + cell.carnivores:
-                        if random.random() < animal.mu * animal.fitness:
-                            x, y = random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
-                            # Finds the new cell:
-                            new_cell = self.cell_grid[i+x][j+y]
-                            # Checks if the new cell is a valid cell (Cell.can_move = True/False):
-                            if new_cell.can_move:
-                                movement = (animal, cell, new_cell)
-                                moves.append(movement)
+                        move_x, move_y = animal.migrate()
+                        new_cell = self.cell_grid[i + move_x][j + move_y]
+                        cell.animals[animal.species].remove(animal)
+                        new_cell.animals[animal.species].append(animal)
 
-        for move in moves:
-            animal = move[0]
-            from_cell = move[1]
-            to_cell = move[2]
-            from_cell.animals[animal.species].remove(animal)
-            to_cell.animals[animal.species].append(animal)
+    def reset_migration(self):
+        """
+        Iterates through all the animals on all the locations of the island and resets
+        their migration status to False
+        """
+        for i, cells in enumerate(self.cell_grid):
+            for j, cell in enumerate(cells):
+                if cell.herbivores or cell.carnivores:
+                    for animal in cell.herbivores + cell.carnivores:
+                        animal.migrated = False
 
     def aging(self):
         """
@@ -370,16 +395,18 @@ class Island:
             4. Aging
             5. Weight loss
             6. Death
+            (7. Migration reset)
         All animals undergo the same steps simultaneously.
         """
 
         self.procreate()
         self.feed()
-        self.migrate()
+        self.migration()
         self.aging()
         self.weight_loss()
         self.survive()
         self.new_year()
+        self.reset_migration()
 
     def new_year(self):
         """
@@ -514,4 +541,4 @@ if __name__ == "__main__":
     print("b", b.available_fodder)
 
     print("a", a.n_animals)
-    print("a", a.cells[1][1].herbivores)
+    #print("a", a.cells[1][1].herbivores)
