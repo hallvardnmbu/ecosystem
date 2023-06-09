@@ -322,27 +322,18 @@ class Island:
 # possible_objects = [obj for obj in objects if obj.position == position and obj not in self.moved_objects]
 
     #skal denne være i animal kanskje??
-    def possible_move(cls, animal):
-
-        new_cell = True #to be able to make the first move
-
-        for i, cells in enumerate(self.cell_grid):
-            for j, cell in enumerate(cells):
-                if cell.herbivores or cell.carnivores:
-                    for animal in cell.herbivores + cell.carnivores:
-
-
-
-    #vil at dyr skal kunne beveges hvis sannsynligheten sier det, altså at vann da utelukkes. sjekke dette først?
-                        while  new_cell.can_move:
-                            if random.random() < animal.mu * animal.fitness:
-                            direction = random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
-                            # Finds the new cell:
-                            new_cell = self.cell_grid[i+direction[0]][j+direction[1]]
-                            # Checks if the new cell is a valid cell (Cell.can_move = True/False):
-                            if new_cell.can_move:
-                                movement = (animal, cell, new_cell)
-                                moves.append(movement)
+    def random_and_possible_move(cls, animal):
+        """
+        gives a random move if possible
+        """
+        if random.random() < animal.mu * animal.fitness:
+        direction = random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
+        # Finds the new cell:
+         new_cell = self.cell_grid[i + direction[0]][j + direction[1]]
+        # Checks if the new cell is a valid cell (Cell.can_move = True/False):
+        if new_cell.can_move:
+             movement = (animal, cell, new_cell)
+             moves.append(movement)
 
 
     def aging(self):
