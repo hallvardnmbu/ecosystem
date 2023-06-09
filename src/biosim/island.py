@@ -303,9 +303,9 @@ class Island:
                 if cell.herbivores or cell.carnivores:
                     for animal in cell.herbivores + cell.carnivores:
                         if random.random() < animal.mu * animal.fitness:
-                            direction = random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
+                            x, y = random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
                             # Finds the new cell:
-                            new_cell = self.cell_grid[i+direction[0]][j+direction[1]]
+                            new_cell = self.cell_grid[i+x][j+y]
                             # Checks if the new cell is a valid cell (Cell.can_move = True/False):
                             if new_cell.can_move:
                                 movement = (animal, cell, new_cell)
