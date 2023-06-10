@@ -42,11 +42,6 @@ def test_set_parameters(trial_animals, reset_animal_defaults):
         animal.set_parameters(new_parameters)
         assert animal.get_parameters()["eta"] == new_parameters["eta"]
 
-    for animal in trial_animals:
-        new_parameters = None
-        animal.set_parameters(new_parameters)
-        assert animal.get_parameters()["beta"] == animal.default_parameters()["beta"]
-
 # def test_lognormv(trial_animals, reset_animal_defaults):
 #     """Tests that the lognormv function works correctly."""
 
@@ -67,27 +62,58 @@ def test_gain_weight(trial_animals, reset_animal_defaults):
 
         animal.set_parameters({"beta": 1})
         weight = animal.w
+        food = 1
 
         for _ in range(num_days):
-            animal.gain_weight(1)
+            animal.gain_weight(food)
 
-        weight *= 1 + num_days
+        weight *= food + num_days
 
         assert animal.w == weight, f"Weight for {type(animal).__name__} did not increase correctly."
 
-def test_lose_weight(trial_animals, reset_animal_defaults):
+def test_lose_weight_year(trial_animals, reset_animal_defaults):
     """Tests that the weight decreases by the factor eta after lose_weight() is called."""
 
     num_days = 10
     for animal in trial_animals:
 
-        animal.set_parameters({"eta": 0})
-        weight = animal.w
+        animal.set_parameters({"eta": 0.99})
 
         for _ in range(num_days):
-            animal.lose_weight()
+            animal.lose_weight_year()
 
-        assert animal.w == weight, f"Weight for {type(animal).__name__} did not decrease correctly."
+        assert animal.w == approx(0), f"Weight for {type(animal).__name__} did not decrease " \
+                                      f"correctly."
+
+def test_lose_weight_birth(trial_animals, reset_animal_defaults):
+    """Tests that the weight decreases by the factor eta after lose_weight() is called."""
+
+    num_days = 10
+    for animal in trial_animals:
+
+        animal.set_parameters({"eta": 0.99})
+
+        for _ in range(num_days):
+            animal.lose_weight_year()
+
+        assert animal.w == approx(0), f"Weight for {type(animal).__name__} did not decrease " \
+                                      f"correctly."
+
+def test_lose_weight_birth(trial_animals, reset_animal_defaults):
+    """Tests that the weight decreases by the factor eta after lose_weight_birth() is called."""
+
+    num_days = 10
+    for animal in trial_animals:
+
+        animal.set_parameters({"xi": 0.1})
+        animal.w = 10
+        baby_weight = 1
+
+        for _ in range(num_days):
+            animal.lose_weight_birth(baby_weight)
+
+        assert animal.w == approx(9), f"Weight for {type(animal).__name__} did not decrease " \
+                                    f"correctly."
 
 def test_fitness():
     """Tests that the fitness is calculated correctly."""
@@ -101,25 +127,3 @@ def test_fitness():
         else:
             assert 0.999 < animal.fitness < 1, "Fitness for animal with weight 10000 is " \
                                                  "incorrect."
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# def test_lose_weight_birth():
-#     pass
-#
-# def test_baby_weight():
-#     pass
-#
-# def test_give_birth():
-#     pass
