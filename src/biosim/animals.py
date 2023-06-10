@@ -1,12 +1,14 @@
 import random
 from math import exp, sqrt, log
 
+
 class Animal:
     @classmethod
     def set_parameters(cls, new_parameters):
         """
         Set the parameters for a species.
-        When calling the function, one can call it on both the subclass and the object, with the same result.
+        When calling the function, one can call it on both the subclass and the object, with the
+        same result.
             Subclass.set_parameters() or
             Object.set_parameters()
 
@@ -21,8 +23,8 @@ class Animal:
             If invalid parameters are passed.
         """
 
-        # Check if parameters are valid:
         for key, val in new_parameters.items():
+            # Check if parameters are valid:
             if val < 0:
                 raise ValueError("Value for: {0} should be nonzero or positive.".format(key))
             if key == "DeltaPhiMax" and val <= 0:
@@ -30,11 +32,10 @@ class Animal:
             if key == "eta" and val > 1:
                 raise ValueError("Value for: {0} should be less than or equal to 1.".format(key))
 
-        # Update new parameters:
-        for key, value in new_parameters.items():
+            # Update new parameters:
             if key not in cls.default_parameters():
                 raise ValueError("Invalid parameter: {0}".format(key))
-            setattr(cls, key, value)
+            setattr(cls, key, val)
 
     @classmethod
     def get_parameters(cls):
@@ -44,8 +45,8 @@ class Animal:
         Returns
         -------
         - parameters : dict
-
         """
+
         parameters = {"w_birth": cls.w_birth,
                       "sigma_birth": cls.sigma_birth,
                       "beta": cls.beta,
@@ -64,12 +65,11 @@ class Animal:
             parameters["DeltaPhiMax"] = cls.DeltaPhiMax
         return parameters
 
-    def lognormv(self):
+    @classmethod
+    def lognormv(cls):
         """
-        A continuous probability distribution of a random variable whose
-        logarithm is normally distributed
-
-        Used to draw birth weights
+        A continuous probability distribution of a random variable whose logarithm is normally
+        distributed, which is used to draw birth (or unspecified) weights.
 
         Returns
         -------
@@ -77,15 +77,25 @@ class Animal:
             From the normal distribution.
         """
 
-        w_birth = self.w_birth
-        sigma_birth = self.sigma_birth
+        try:
+            cls.get_parameters()
+        except:
+            cls.set_parameters(cls.default_parameters())
 
-        mu = log((w_birth**2)/sqrt(sigma_birth**2 + w_birth**2))
-        sigma = sqrt(log(1 + ((sigma_birth**2)/(w_birth**2))))
+        mu = log((cls.w_birth ** 2) / sqrt(cls.sigma_birth ** 2 + cls.w_birth ** 2))
+        sigma = sqrt(log(1 + ((cls.sigma_birth ** 2) / (cls.w_birth ** 2))))
 
         return random.lognormvariate(mu, sigma)
 
     def __init__(self, weight, age):
+        try:
+            if int(age) < 0:
+                raise ValueError("Age should be positive.")
+            if weight < 0:
+                raise ValueError("Weight should be positive.")
+        except:
+            raise ValueError(f"Age: {age} and weight: {weight} must both be numbers (age: int).")
+
         self.a = age if age is not None else 0
         self.w = weight if weight is not None else self.lognormv()
 
@@ -110,6 +120,34 @@ class Animal:
 
         self.w -= self.eta * self.w
 
+    def lose_weight_birth(self, baby_weight):
+        """
+        Decrements the weight of the parent by the factor eta if the parent weights enough.
+
+        Parameters
+        ----------
+        - baby_weight : float
+            The weight of the baby.
+
+        Returns
+        -------
+        - bool: True/False
+            True if the parent can lose xi * baby_weight, False otherwise.
+        """
+
+        if self.w > self.xi * baby_weight:
+            self.w -= self.xi * baby_weight
+            return True
+        else:
+            return False
+
+    def lose_weight_year(self):
+        """
+        Decrements the weight of the animal by the factor eta.
+        """
+
+        self.w -= self.eta * self.w
+
     @property
     def fitness(self):
         """
@@ -118,10 +156,13 @@ class Animal:
 
         if self.w <= 0:
             return 0
+
         # Calculates parts of the fitness function:
         q_pos = (1 + exp(self.phi_age * (self.a - self.a_half))) ** (-1)
         q_neg = (1 + exp(-self.phi_weight * (self.w - self.w_half))) ** (-1)
+
         return q_pos * q_neg
+
 
 class Herbivore(Animal):
     @classmethod
@@ -143,19 +184,17 @@ class Herbivore(Animal):
                 "zeta": 3.5,
                 "xi": 1.2,
                 "omega": 0.4,
-                "F": 10.0
-                }
+                "F": 10.0}
 
     def __init__(self, age=None, weight=None):
         try:
             self.set_parameters(Herbivore.get_parameters())
         except:
             self.set_parameters(Herbivore.default_parameters())
-        super().__init__(weight, age)
 
-    @property
-    def species(self):
-        return "Herbivore"
+        super().__init__(weight, age)
+        self.species = "Herbivore"
+
 
 class Carnivore(Animal):
     @classmethod
@@ -178,16 +217,13 @@ class Carnivore(Animal):
                 "xi": 1.1,
                 "omega": 0.8,
                 "F": 50.0,
-                "DeltaPhiMax": 10.0
-                }
+                "DeltaPhiMax": 10.0}
 
     def __init__(self, age=None, weight=None):
         try:
             self.set_parameters(Carnivore.get_parameters())
         except:
             self.set_parameters(Carnivore.default_parameters())
-        super().__init__(weight, age)
 
-    @property
-    def species(self):
-        return "Carnivore"
+        super().__init__(weight, age)
+        self.species = "Carnivore"
