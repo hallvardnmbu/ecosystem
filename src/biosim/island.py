@@ -6,7 +6,7 @@ Module for the island and its cells.
 import random
 import textwrap
 
-from animals import Animal
+from .animals import Animal
 
 
 class Island:
@@ -204,14 +204,11 @@ class Island:
         Example: {`Herbivores`: n_herbivores, `Carnivores`: n_carnivores}
          """
 
-        n_animals_per_species = {}
+        n_animals_per_species = {"Herbivores": 0, "Carnivores": 0}
         for animals in self.n_animals_per_species_per_cell.values():
             for species, n_animals in animals.items():
                 if n_animals != 0:
-                    if species in n_animals_per_species:
-                        n_animals_per_species[species] += n_animals
-                    else:
-                        n_animals_per_species[species] = n_animals
+                    n_animals_per_species[species] += n_animals
         return n_animals_per_species
 
     @property
@@ -244,7 +241,7 @@ class Island:
         """
 
         animals = self.n_animals_per_species
-        return animals["Herbivores"] + animals["Carnivores"]
+        return animals["Herbivore"] + animals["Carnivore"]
 
     def procreate(self):
         """
@@ -538,36 +535,3 @@ class Cell:
         n_animals_in_cell["Carnivores"] = len(self.animals["Carnivore"])
 
         return n_animals_in_cell
-
-if __name__ == "__main__":
-    geogr = """\
-                   WWWWWWWWWWWWWWWWWWWWW
-                   WLWWWWWWHWWWWLLLLLLLW
-                   WHHHHHLLLLWWLLLLLLLWW
-                   WHHHHHHHHHWWLLLLLLWWW
-                   WHHHHHLLLLLLLLLLLLWWW
-                   WHHHHHLLLDDLLLHLLLWWW
-                   WHHLLLLLDDDLLLHHHHWWW
-                   WWHHHHLLLDDLLLHWWWWWW
-                   WHHHLLLLLDDLLLLLLLWWW
-                   WHHHHLLLLDDLLLLWWWWWW
-                   WWHHHHLLLLLLLLWWWWWWW
-                   WWWHHHHLLLLLLLWWWWWWW
-                   WWWWWWWWWWWWWWWWWWWWW"""
-
-    ini_herbs = [{'loc': (2, 2),
-                  'pop': [{'species': 'Herbivore',
-                           'age': 5,
-                           'weight': 20}
-                          for _ in range(150)]}]
-    ini_carns = [{'loc': (3, 2),
-                  'pop': [{'species': 'Carnivore',
-                           'age': 5,
-                           'weight': 20}
-                          for _ in range(40)]}]
-
-    island = Island(geogr)
-    island.add_population(ini_herbs)
-    island.add_population(ini_carns)
-    dicti=island.n_animals_per_species
-    dicto=island.n_animals_per_species_per_cell
