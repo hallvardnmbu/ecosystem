@@ -154,7 +154,7 @@ def test_lognormv_without_animals(mocker):
     """Tests that the lognormv function works correctly."""
 
     mocker.patch("random.lognormvariate", return_value=1)
-    Carnivore.lognormv() == 1, "Calling lognormv without an animal didn't work."
+    assert Carnivore.lognormv() == 1, "Calling lognormv without an animal didn't work."
 
 
 def test_create_animal():
