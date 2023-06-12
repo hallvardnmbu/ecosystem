@@ -280,13 +280,35 @@ def test_feed(trial_islands):
 def test_migrate(reset_animal_params):
     """Tests that the animals migrate correctly."""
 
-    island = Island(geography="WWWWW\nWWHWW\nWHHHW\nWWHWW\nWWWWW")
+    geogr = """\
+                  WWWWWWWWWWWWW
+                  WLLLLLLLLLLLW
+                  WLLLLLLLLLLLW
+                  WLLLLLLLLLLLW
+                  WLLLLLLLLLLLW
+                  WLLLLLLLLLLLW
+                  WLLLLLLLLLLLW
+                  WLLLLLLLLLLLW
+                  WLLLLLLLLLLLW
+                  WLLLLLLLLLLLW
+                  WLLLLLLLLLLLW
+                  WLLLLLLLLLLLW  
+                  WWWWWWWWWWWWW"""
 
-    animal = [{"loc": (3, 3), "pop": [{"species": "Herbivore", "age": 0, "weight": 20}]}]
+
+    [{"loc": (7, 7), "pop": [{"species": "Herbivore", "age": 0, "weight": 50000},{"species": "Herbivore", "age": 0, "weight": 50000} for i in range(500)]}],
+
+    island = Island(geog, ini_pop)
+
+    animals = [{"loc": (7, 7), "pop": [{"species": "Herbivore", "age": 0, "weight": 20}]}]
     island.add_population(animal)
 
     # Set the parameters so that the animals will migrate (and don't die).
-    Herbivore.set_parameters({"mu": 100, "omega": 0})
+    Herbivore.set_parameters({'mu': 1, 'omega': 0, 'gamma': 0, 'eta': 0,
+                                 'F': 0, 'a_half': 10000})
+    Carnivore.set_parameters({'mu': 1, 'omega': 0, 'gamma': 0, 'eta': 0,
+                                 'F': 0, 'a_half': 10000})
+
 
     island.migrate()
 
