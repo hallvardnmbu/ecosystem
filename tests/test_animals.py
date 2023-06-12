@@ -1,90 +1,270 @@
-from src.biosim.animals import Herbivore, Carnivore
-import pytest
-from math import exp
+"""
+Tests for the animals module.
+"""
 
 # Each individual test should have a descriptive name
 # When a test fails, the first thing you read is the name
 # Should describe what was tested and failed
 # Should write a docstring to further explain the test
 
-# I used ChatGPT and Stackoverflow in order to gain a basic understanding of how to structure the
-# tests.
+from src.biosim.animals import Herbivore, Carnivore
+import scipy.stats as stat
+from math import log
+from pytest_mock import mocker
+from pytest import approx
+import pytest
+
+# We used the lecture notes, ChatGPT and Stackoverflow in order to gain a basic understanding of how
+# to structure the tests. ChatGPT and Stackoverflow were used as a "teacher", and did not author
+# any of the code we used.
+
+# Stackoverflow was used in order to find out how to test if an error is raised properly. Source:
+# https://stackoverflow.com/questions/23337471/how-to-properly-assert-that-an-exception-gets
+# -raised-in-pytest
+
 
 @pytest.fixture
-def reset_parameters():
-    """Resets the class parameters to their default values."""
+def trial_animals():
+    """
+    Creates a list of animals to be used in the tests.
+    After the test is done, the animals are reset to their default values.
+    """
 
-    yield
-    Herbivore.set_parameters()
-    Carnivore.set_parameters()
+    # Setup:
+    age = 0
+    weight = 1
+    animals = [Herbivore(age, weight), Carnivore(age, weight)]
 
-@pytest.fixture(autouse=True)
-def animals():
-    return [Herbivore(weight=10000),
-            Carnivore(weight=10000),
-            Herbivore(weight=0),
-            Carnivore(weight=0)]
+    yield animals
 
-def test_age_increase():
-    """Tests that the age increases by one after aging() is called."""
-    num_years = 10
+    # Cleanup:
     for animal in animals:
+        animal.a = age
+        animal.w = weight
+        animal.set_parameters(animal.default_parameters())
+
+
+def test_animal_init():
+    """Tests that the animal is initialized correctly."""
+
+    assert Herbivore(1, 1).w_birth == float(8)
+    assert Carnivore(1, 1).w_birth == float(6)
+
+
+def test_default_parameters(trial_animals):
+    """Tests that the default parameters are set correctly."""
+
+    for animal in trial_animals:
+        assert animal.get_parameters() == animal.default_parameters(), "Parameters are wrong."
+
+
+@pytest.mark.parametrize("dict_key, dict_value",
+                         [["eta", 0.1],
+                          ["a_half", 40],
+                          ["phi_age", 0.6],
+                          ["w_half", 10]])
+def test_set_parameters(trial_animals, dict_key, dict_value):
+    """Tests that the parameters are set correctly."""
+
+    for animal in trial_animals:
+        new_parameters = {dict_key: dict_value}
+        animal.set_parameters(new_parameters)
+        assert animal.get_parameters()[dict_key] == dict_value, "Setting parameters didn't work."
+
+
+@pytest.mark.parametrize("dict_key, dict_value",
+                         [["eta", -0.1],
+                          ["a_half", -40],
+                          ["phi_age", -0.6],
+                          ["w_half", -10]])
+def test_set_parameters_negative(dict_key, dict_value):
+    """Tests that the parameters are set correctly."""
+
+    with pytest.raises(ValueError):
+        Herbivore.set_parameters({dict_key: dict_value}), "Setting negative parameters worked."
+
+
+@pytest.mark.parametrize("dict_key",
+                         [0,
+                          -1])
+def test_set_parameters_dpm(dict_key):
+    """Tests that the parameters are set correctly."""
+
+    with pytest.raises(ValueError):
+        Carnivore.set_parameters({"DeltaPhiMax": dict_key}), "Setting DeltaPhiMax to <= 0 worked."
+
+
+def test_set_parameters_eta():
+    """Tests that the parameters are set correctly."""
+
+    with pytest.raises(ValueError):
+        Herbivore.set_parameters({"eta": 10}), "Setting eta to >1 worked."
+
+
+@pytest.mark.parametrize("dict_key, dict_value",
+                         [["a", 0.1],
+                          ["b", 40],
+                          ["c", 52],
+                          ["d", 100]])
+def test_set_parameters_nonexistent_key(dict_key, dict_value):
+    """Tests that the parameters are set correctly."""
+
+    with pytest.raises(KeyError):
+        Herbivore.set_parameters({dict_key: dict_value}), "Setting nonexistent parameters worked."
+
+
+@pytest.mark.parametrize("dict_key, dict_value",
+                         [["eta", "a"],
+                          ["a_half", Herbivore],
+                          ["phi_age", (1, 2, 3)],
+                          ["w_half", [1, "2", 3]]])
+def test_set_parameters_nonexistent_value(dict_key, dict_value):
+    """Tests that the parameters are set correctly."""
+
+    with pytest.raises(ValueError):
+        Herbivore.set_parameters({dict_key: dict_value}), "Setting nonexistent parameters worked."
+
+
+def test_lognormv(trial_animals):
+    """Tests that the lognormv function works correctly."""
+
+    for animal in trial_animals:
+
+        sample_size = 1000
+        weights = [animal.lognormv() for _ in range(sample_size)]
+        log_weights = [log(weight) for weight in weights]
+
+        # Shapiro-Wilk test. A low p-value indicates that we are uncertain of uniformity.
+        # Retrieved from scipy.stats.shapiro.
+        _, p_val = stat.shapiro(log_weights)
+
+        # If the p-value is below the confidence level, we reject the null hypothesis (uniformity).
+        assert p_val > 0.01, "Weights are not normally distributed (p < 0.01)."
+
+
+def test_lognormv_with_animals(trial_animals, mocker):
+    """Tests that the lognormv function works correctly."""
+
+    mocker.patch("random.lognormvariate", return_value=1)
+    for animal in trial_animals:
+        assert animal.lognormv() == 1, "Calling lognormv with an animal didn't work."
+
+
+def test_lognormv_without_animals(mocker):
+    """Tests that the lognormv function works correctly."""
+
+    mocker.patch("random.lognormvariate", return_value=1)
+    assert Carnivore.lognormv() == 1, "Calling lognormv without an animal didn't work."
+
+
+def test_create_animal():
+    """Tests that the animal is created correctly."""
+
+    animal = Herbivore(age=0, weight=1)
+    assert animal.a == 0, f"Age for {animal.species} is wrongly constructed."
+    assert animal.w == 1, f"Weight for {animal.species} is wrongly constructed."
+
+
+@pytest.mark.parametrize("age, weight",
+                         [[-1, 1],
+                          [1, -1],
+                          [-1, -1]])
+def test_create_animal_negative(age, weight):
+    """Tests that the animal is created correctly."""
+
+    with pytest.raises(ValueError):
+        Herbivore(age=age, weight=weight), "Creating animal with negative values worked."
+
+
+@pytest.mark.parametrize("age, weight",
+                         [["a", 1],
+                          [1, "a"],
+                          ["a", "a"]])
+def test_create_animal_nonnumber(age, weight):
+    """Tests that the animal is created correctly."""
+
+    with pytest.raises(ValueError):
+        Herbivore(age=age, weight=weight), "Creating animal with non-numbers worked."
+
+
+def test_aging(trial_animals):
+    """Tests that the age increases by one after aging() is called."""
+
+    num_years = 10
+    for animal in trial_animals:
         for _ in range(num_years):
             animal.aging()
-        assert animal.a == num_years, f"Age for {type(animal).__name__} did not increase by one."
+        assert animal.a == num_years, f"Age for {animal.species} did not increase by one."
 
-def test_gain_weight():
+
+def test_gain_weight(trial_animals):
     """Tests that the weight increases by the factor beta after gain_weight() is called."""
-    num_years = 10
-    for animal in animals:
-        weight = animal.w
-        for _ in range(num_years):
-            animal.gain_weight(1000000)
-            weight += animal.beta * 10
-        assert animal.w == weight, f"Weight for {type(animal).__name__} did not increase by the " \
-                               f"factor beta."
 
-def test_lose_weight():
+    num_years = 10
+    for animal in trial_animals:
+
+        animal.set_parameters({"beta": 1})
+        weight = animal.w
+        food = 1
+
+        for _ in range(num_years):
+            animal.gain_weight(food)
+
+        weight *= food + num_years
+
+        assert animal.w == weight, f"Weight for {animal.species} did not increase correctly."
+
+
+def test_lose_weight_year(trial_animals):
     """Tests that the weight decreases by the factor eta after lose_weight() is called."""
+
     num_years = 10
-    for animal in animals:
-        weight = animal.w
+    for animal in trial_animals:
+
+        animal.set_parameters({"eta": 0.99})
+
         for _ in range(num_years):
-            animal.lose_weight()
-            weight -= animal.eta * weight
-        assert animal.w == weight, f"Weight for {type(animal).__name__} did not decrease by the " \
-                               f"factor eta."
+            animal.lose_weight_year()
 
-def test_lose_weight_birth():
-    pass
+        assert animal.w == approx(0), f"Weight for {animal.species} did not decrease correctly."
 
-def test_baby_weight():
-    pass
 
-def test_give_birth():
-    pass
+def test_lose_weight_birth(trial_animals):
+    """Tests that the weight decreases by the factor eta after lose_weight_birth() is called."""
+
+    num_years = 10
+    for animal in trial_animals:
+
+        animal.set_parameters({"xi": 0.1})
+        animal.w = 10
+        baby_weight = 1
+
+        for _ in range(num_years):
+            animal.lose_weight_birth(baby_weight)
+
+        assert animal.w == approx(9), f"Weight for {animal.species} did not decrease correctly."
+
+
+def test_lose_weight_birth_small_weight(trial_animals):
+    """Tests whether a baby is born if the mother's weight is too low."""
+
+    for animal in trial_animals:
+
+        animal.set_parameters({"xi": 1})
+        animal.w = 0.9
+        baby_weight = 1
+
+        assert not animal.lose_weight_birth(baby_weight), "Loss of weight did not return False."
+
 
 def test_fitness():
     """Tests that the fitness is calculated correctly."""
-    for animal in animals:
-        if animal.w > 9999:
-            assert 0.998 <= animal.fitness <= 1, f"Fitness for {type(animal).__name__} " \
-                                                       f"with weight: {animal.w} did not match " \
-                                                       f"the formulas."
-        elif animal.w == pytest.approx(0):
-            assert animal.fitness == pytest.approx(0), f"Fitness for {type(animal).__name__} " \
-                                                       f"with weight: {animal.w} did not match " \
-                                                       f"the " \
-                                                       f"formulas."
-def test_set_parameters():
-    """Tests that the parameters are set correctly."""
-    for animal in animals:
-        new_parameters = {"eta": 0.1}
-        animal.set_parameters(new_parameters)
-        assert animal.eta == 0.1, f"Parameter eta for {type(animal).__name__} was not set correctly."
 
-def test_get_parameters():
-    """Tests that the parameters are retrieved correctly."""
+    animals = [Herbivore(age=0, weight=0), Carnivore(age=0, weight=0),
+               Herbivore(age=0, weight=10000), Carnivore(age=0, weight=10000)]
+
     for animal in animals:
-        parameters = animal.get_parameters()
-        assert parameters["eta"] == animal.eta, f"Parameter eta for {type(animal).__name__} was not retrieved correctly."
+        if animal.w == 0:
+            assert animal.fitness == approx(0), f"Fitness for {animal.species} is incorrect."
+        else:
+            assert 0.999 < animal.fitness < 1, f"Fitness for {animal.species} is incorrect."

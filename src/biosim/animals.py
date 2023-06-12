@@ -1,39 +1,57 @@
+"""
+Module for the different animal species.
+"""
+
+
 import random
 from math import exp, sqrt, log
 
+
 class Animal:
+    """
+    Parent class for animal species.
+    """
+
     @classmethod
     def set_parameters(cls, new_parameters):
         """
         Set the parameters for a species.
-        When calling the function, one can call it on both the subclass and the object, with the same result.
+        When calling the function, one can call it on both the subclass and the object, with the
+        same result.
             Subclass.set_parameters() or
             Object.set_parameters()
 
         Parameters
         ----------
-        - parameters : dict
-            {"parameter": value}
+        new_parameters : dict
+            {`parameter`: value}
 
         Raises
         ------
-        - ValueError
+        ValueError
             If invalid parameters are passed.
         """
 
-
         for key, val in new_parameters.items():
             # Check if parameters are valid:
-            if val < 0:
-                raise ValueError("Value for: {0} should be nonzero or positive.".format(key))
-            if key == "DeltaPhiMax" and val <= 0:
-                raise ValueError("Value for: {0} should be positive.".format(key))
-            if key == "eta" and val > 1:
-                raise ValueError("Value for: {0} should be less than or equal to 1.".format(key))
+            if key not in cls.default_parameters():
+                raise KeyError(f"Invalid parameter: {key}")
+            try:
+                if key == "DeltaPhiMax" and val <= 0:
+                    raise ValueError(f"Value for: {key} should be positive.")
+                elif key == "eta" and val > 1:
+                    raise ValueError(f"Value for: {key} should be less than or equal to 1.")
+                else:
+                    try:
+                        if val < 0:
+                            raise ValueError(f"Value for: {key} should be nonzero or positive.")
+                    except TypeError:
+                        raise ValueError(f"Value for: {key} should be a number.")
+            # This extra "except" is needed in case "DeltaPhiMax" or "eta" is not a number.
+            except TypeError:
+                raise ValueError(f"Value for: {key} should be a number.")
 
             # Update new parameters:
-            if key not in cls.default_parameters():
-                raise ValueError("Invalid parameter: {0}".format(key))
             setattr(cls, key, val)
 
     @classmethod
@@ -43,9 +61,9 @@ class Animal:
 
         Returns
         -------
-        - parameters : dict
-
+        parameters : dict
         """
+
         parameters = {"w_birth": cls.w_birth,
                       "sigma_birth": cls.sigma_birth,
                       "beta": cls.beta,
@@ -64,31 +82,58 @@ class Animal:
             parameters["DeltaPhiMax"] = cls.DeltaPhiMax
         return parameters
 
-    def lognormv(self):
+    @classmethod
+    def lognormv(cls):
         """
         A continuous probability distribution of a random variable whose
-        logarithm is normally distributed
-
-        Used to draw birth weights
+        logarithm is normally distributed, which is used to draw birth weights
 
         Returns
         -------
-        - weight : float
+        weight : float
             From the normal distribution.
         """
 
-        w_birth = self.w_birth
-        sigma_birth = self.sigma_birth
+        try:
+            cls.get_parameters()
+        except AttributeError:
+            cls.set_parameters(cls.default_parameters())
 
-        mu = log((w_birth**2)/sqrt(sigma_birth**2 + w_birth**2))
-        sigma = sqrt(log(1 + ((sigma_birth**2)/(w_birth**2))))
+        mu = log((cls.w_birth**2)/sqrt(cls.w_birth**2 + cls.sigma_birth**2))
+        sigma = sqrt(log(1 + ((cls.sigma_birth**2)/(cls.w_birth**2))))
 
         return random.lognormvariate(mu, sigma)
 
+    @classmethod
+    def mapping(cls):
+        """
+        Maps the string to the class.
+        This is done to avoid having to import all the subclasses (upon further expanding for
+        different species/subspecies).
+
+        Returns
+        -------
+        dict
+            Class mapping.
+        """
+
+        return {"Herbivore": Herbivore,
+                "Carnivore": Carnivore}
+
     def __init__(self, weight, age):
-        self.a = age if age is not None else 0
-        self.w = weight if weight is not None else self.lognormv()
-        self.migrated = False
+        try:
+            if int(age) < 0:
+                raise ValueError("Age should be positive.")
+            else:
+                self.a = age
+            if not weight:
+                self.w = self.lognormv()
+            elif weight < 0:
+                raise ValueError("Weight should be positive.")
+            else:
+                self.w = weight
+        except ValueError:
+            raise ValueError(f"Age: {age} and weight: {weight} must both be numbers.")
 
     def aging(self):
         """
@@ -104,45 +149,43 @@ class Animal:
 
         self.w += self.beta * food
 
-    def lose_weight(self):
+    def lose_weight_year(self):
         """
         Decrements the weight of the animal by the factor eta.
         """
 
         self.w -= self.eta * self.w
 
+    def lose_weight_birth(self, baby_weight):
+        """
+        Decrements the weight of the parent by the factor eta if the parent weights enough.
 
-    def migrate(self):
+        Parameters
+        ----------
+        baby_weight : float
+            The weight of the baby.
+
+        Returns
+        -------
+        bool
+            True if the parent can lose xi * baby_weight, False otherwise.
         """
-        If fitness allows it, the animal migrates, but only if new location is able to hold the animal.
-        Sets the animal to have migrated.
-        """
-        if not self.migrated  and random.random() < animal.mu * animal.fitness:
-            move_x, move_y = self.random_move()
+
+        if self.w > self.xi * baby_weight:
+            self.w -= self.xi * baby_weight
+            return True
         else:
-            move_x, move_y= (0, 0)
-
-        self.migrated = True
-        return move_x, move_y
-
-    def random_move(self):
-        """
-        gives a random move
-        """
-        if random.random() < animal.mu * animal.fitness:
-            return (random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)]))
-
-    def reset_migrated(self):
-        """
-        Resets the migrated attribute to False.
-        """
-        self.migrated = False
-
+            return False
 
     @property
     def fitness(self):
         """
         Calculates the fitness of the animal.
+
+        Returns
+        -------
+        fitness : float
+            The fitness of the animal.
         """
 
         if self.w <= 0:
@@ -152,11 +195,28 @@ class Animal:
         q_neg = (1 + exp(-self.phi_weight * (self.w - self.w_half))) ** (-1)
         return q_pos * q_neg
 
+
 class Herbivore(Animal):
+    """
+    Subclass for Herbivores.
+
+    Parameters
+    ----------
+    age : int, optional
+        Age of the animal.
+    weight : float, optional
+        Weight of the animal.
+    """
+
     @classmethod
     def default_parameters(cls):
         """
         Default parameters for Herbivores.
+
+        Returns
+        -------
+        dict
+            Default parameters for Herbivore.
         """
 
         return {"w_birth": 8.0,
@@ -164,7 +224,7 @@ class Herbivore(Animal):
                 "beta": 0.9,
                 "eta": 0.05,
                 "a_half": 40.0,
-                "phi_age": 0.2,
+                "phi_age": 0.6,
                 "w_half": 10.0,
                 "phi_weight": 0.1,
                 "mu": 0.25,
@@ -172,22 +232,38 @@ class Herbivore(Animal):
                 "zeta": 3.5,
                 "xi": 1.2,
                 "omega": 0.4,
-                "F": 10.0
-                }
+                "F": 10.0}
 
     def __init__(self, age=None, weight=None):
         try:
             self.set_parameters(Herbivore.get_parameters())
-        except:
+        except AttributeError:
             self.set_parameters(Herbivore.default_parameters())
         super().__init__(weight, age)
         self.species = "Herbivore"
 
+
 class Carnivore(Animal):
+    """
+    Subclass for Carnivores.
+
+    Parameters
+    ----------
+    age : int, optional
+        Age of the animal.
+    weight : float, optional
+        Weight of the animal.
+    """
+
     @classmethod
     def default_parameters(cls):
         """
         Default parameters for Carnivores.
+
+        Returns
+        -------
+        dict
+            Default parameters for Carnivore.
         """
 
         return {"w_birth": 6.0,
@@ -204,13 +280,12 @@ class Carnivore(Animal):
                 "xi": 1.1,
                 "omega": 0.8,
                 "F": 50.0,
-                "DeltaPhiMax": 10.0
-                }
+                "DeltaPhiMax": 10.0}
 
     def __init__(self, age=None, weight=None):
         try:
             self.set_parameters(Carnivore.get_parameters())
-        except:
+        except AttributeError:
             self.set_parameters(Carnivore.default_parameters())
         super().__init__(weight, age)
         self.species = "Carnivore"

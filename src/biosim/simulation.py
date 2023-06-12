@@ -10,7 +10,8 @@ import random
 import matplotlib.pyplot as plt
 
 from .island import Island
-from .animals import Herbivore, Carnivore
+from .animals import Animal
+
 
 class BioSim:
     """
@@ -96,13 +97,13 @@ class BioSim:
         self.img_fmt = img_fmt
         self.log_file = log_file
 
-        self.animal_map = {"Herbivore": Herbivore,
-                           "Carnivore": Carnivore}
+        self.animal_map = Animal.mapping()
 
         self.vis_herbs = []
         self.vis_carns = []
 
-    def set_animal_parameters(self, species, params):
+    @staticmethod
+    def set_animal_parameters(species, params):
         """
         Set parameters for animal species.
 
@@ -115,14 +116,27 @@ class BioSim:
 
         Raises
         ------
+        KeyError
+            If invalid parameter keys are passed.
         ValueError
             If invalid parameter values are passed.
         """
 
         try:
-            self.animal_map[species].set_parameters(params)
-        except:
-            raise ValueError("Invalid species or parameters.")
+            Animal.mapping()[species].set_parameters(params)
+        except KeyError as e:
+            # Here I googled how to retrieve the element in a set. I found that I could use
+            # next(iter(...)):
+            difference = next(iter(set(params.keys()) - set(Animal.mapping().keys())))
+            if f"Invalid parameter: {difference}" in str(e):
+                raise KeyError(f"Invalid key: {difference}.")
+            elif species not in Animal.mapping().keys():
+                raise KeyError(f"Invalid species: {species}. Valid species:"
+                               f" {', '.join(list(Animal.mapping().keys()))}")
+            else:
+                raise KeyError(f"Invalid parameter keys in {params}.")
+        except ValueError:
+            raise ValueError("Invalid parameter value(s).")
 
     def set_landscape_parameters(self, landscape, params):
         """
@@ -138,8 +152,24 @@ class BioSim:
         Raises
         ------
         ValueError
+            If invalid landscape type is passed.
+            If invalid parameter keys are passed.
             If invalid parameter values are passed.
         """
+
+        if "f_max" not in params:
+            raise ValueError(f"Invalid parameter key {params}. Valid keys are 'f_max'.")
+        else:
+            try:
+                if params["f_max"] < 0:
+                    raise ValueError(f"Parameter value {params['f_max']} must be positive.")
+            except TypeError:
+                raise ValueError(f"Parameter value {params['f_max']} must be a number.")
+        if landscape not in self.island.default_fodder_parameters():
+            raise ValueError(f"Invalid landscape type {landscape}.")
+
+        new_parameters = {landscape: params["f_max"]}
+        self.island.set_fodder_parameters(new_parameters)
 
     def simulate(self, num_years):
         """
@@ -153,11 +183,12 @@ class BioSim:
 
         simulate_years = num_years + self.year
         while self.year < simulate_years:
-            self.island.yearly_cycle()
-            self.vis_herbs.append(self.island.n_animals_per_species["Herbivores"])
-            self.vis_carns.append(self.island.n_animals_per_species["Carnivores"])
 
-        self.vis(simulate_years)
+            self.island.yearly_cycle()
+            self.vis_herbs.append(self.num_animals_per_species["Herbivores"])
+            self.vis_carns.append(self.num_animals_per_species["Carnivores"])
+
+        # self.vis(simulate_years)
 
     def vis(self, simulate_years):
         plt.plot(range(simulate_years), self.vis_herbs, label="Herbivores")
@@ -165,6 +196,7 @@ class BioSim:
         plt.xlabel("Years")
         plt.ylabel("Number of animals")
         plt.legend()
+
         plt.show()
 
     def add_population(self, population):
@@ -199,26 +231,4 @@ class BioSim:
 
     def make_movie(self):
         """Create MPEG4 movie from visualization images saved."""
-
-if __name__ == "__main__":
-    geogr = """\
-                   WWWWWWWWWWWWWWWWWWWWW
-                   WHWWWWWWHWWWWLLLLLLLW
-                   WHHHHHLLLLWWLLLLLLLWW
-                   WHHHHHHHHHWWLLLLLLWWW
-                   WHHHHHLLLLLLLLLLLLWWW
-                   WHHHHHLLLDDLLLHLLLWWW
-                   WHHLLLLLDDDLLLHHHHWWW
-                   WWHHHHLLLDDLLLHWWWWWW
-                   WHHHLLLLLDDLLLLLLLWWW
-                   WHHHHLLLLDDLLLLWWWWWW
-                   WWHHHHLLLLLLLLWWWWWWW
-                   WWWHHHHLLLLLLLWWWWWWW
-                   WWWWWWWWWWWWWWWWWWWWW"""
-
-    animals = [{'loc': (2, 2), 'pop': [{'species': 'Herbivore', 'age': 5, 'weight': 20} for _ in
-                                       range(5)]},
-               {'loc': (2, 2), 'pop': [{'species': 'Carnivore', 'age': 5, 'weight': 20} for _ in
-                                       range(5)]}]
-
-    b = BioSim(island_map=geogr, ini_pop=animals, seed=4)
+        pass

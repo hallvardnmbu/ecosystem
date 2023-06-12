@@ -35,6 +35,13 @@ Mangler:
 
     island.py
     ---------
+        * Lage en metode: n_animals_per_cell()
+            Som returnerer: {(x, y): {"Herbivore": herbs_in_cell, "Carnivore": carns_in_cell}}
+        * Lage en metode: n_animals_per_species()
+            Som returnerer: {"Herbivore": n_herbivores, "Carnivore": n_carnivores}
+        * Lage en metode: n_animals()
+            Som returnerer: n_herbivores + n_carnivores
+
         * Fjerne "if ...": i hver annual cycle (for å sjekke om det er dyr i cellen).
         * Forbedre celle-oppsettet (forenkle for-løkkene).
         * Migrasjon
