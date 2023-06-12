@@ -2,10 +2,11 @@ Mangler:
 --------
     For alle:
     ---------
-        * Relative imports "." (".."?)
+        * Relative imports: "from .package import class" (".")
 
     animals.py
     ----------
+        * 
 
     island.py
     ---------
@@ -16,14 +17,19 @@ Mangler:
         * Lage en metode: n_animals()
             Som returnerer: n_herbivores + n_carnivores
 
-        * Fjerne "if ...": i hver annual cycle (for å sjekke om det er dyr i cellen).
-        * Forbedre celle-oppsettet (forenkle for-løkkene).
-        * Migrasjon
-        * Død (fjerne dyr)
+        * Fjerne .ageing(), .weight_loss(), .death() og .year += 1
+            Ha dem inne i .migration() i stedet. (Slipper unødvendige for-løkker)
+            - Kan være problematisk: sjekk om dyrene er i "migrating_animals" før endringer på 
+              dyrene gjøres.
 
     simulation.py
     -------------
-        * Annual cycle
+        * 
+
+    visualisation.py
+    ----------------
+        * Klasse Graphics med: 
+            ...
 
     /tests
     ------
