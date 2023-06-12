@@ -1,12 +1,37 @@
 Mangler:
 --------
-    For alle:
-    ---------
-        * Relative imports: "from .package import class" (".")
+    to make html
+    ------------
+     * file and class docstrings
+     * do not commit build directory
+        - only the "red" files
+     * advanced sphinxs features is appreciated
+     * add the math formulas (nicely formatted)
+        - by a good sphinxs theme 
+     * Use NEST guide to write good documentation, see
+       https://www.nest-simulator.readthedocs.io/en/latest/developer_space/guidelines/styleguide.html
+     * Formler:
+          Bruke "r": raw string, for å kunne bruke backslash i latex-kode.
+          - r"""
+            Dockstring
+            .. math::
+               latex code
+            """
+          :math:`\frac{1}{2}`
+
+    plotting pycharm
+    ----------------
+        * call plot at the end of the simulation, dont call it 350 times!
+          - call plot once and update data 350 times
+               -see plot_update.py  
+        * fig.canas.flush_events()  # flush the GUI events
+        * plt.pause(1e-6)  # pause 1e-6 seconds
+        * counter with help from time_counter.py
+
 
     animals.py
     ----------
-        * 
+        * Relative imports "."
 
     island.py
     ---------
@@ -17,10 +42,10 @@ Mangler:
         * Lage en metode: n_animals()
             Som returnerer: n_herbivores + n_carnivores
 
-        * Fjerne .ageing(), .weight_loss(), .death() og .year += 1
-            Ha dem inne i .migration() i stedet. (Slipper unødvendige for-løkker)
-            - Kan være problematisk: sjekk om dyrene er i "migrating_animals" før endringer på 
-              dyrene gjøres.
+        * Fjerne "if ...": i hver annual cycle (for å sjekke om det er dyr i cellen).
+        * Forbedre celle-oppsettet (forenkle for-løkkene).
+        * Migrasjon
+        * Død (fjerne dyr)
 
     simulation.py
     -------------
@@ -42,6 +67,15 @@ Mangler:
             * Teste alle metodene
             * Legge til dyr, teste at det blir lagt til riktig osv.
             * Sjekke at dyr blir lagt til i både Cell.herbivore/carnivore OG Cell.animals
+
+    package structure
+    ----------------
+       * directory layout
+       * configuration files
+        - readme.md
+        - setup.cfg
+          -# Homepage for package and specific URLs
+        - tox.ini
 
 ---------------------------------------------------------------------------------------------------
 
@@ -67,6 +101,9 @@ Kan forbedres:
 
         * Island skal ikke "bruke" animals. Det skal skje i animals.
         * Flytte herbivore_eat_fodder og carnivore_eat_herbivore til animals.py (også andre metoder? fra island til animals)
+        * Hvis dyret beveger seg, bør ikke det tas hensyn til cellen med vann, 
+          altså er det 100% sjanse for at en av de tre andre blir flyttet til, ikke 75%
+
 
     GUI:
     ----
@@ -92,3 +129,23 @@ Ideer:
     * Dør av overpopulasjon (er vel på en måte sånn allerede, med at det ikke er nok mat?)
     * Dyr kan bli syke (og kan dø)
     * PANDEMI/METEOR! (alle dyr dør)
+
+
+---------------------------------------------------------------------------------------------------
+
+Tips:
+-----
+    * når dyr dør, ikke slett de fra listen mens du går gjennom den.
+     gjør slik:
+
+     keep the good ones
+
+        d = list(range(10))
+
+        d = [n for n in d if not (n % 2 == 0 or n % 3 == 0)]
+        print(d)
+
+   * Tester løper i "tilfeldig" rekkefølge.
+        - husk å sette tilbake parapetre hvis duu endrer på dem i en test.
+
+   * bruk statistical tests på cases der alle carnivores eller alle herbivores dør
