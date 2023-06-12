@@ -1,5 +1,8 @@
 Mangler:
 --------
+    For alle:
+    ---------
+        * Relative imports: "from .package import class" (".")
     to make html
     ------------
      * file and class docstrings
@@ -35,12 +38,29 @@ Mangler:
 
     island.py
     ---------
+        * Lage en metode: n_animals_per_cell()
+            Som returnerer: {(x, y): {"Herbivore": herbs_in_cell, "Carnivore": carns_in_cell}}
+        * Lage en metode: n_animals_per_species()
+            Som returnerer: {"Herbivore": n_herbivores, "Carnivore": n_carnivores}
+        * Lage en metode: n_animals()
+            Som returnerer: n_herbivores + n_carnivores
+
+        * Fjerne .ageing(), .weight_loss(), .death() og .year += 1
+            Ha dem inne i .migration() i stedet. (Slipper unødvendige for-løkker)
+            - Kan være problematisk: sjekk om dyrene er i "migrating_animals" før endringer på 
+              dyrene gjøres.
         * Fjerne "if ...": i hver annual cycle (for å sjekke om det er dyr i cellen).
         * Forbedre celle-oppsettet (forenkle for-løkkene).
         * Fjerne @classmethod for default parameter-funksjonene?
 
     simulation.py
     -------------
+        * 
+
+    visualisation.py
+    ----------------
+        * Klasse Graphics med: 
+            ...
         * Relative imports "."
         * Annual cycle
 
