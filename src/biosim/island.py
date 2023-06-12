@@ -6,7 +6,7 @@ Module for the island and its cells.
 import random
 import textwrap
 
-from .animals import Animal
+from animals import Animal
 
 
 class Island:
@@ -193,6 +193,7 @@ class Island:
                 weight = animal["weight"]
                 cell.animals[species].append(Animal.mapping()[species](age=age, weight=weight))
 
+    @property
     def n_animals_per_species(self):
         """
         Counts the number of animals per species on the island.
@@ -204,13 +205,15 @@ class Island:
          """
 
         n_animals_per_species = {}
-        for location, animals in n_animals_per_species_per_cell.items():
-            for spiecies, n_animals in animals.items():
-                if species not in n_animals_per_species:
-                    n_animals_per_species[species] = n_animals
-                else:
-                    n_animals_per_species[species] += n_animals
+        for animals in self.n_animals_per_species_per_cell.values():
+            for species, n_animals in animals.items():
+                if n_animals != 0:
+                    if species in n_animals_per_species:
+                        n_animals_per_species[species] += n_animals
+                    else:
+                        n_animals_per_species[species] = n_animals
         return n_animals_per_species
+
     @property
     def n_animals_per_species_per_cell(self):
         """
@@ -222,26 +225,12 @@ class Island:
             Example: {(x,y):{`Herbivores`: n_herbivores, `Carnivores`: n_carnivores}}
         """
 
+
+        n_animals_per_species_per_cell = {}
         for x, cells in enumerate(self.cell_grid):
             for y, cell in enumerate(cells):
-                n_animals_per_species_per_cell[f"({x}, {y})"] = n_animals_in_cell(cell)
+                n_animals_per_species_per_cell[f"({x+1}, {y+1})"] = cell.n_animals_in_cell()
         return n_animals_per_species_per_cell
-
-
-    def n_animals_in_cell(self):
-        """
-        Counts the number of animals per species per cell.
-
-        Returns
-        -------
-        n_animals_per_species : dict
-            Example: {`Herbivores`: n_herbivores, `Carnivores`: n_carnivores}
-        """
-        n_animals_per_species_in_cell = {}
-        n_animals_per_species_in_cell["Herbivores"] = len(self.animals["Herbivore"])
-        n_animals_per_species_in_cell["Carnivores"] = len(self.animals["Carnivore"])
-
-        return n_animals_per_species_in_cell
 
 
     @property
@@ -534,3 +523,51 @@ class Cell:
                 killed.append(herbivore)
 
         return killed
+
+    def n_animals_in_cell(self):
+        """
+        Counts the number of animals per species per cell.
+
+        Returns
+        -------
+        n_animals_per_species : dict
+            Example: {`Herbivores`: n_herbivores, `Carnivores`: n_carnivores}
+        """
+        n_animals_in_cell = {}
+        n_animals_in_cell["Herbivores"] = len(self.animals["Herbivore"])
+        n_animals_in_cell["Carnivores"] = len(self.animals["Carnivore"])
+
+        return n_animals_in_cell
+
+if __name__ == "__main__":
+    geogr = """\
+                   WWWWWWWWWWWWWWWWWWWWW
+                   WLWWWWWWHWWWWLLLLLLLW
+                   WHHHHHLLLLWWLLLLLLLWW
+                   WHHHHHHHHHWWLLLLLLWWW
+                   WHHHHHLLLLLLLLLLLLWWW
+                   WHHHHHLLLDDLLLHLLLWWW
+                   WHHLLLLLDDDLLLHHHHWWW
+                   WWHHHHLLLDDLLLHWWWWWW
+                   WHHHLLLLLDDLLLLLLLWWW
+                   WHHHHLLLLDDLLLLWWWWWW
+                   WWHHHHLLLLLLLLWWWWWWW
+                   WWWHHHHLLLLLLLWWWWWWW
+                   WWWWWWWWWWWWWWWWWWWWW"""
+
+    ini_herbs = [{'loc': (2, 2),
+                  'pop': [{'species': 'Herbivore',
+                           'age': 5,
+                           'weight': 20}
+                          for _ in range(150)]}]
+    ini_carns = [{'loc': (3, 2),
+                  'pop': [{'species': 'Carnivore',
+                           'age': 5,
+                           'weight': 20}
+                          for _ in range(40)]}]
+
+    island = Island(geogr)
+    island.add_population(ini_herbs)
+    island.add_population(ini_carns)
+    dicti=island.n_animals_per_species
+    dicto=island.n_animals_per_species_per_cell
