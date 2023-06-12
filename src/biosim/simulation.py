@@ -188,11 +188,11 @@ class BioSim:
             self.vis_herbs.append(self.num_animals_per_species["Herbivores"])
             self.vis_carns.append(self.num_animals_per_species["Carnivores"])
 
-        # self.vis(simulate_years)
+        self.vis(simulate_years)
 
     def vis(self, simulate_years):
-        plt.plot(range(simulate_years), self.vis_herbs, label="Herbivores")
-        plt.plot(range(simulate_years), self.vis_carns, label="Carnivores")
+        plt.plot(range(simulate_years), self.vis_herbs, label="Herbivore")
+        plt.plot(range(simulate_years), self.vis_carns, label="Carnivore")
         plt.xlabel("Years")
         plt.ylabel("Number of animals")
         plt.legend()
@@ -221,7 +221,8 @@ class BioSim:
     def num_animals(self):
         """Total number of animals on island."""
 
-        return self.island.n_animals
+        n = self.num_animals_per_species["Herbivores"] + self.num_animals_per_species["Carnivores"]
+        return n
 
     @property
     def num_animals_per_species(self):
@@ -232,3 +233,34 @@ class BioSim:
     def make_movie(self):
         """Create MPEG4 movie from visualization images saved."""
         pass
+
+if __name__ == "__main__":
+    geogr = """\
+                   WWWWWWWWWWWWWWWWWWWWW
+                   WLWWWWWWHWWWWLLLLLLLW
+                   WHHHHHLLLLWWLLLLLLLWW
+                   WHHHHHHHHHWWLLLLLLWWW
+                   WHHHHHLLLLLLLLLLLLWWW
+                   WHHHHHLLLDDLLLHLLLWWW
+                   WHHLLLLLDDDLLLHHHHWWW
+                   WWHHHHLLLDDLLLHWWWWWW
+                   WHHHLLLLLDDLLLLLLLWWW
+                   WHHHHLLLLDDLLLLWWWWWW
+                   WWHHHHLLLLLLLLWWWWWWW
+                   WWWHHHHLLLLLLLWWWWWWW
+                   WWWWWWWWWWWWWWWWWWWWW"""
+
+    ini_herbs = [{'loc': (2, 2),
+                  'pop': [{'species': 'Herbivore',
+                           'age': 5,
+                           'weight': 20}
+                          for _ in range(150)]}]
+    ini_carns = [{'loc': (3, 2),
+                  'pop': [{'species': 'Carnivore',
+                           'age': 5,
+                           'weight': 20}
+                          for _ in range(40)]}]
+
+    sim = BioSim(geogr, ini_carns+ini_herbs, seed=1)
+    # dicti=island.n_animals_per_species
+    # dicto=island.n_animals_per_species_per_cell
