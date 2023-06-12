@@ -193,23 +193,56 @@ class Island:
                 weight = animal["weight"]
                 cell.animals[species].append(Animal.mapping()[species](age=age, weight=weight))
 
-    @property
     def n_animals_per_species(self):
         """
         Counts the number of animals per species on the island.
 
         Returns
         -------
+        n_animals_per_species: dict
+        Example: {`Herbivores`: n_herbivores, `Carnivores`: n_carnivores}
+         """
+
+        n_animals_per_species = {}
+        for location, animals in n_animals_per_species_per_cell.items():
+            for spiecies, n_animals in animals.items():
+                if species not in n_animals_per_species:
+                    n_animals_per_species[species] = n_animals
+                else:
+                    n_animals_per_species[species] += n_animals
+        return n_animals_per_species
+    @property
+    def n_animals_per_species_per_cell(self):
+        """
+        Counts the number of animals per species on the island.
+
+        Returns
+        -------
+        n_animals_per_species : dict
+            Example: {(x,y):{`Herbivores`: n_herbivores, `Carnivores`: n_carnivores}}
+        """
+
+        for x, cells in enumerate(self.cell_grid):
+            for y, cell in enumerate(cells):
+                n_animals_per_species_per_cell[f"({x}, {y})"] = n_animals_in_cell(cell)
+        return n_animals_per_species_per_cell
+
+
+    def n_animals_in_cell(self):
+        """
+        Counts the number of animals per species per cell.
+
+        Returns
+        -------
         n_animals_per_species : dict
             Example: {`Herbivores`: n_herbivores, `Carnivores`: n_carnivores}
         """
+        n_animals_per_species_in_cell = {}
+        n_animals_per_species_in_cell["Herbivores"] = len(self.animals["Herbivore"])
+        n_animals_per_species_in_cell["Carnivores"] = len(self.animals["Carnivore"])
 
-        n_animals_per_species = {"Herbivores": 0, "Carnivores": 0}
-        for cells in self.cell_grid:
-            for cell in cells:
-                n_animals_per_species["Herbivores"] += len(cell.animals["Herbivore"])
-                n_animals_per_species["Carnivores"] += len(cell.animals["Carnivore"])
-        return n_animals_per_species
+        return n_animals_per_species_in_cell
+
 
     @property
     def n_animals(self):
