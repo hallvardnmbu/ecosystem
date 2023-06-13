@@ -9,8 +9,8 @@ Template for BioSim class.
 import random
 import matplotlib.pyplot as plt
 
-from island import Island
-from graphics import Graphics
+from .island import Island
+from .graphics import Graphics
 
 
 class BioSim:
@@ -203,7 +203,7 @@ class BioSim:
             self.graphics.update_graphics(self.year,
                                           self.num_animals_per_species,
                                           self.island.n_animals_per_species_per_cell,
-                                          self.island.population)
+                                          self.island.population())
             self.island.yearly_cycle()
 
     def add_population(self, population):
@@ -245,10 +245,25 @@ if __name__ == "__main__":
 
     import textwrap
 
-    geogr = """WWWWW\nWWDWW\nWDDDW\nWWDWW\nWWWWW"""
+    geogr = """\
+               WWWWWWWWWWWWWWWWWWWWW
+               WWWWWWWWHWWWWLLLLLLLW
+               WHHHHHLLLLWWLLLLLLLWW
+               WHHHHHHHHHWWLLLLLLWWW
+               WHHHHHLLLLLLLLLLLLWWW
+               WHHHHHLLLDDLLLHLLLWWW
+               WHHLLLLLDDDLLLHHHHWWW
+               WWHHHHLLLDDLLLHWWWWWW
+               WHHHLLLLLDDLLLLLLLWWW
+               WHHHHLLLLDDLLLLWWWWWW
+               WWHHHHLLLLLLLLWWWWWWW
+               WWWHHHHLLLLLLLWWWWWWW
+               WWWWWWWWWWWWWWWWWWWWW"""
 
     animals = [{'loc': (3, 3), 'pop': [{'species': 'Herbivore', 'age': 5, 'weight': 20} for _ in
-                                       range(100)]}]
+                                       range(50)]},
+               {'loc': (3, 4), 'pop': [{'species': 'Carnivore', 'age': 5, 'weight': 20} for _ in
+                                       range(50)]}]
 
     sim = BioSim(geogr, animals)
-    sim.simulate(1)
+    sim.simulate(200)

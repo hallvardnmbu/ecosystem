@@ -101,7 +101,14 @@ class Island:
         list
             A list of dictionaries specifying the population of the island.
         """
-        return [cell.animals() for cell in self.cell_grid]
+
+        animals = {"Herbivore": [], "Carnivore": []}
+        for cells in self.cell_grid:
+            for cell in cells:
+                for animal in itertools.chain(*cell.animals.values()):
+                    animals[animal.__class__.__name__].append(animal)
+
+        return animals
 
     def _terraform(self):
         """
@@ -393,10 +400,6 @@ class Island:
         self.death()
 
         self.year += 1
-
-        if self.year % 10 == 0:
-            print(f"Year: {self.year}")
-
 
 class Cell:
     """

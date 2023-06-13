@@ -40,7 +40,8 @@ class Graphics:
         self.ini_density = ini_density
         self.vis_years = vis_years
         self.ymax_animals = ymax_animals
-        self.cmax_animals = cmax_animals if cmax_animals is not None else {"Herbivore": 50, "Carnivore": 20}
+        self.cmax_animals = cmax_animals if cmax_animals is not None else {"Herbivore": 50,
+                                                                           "Carnivore": 50}
         self.hist_specs = hist_specs
         self.img_years = img_years
         self.img_base = img_base
@@ -174,8 +175,6 @@ class Graphics:
         coloured_map = [[colours[letter] for letter in row] for row in self.geography]
 
         self._map_plot.set_title("Map of Rossumøya (Pylandia)")
-        # self._map_plot.axis("off")
-
 
         self._map_plot.imshow(coloured_map)
 
@@ -259,29 +258,33 @@ class Graphics:
 
     def update_animal_data(self, animals):
 
-        herbs = animals["Herbivores"]
-        carns = animals["Carnivores"]
+        herbs = animals["Herbivore"]
+        carns = animals["Carnivore"]
+
+        color = [(0.71764, 0.749, 0.63137),
+                 (0.949, 0.7647, 0.56078)]
 
         herbs_age = [herb.a for herb in herbs]
         carns_age = [carn.a for carn in carns]
 
         self._age_ax.clear()
-        self._age_ax.hist(herbs_age, bins=10, alpha=0.5, label="Herbivores")
-        self._age_ax.hist(carns_age, bins=10, alpha=0.5, label="Carnivores")
+        self._age_ax.hist(herbs_age, bins=10, alpha=0.5, label="Herbivores", color=color[0])
+        self._age_ax.hist(carns_age, bins=10, alpha=0.5, label="Carnivores", color=color[1])
+        self._age_ax.set_title("Age")
 
         herbs_weight = [herb.w for herb in herbs]
         carns_weight = [carn.w for carn in carns]
         self._weight_ax.clear()
-        self._weight_ax.hist(herbs_weight, bins=10, alpha=0.5, label="Herbivores")
-        self._weight_ax.hist(carns_weight, bins=10, alpha=0.5, label="Carnivores")
+        self._weight_ax.hist(herbs_weight, bins=10, alpha=0.5, label="Herbivores", color=color[0])
+        self._weight_ax.hist(carns_weight, bins=10, alpha=0.5, label="Carnivores", color=color[1])
+        self._weight_ax.set_title("Weight")
 
         herbs_fitness = [herb.fitness for herb in herbs]
         carns_fitness = [carn.fitness for carn in carns]
         self._fitness_ax.clear()
-        self._fitness_ax.hist(herbs_fitness, bins=10, alpha=0.5, label="Herbivores")
-        self._fitness_ax.hist(carns_fitness, bins=10, alpha=0.5, label="Carnivores")
-
-        self._fig.canvas.draw()
+        self._fitness_ax.hist(herbs_fitness, bins=10, alpha=0.5, label="Herbivores", color=color[0])
+        self._fitness_ax.hist(carns_fitness, bins=10, alpha=0.5, label="Carnivores", color=color[1])
+        self._fitness_ax.set_title("Fitness")
 
     def update_graphics(self, year, num_animals, n_animals_cells, animals):
 
@@ -289,3 +292,4 @@ class Graphics:
         self.animals(num_animals)
         self.update_animals(n_animals_cells)
         self.update_animal_data(animals)
+        plt.pause(0.001)
