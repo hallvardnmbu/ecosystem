@@ -149,6 +149,8 @@ class Island:
 
         for location_animals in population:
             location = location_animals["loc"]
+            if location[0] > len(self.geography) or location[1] > len(self.geography[0]):
+                raise ValueError(f"Invalid location: {location}.")
 
             i = location[0] - 1
             j = location[1] - 1
@@ -166,7 +168,7 @@ class Island:
 
                 movable, _ = Animal.mapping()[species].motion()
                 if not movable[self.geography[i][j]]:
-                    raise ValueError(f"Invalid location: {location}.")
+                    raise ValueError(f"Invalid terrain: {location}.")
                 else:
                     cell = self.cell_grid[i][j]
                     age = animal["age"]
