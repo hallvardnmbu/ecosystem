@@ -1,5 +1,9 @@
 Mangler:
 ========
+imorgen
+- test til ny funksjon i island
+- fikse plottefunksjonene
+- tox.ini
 
 To make html
 ------------
@@ -46,14 +50,6 @@ simulation.py
 
 visualisation.py
 ----------------
-* Lage enkle visualiseringer for:
-  - Antall år: teller
-  - Herbivores sine posisjoner (heatmap)
-  - Carnivores sine posisjoner (heatmap)
-  - Fitness (histogram)
-  - Age (histogram)
-  - Weight (histogram)
-* Sette sammen til én figur
 
 ---------------------------------------------------------------------------------------------------
 
@@ -93,6 +89,9 @@ animals.py
 island.py
 ---------
 * Island skal ikke "bruke" animals. Det skal skje i animals.
+* "huske" hvilke celler som er vann for å ikke gå gjennom de, funker det bedre?
+  -lagre i hver celle hvilke naboceller den kan flytte dyra inni til. 
+    kun sjekke en gang om nabocelle er vann eller ikke
 
 GUI:
 ----
@@ -122,7 +121,10 @@ Ideer:
   -for eksempel hvis for mange av en art er i en celle,
   -implementere at ved en liten sjanse kan det skje genmanipulasjon
     da kan vi se hvilke parametre som gir balansert økosystem
-
+* flom eller tørke
+* større sannsynlighet for å gå til lowland
+* lav sannsynlighet for å gå til desert
+* høy sannsynliget for å rømme fra carnivores hvis det er mange av de
 ---------------------------------------------------------------------------------------------------
 
 Tips:
