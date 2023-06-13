@@ -7,7 +7,7 @@ import random
 import textwrap
 import itertools
 
-from .animals import Animal
+from animals import Animal
 
 
 class Island:
@@ -90,6 +90,17 @@ class Island:
         self.set_fodder_parameters(self.default_fodder_parameters())
         self.cell_grid = self._terraform()
         self.add_population(population=ini_pop) if ini_pop is not None else None
+
+    def population(self):
+        """
+        Returns the population of the island.
+
+        Returns
+        -------
+        list
+            A list of dictionaries specifying the population of the island.
+        """
+        return [cell.animals() for cell in self.cell_grid]
 
     def _terraform(self):
         """
@@ -201,7 +212,7 @@ class Island:
         Returns
         -------
         n_animals_per_species : dict
-            Example: {(x, y): {`Herbivores`: n_herbivores, `Carnivores`: n_carnivores}}
+            Example: {"(x, y)": {`Herbivores`: n_herbivores, `Carnivores`: n_carnivores}}
         """
 
         n_animals_per_species_per_cell = {}
