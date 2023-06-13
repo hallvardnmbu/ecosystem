@@ -270,26 +270,23 @@ def test_feed(trial_islands):
 def test_population():
     pass
 
-
 def test_migrate(reset_animal_params):
     """Tests that the animals migrate correctly."""
 
-    geogr = "WWWW\nWLHW\nWWWW"
-    ini_pop_herbs=[{"loc": (2, 2), "pop": [{"species": "Herbivore", "age": 0, "weight": 50000}]}]
-    ini_pop_carns=[{"loc": (2, 2), "pop": [{"species": "Carnivore", "age": 0, "weight": 50000}]}]
+    geogr = "WWWWW\nWWLWW\nWLLLW\nWWLWW\nWWWWW"
+    ini_pop_herbs=[{"loc": (3, 3), "pop": [{"species": "Herbivore", "age": 0, "weight": 50000}]}]
+    ini_pop_carns=[{"loc": (3, 3), "pop": [{"species": "Carnivore", "age": 0, "weight": 50000}]}]
 
     island = Island(geogr, ini_pop_carns+ini_pop_herbs)
 
     # Set the parameters so that the animals will migrate (and don't die).
-    Herbivore.set_parameters({'mu': 1, 'omega': 0, 'gamma': 0, 'eta': 0,
-                                 'F': 0, 'a_half': 10000})
-    Carnivore.set_parameters({'mu': 1, 'omega': 0, 'gamma': 0, 'eta': 0,
-                                 'F': 0, 'a_half': 10000})
+    Herbivore.set_parameters({'mu': 1, 'omega': 0, 'gamma': 0, 'eta': 0,'F': 0, 'a_half': 10000})
+    Carnivore.set_parameters({'mu': 1, 'omega': 0, 'gamma': 0, 'eta': 0, 'F': 0, 'a_half': 10000})
 
     #all animals should have moved from their initial position
     island.migrate()
-    for species in ["Herbivore", "Carnivore"]:
-        assert island.n_animals_per_species_per_cell["(2,2)"][species] == 0, "Some animals did not migrate."
+    for species in ["Herbivores", "Carnivores"]:
+        assert island.n_animals_per_species_per_cell['(3, 3)'][species] == 0, "Some animals did not migrate."
 
     n = island.n_animals
     for _ in range(10):
