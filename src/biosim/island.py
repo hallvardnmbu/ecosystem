@@ -7,7 +7,7 @@ import random
 import textwrap
 import itertools
 
-from .animals import Animal
+from animals import Animal
 
 
 class Island:
@@ -87,6 +87,7 @@ class Island:
     def __init__(self, geography, ini_pop=None):
         self.year = 0
         self.geography = textwrap.dedent(geography).split("\n")
+        self.species_map = {cls.__name__: cls for cls in Animal.__subclasses__()}
         self.set_fodder_parameters(self.default_fodder_parameters())
         self.cell_grid = self._terraform()
         self.add_population(population=ini_pop) if ini_pop is not None else None
@@ -156,20 +157,21 @@ class Island:
             animals = location_animals["pop"]
             for animal in animals:
 
-                if animal["species"] not in Animal.mapping().keys():
+                if animal["species"] not in self.species_map.keys():
                     raise ValueError(f"Invalid species: {animal}.")
                 species = animal["species"]
                 if "age" not in animal:
                     animal["age"] = 0
                 if "weight" not in animal:
-                    animal["weight"] = Animal.mapping()[species].lognormv()
+                    animal["weight"] = self.species_map[species].lognormv()
 
-                movable, _ = Animal.mapping()[species].motion()
+                movable, _ = self.species_map[species].motion()
                 if movable[self.geography[i][j]]:
                     cell = self.cell_grid[i][j]
                     age = animal["age"]
                     weight = animal["weight"]
-                    cell.animals[species].append(Animal.mapping()[species](age=age, weight=weight))
+                    cell.animals[species].append(self.species_map[species](age=age,
+                                                                           weight=weight))
 
     @property
     def n_animals_per_species(self):
@@ -243,21 +245,20 @@ class Island:
                     # Procreation may only take place if the following is satisfied:
                     if animal.w >= animal.zeta * (animal.w_birth + animal.sigma_birth):
 
-                        n = animals_in_cell[animal.species]
+                        n = animals_in_cell[type(animal).__name__]
                         if random.random() < min(1, animal.gamma * animal.fitness * n):
                             baby_weight = animal.lognormv()
 
                             # If the parents' weight is greater than the baby's weight * xi, the
                             # baby is born, and the parents' weight decreases accordingly ^:
                             if animal.lose_weight_birth(baby_weight):
-                                baby = Animal.mapping()[animal.species](age=0,
-                                                                        weight=baby_weight)
+                                baby = type(animal)(age=0, weight=baby_weight)
                                 # For the newborns to be excluded from being able to procreate,
                                 # they are placed in the parents' cell after the loop.
                                 babies.append(baby)
 
                 for baby in babies:
-                    cell.animals[baby.species].append(baby)
+                    cell.animals[type(baby).__name__].append(baby)
 
     def feed(self):
         """
@@ -318,8 +319,8 @@ class Island:
         # executed after each cell has been iterated through:
         for movement in migrating_animals:
             animal, from_cell, to_cell = movement
-            from_cell.animals[animal.species].remove(animal)
-            to_cell.animals[animal.species].append(animal)
+            from_cell.animals[type(animal).__name__].remove(animal)
+            to_cell.animals[type(animal).__name__].append(animal)
 
     def ageing(self):
         """
@@ -355,7 +356,7 @@ class Island:
                         dying_animals.append(animal)
 
                 for animal in dying_animals:
-                    cell.animals[animal.species].remove(animal)
+                    cell.animals[type(animal).__name__].remove(animal)
 
     def yearly_cycle(self):
         """
@@ -419,3 +420,11 @@ class Cell:
         n_animals_in_cell["Carnivores"] = len(self.animals["Carnivore"])
 
         return n_animals_in_cell
+
+if __name__ == "__main__":
+
+    geogr = """WWW\nWLW\nWWW"""
+
+    animals = [{"loc": (2, 2), "pop": [{"species": "Herbivore", "age": 5, "weight": 20}]}]
+
+    island = Island(geogr, animals)
