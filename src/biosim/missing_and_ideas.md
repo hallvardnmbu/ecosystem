@@ -41,6 +41,11 @@ island.py
 simulation.py
 -------------
 * Relative imports "."
+
+  Og gjør det mulig å "fortsette" der du slapp (uten å begynne på nytt?)
+
+visualisation.py
+----------------
 * Lage enkle visualiseringer for:
   - Antall år: teller
   - Herbivores sine posisjoner (heatmap)
@@ -48,13 +53,7 @@ simulation.py
   - Fitness (histogram)
   - Age (histogram)
   - Weight (histogram)
-
-  Og gjør det mulig å "fortsette" der du slapp (uten å begynne på nytt?)
-
-visualisation.py
-----------------
-* Klasse Graphics med: 
-  - det over ^
+* Sette sammen til én figur
 
 ---------------------------------------------------------------------------------------------------
 
@@ -88,6 +87,8 @@ Kan forbedres:
 animals.py
 ----------
 * Forenkle default parameter-funksjonene(?)
+
+* DeltaPhiMax = 15 ? (Det brukte han i forelesningen)
 
 island.py
 ---------

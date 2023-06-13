@@ -242,7 +242,6 @@ class Herbivore(Animal):
         except AttributeError:
             self.set_parameters(Herbivore.default_parameters())
         super().__init__(weight, age)
-        self.species = "Herbivore"
 
     def graze(self, available_fodder):
         """
@@ -335,7 +334,6 @@ class Carnivore(Animal):
         except AttributeError:
             self.set_parameters(Carnivore.default_parameters())
         super().__init__(weight, age)
-        self.species = "Carnivore"
 
     def predation(self, herbivores):
         """

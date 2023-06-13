@@ -173,54 +173,6 @@ class Island:
                     cell.animals[species].append(self.species_map[species](age=age,
                                                                            weight=weight))
 
-    @property
-    def n_animals_per_species(self):
-        """
-        Counts the number of animals per species on the island.
-
-        Returns
-        -------
-        n_animals_per_species: dict
-        Example: {`Herbivores`: n_herbivores, `Carnivores`: n_carnivores}
-         """
-
-        n_animals_per_species = {"Herbivores": 0, "Carnivores": 0}
-        for animals in self.n_animals_per_species_per_cell.values():
-            for species, n_animals in animals.items():
-                if n_animals != 0:
-                    n_animals_per_species[species] += n_animals
-        return n_animals_per_species
-
-    @property
-    def n_animals_per_species_per_cell(self):
-        """
-        Counts the number of animals per species on the island.
-
-        Returns
-        -------
-        n_animals_per_species : dict
-            Example: {(x, y): {`Herbivores`: n_herbivores, `Carnivores`: n_carnivores}}
-        """
-
-        n_animals_per_species_per_cell = {}
-        for x, cells in enumerate(self.cell_grid):
-            for y, cell in enumerate(cells):
-                n_animals_per_species_per_cell[f"({x+1}, {y+1})"] = cell.n_animals_in_cell()
-        return n_animals_per_species_per_cell
-
-    @property
-    def n_animals(self):
-        """
-        Counts the number of animals on the island.
-
-        Returns
-        -------
-        n_animals : int
-        """
-
-        animals = self.n_animals_per_species
-        return animals["Herbivore"] + animals["Carnivore"]
-
     def procreate(self):
         """
         Iterates through all the animals on the island.
@@ -357,6 +309,54 @@ class Island:
 
                 for animal in dying_animals:
                     cell.animals[type(animal).__name__].remove(animal)
+
+    @property
+    def n_animals_per_species(self):
+        """
+        Counts the number of animals per species on the island.
+
+        Returns
+        -------
+        n_animals_per_species: dict
+        Example: {`Herbivores`: n_herbivores, `Carnivores`: n_carnivores}
+         """
+
+        n_animals_per_species = {"Herbivores": 0, "Carnivores": 0}
+        for animals in self.n_animals_per_species_per_cell.values():
+            for species, n_animals in animals.items():
+                if n_animals != 0:
+                    n_animals_per_species[species] += n_animals
+        return n_animals_per_species
+
+    @property
+    def n_animals_per_species_per_cell(self):
+        """
+        Counts the number of animals per species on the island.
+
+        Returns
+        -------
+        n_animals_per_species : dict
+            Example: {(x, y): {`Herbivores`: n_herbivores, `Carnivores`: n_carnivores}}
+        """
+
+        n_animals_per_species_per_cell = {}
+        for x, cells in enumerate(self.cell_grid):
+            for y, cell in enumerate(cells):
+                n_animals_per_species_per_cell[f"({x+1}, {y+1})"] = cell.n_animals_in_cell()
+        return n_animals_per_species_per_cell
+
+    @property
+    def n_animals(self):
+        """
+        Counts the number of animals on the island.
+
+        Returns
+        -------
+        n_animals : int
+        """
+
+        animals = self.n_animals_per_species
+        return animals["Herbivore"] + animals["Carnivore"]
 
     def yearly_cycle(self):
         """
