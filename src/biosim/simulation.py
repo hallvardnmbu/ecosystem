@@ -9,8 +9,8 @@ Template for BioSim class.
 import random
 import matplotlib.pyplot as plt
 
-from .island import Island
-from .animals import Animal
+from island import Island
+from graphics import Graphics
 
 
 class BioSim:
@@ -18,9 +18,18 @@ class BioSim:
     Top-level interface to BioSim package.
     """
 
-    def __init__(self, island_map, ini_pop, seed,
-                 vis_years=1, ymax_animals=None, cmax_animals=None, hist_specs=None,
-                 img_years=None, img_dir=None, img_base=None, img_fmt='png',
+    def __init__(self,
+                 island_map,
+                 ini_pop,
+                 seed=1,
+                 vis_years=1,
+                 ymax_animals=None,
+                 cmax_animals=None,
+                 hist_specs=None,
+                 img_years=1,
+                 img_dir=None,
+                 img_base=None,
+                 img_fmt='png',
                  log_file=None):
 
         """
@@ -97,8 +106,18 @@ class BioSim:
         self.img_fmt = img_fmt
         self.log_file = log_file
 
-        self.vis_herbs = []
-        self.vis_carns = []
+        self.graphics = Graphics(self.island.geography,
+                                 self.island.n_animals_per_species_per_cell,
+                                 self.vis_years,
+                                 self.ymax_animals,
+                                 self.cmax_animals,
+                                 self.hist_specs,
+                                 self.img_years,
+                                 self.img_dir,
+                                 self.img_base,
+                                 self.img_fmt,
+                                 self.log_file)
+        self.graphics.setup()
 
     def set_animal_parameters(self, species, params):
         """
@@ -181,20 +200,11 @@ class BioSim:
         simulate_years = num_years + self.year
         while self.year < simulate_years:
 
+            self.graphics.update_graphics(self.year,
+                                          self.num_animals_per_species,
+                                          self.island.n_animals_per_species_per_cell,
+                                          self.island.population)
             self.island.yearly_cycle()
-            self.vis_herbs.append(self.num_animals_per_species["Herbivores"])
-            self.vis_carns.append(self.num_animals_per_species["Carnivores"])
-
-        self.vis(simulate_years)
-
-    def vis(self, simulate_years):
-        plt.plot(range(simulate_years), self.vis_herbs, label="Herbivore")
-        plt.plot(range(simulate_years), self.vis_carns, label="Carnivore")
-        plt.xlabel("Years")
-        plt.ylabel("Number of animals")
-        plt.legend()
-
-        plt.show()
 
     def add_population(self, population):
         """
@@ -232,32 +242,13 @@ class BioSim:
         pass
 
 if __name__ == "__main__":
-    geogr = """\
-                   WWWWWWWWWWWWWWWWWWWWW
-                   WLWWWWWWHWWWWLLLLLLLW
-                   WHHHHHLLLLWWLLLLLLLWW
-                   WHHHHHHHHHWWLLLLLLWWW
-                   WHHHHHLLLLLLLLLLLLWWW
-                   WHHHHHLLLDDLLLHLLLWWW
-                   WHHLLLLLDDDLLLHHHHWWW
-                   WWHHHHLLLDDLLLHWWWWWW
-                   WHHHLLLLLDDLLLLLLLWWW
-                   WHHHHLLLLDDLLLLWWWWWW
-                   WWHHHHLLLLLLLLWWWWWWW
-                   WWWHHHHLLLLLLLWWWWWWW
-                   WWWWWWWWWWWWWWWWWWWWW"""
 
-    ini_herbs = [{'loc': (2, 2),
-                  'pop': [{'species': 'Herbivore',
-                           'age': 5,
-                           'weight': 20}
-                          for _ in range(150)]}]
-    ini_carns = [{'loc': (3, 2),
-                  'pop': [{'species': 'Carnivore',
-                           'age': 5,
-                           'weight': 20}
-                          for _ in range(40)]}]
+    import textwrap
 
-    sim = BioSim(geogr, ini_carns+ini_herbs, seed=1)
-    # dicti=island.n_animals_per_species
-    # dicto=island.n_animals_per_species_per_cell
+    geogr = """WWWWW\nWWDWW\nWDDDW\nWWDWW\nWWWWW"""
+
+    animals = [{'loc': (3, 3), 'pop': [{'species': 'Herbivore', 'age': 5, 'weight': 20} for _ in
+                                       range(100)]}]
+
+    sim = BioSim(geogr, animals)
+    sim.simulate(1)
