@@ -23,7 +23,7 @@ To make html
 
 Plotting pycharm
 ----------------
-* call plot at the end of the simulation, dont call it 350 times!
+* call plot at the end of the simulation, don't call it 350 times!
   - call plot once and update data 350 times
     - see plot_update.py  
 * fig.canas.flush_events()  # flush the GUI events
@@ -33,15 +33,14 @@ Plotting pycharm
 animals.py
 ----------
 * Relative imports "."
-* Legge til hvilke celletyper et dyr kan bevege seg i
-* Legge til hvor mange celler et dyr kan bevege seg
 
 island.py
 ---------
-* 
+* Relative imports "."
 
 simulation.py
 -------------
+* Relative imports "."
 * Lage enkle visualiseringer for:
   - Antall år: teller
   - Herbivores sine posisjoner (heatmap)
@@ -92,10 +91,6 @@ animals.py
 
 island.py
 ---------
-* Spare tid ved å ikke iterere gjennom vann
-  - Bruke itertools
-* Iterere gjennom .animals.values() og ikke .animals["Herbivore"]+.animals["Carnivore"] 
-  i for-løkkene
 * Island skal ikke "bruke" animals. Det skal skje i animals.
 
 GUI:
@@ -116,7 +111,6 @@ island.py:
 
 Ideer:
 ======
-* Flyvende dyr (kan bevege seg over flere celler, også over vann)
 * Gjemme seg i skogen eller grave seg ned i ørkenen (kan ikke bli spist)
 * Herbivores kan drepe Carnivores HVIS: det er flere enn X Herbivores og mindre enn Y Carnivores
  i cellen

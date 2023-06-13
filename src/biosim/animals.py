@@ -231,6 +231,27 @@ class Herbivore(Animal):
                 "omega": 0.4,
                 "F": 10.0}
 
+    @classmethod
+    def motion(cls):
+        """
+        Sets the movement parameters for the Carnivore.
+
+        Returns
+        -------
+        movable : dict
+            Movable terrain.
+        stride : int
+            Step size.
+        """
+
+        cls.movable = {"H": True,
+                       "L": True,
+                       "D": True,
+                       "W": False}
+        cls.stride = 1
+
+        return cls.movable, cls.stride
+
     def __init__(self, age=None, weight=None):
         try:
             self.set_parameters(Herbivore.get_parameters())
@@ -302,6 +323,27 @@ class Carnivore(Animal):
                 "omega": 0.8,
                 "F": 50.0,
                 "DeltaPhiMax": 10.0}
+
+    @classmethod
+    def motion(cls):
+        """
+        Sets the movement parameters for the Carnivore.
+
+        Returns
+        -------
+        movable : dict
+            Movable terrain.
+        stride : int
+            Step size.
+        """
+
+        cls.movable = {"H": True,
+                       "L": True,
+                       "D": True,
+                       "W": False}
+        cls.stride = 1
+
+        return cls.movable, cls.stride
 
     def __init__(self, age=None, weight=None):
         try:

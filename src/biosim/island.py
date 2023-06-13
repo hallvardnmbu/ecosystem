@@ -5,6 +5,7 @@ Module for the island and its cells.
 
 import random
 import textwrap
+import itertools
 
 from .animals import Animal
 
@@ -152,14 +153,9 @@ class Island:
             i = location[0] - 1
             j = location[1] - 1
 
-            try:
-                if not self.cell_grid[i][j].can_move:
-                    raise ValueError(f"Animals cannot be placed in water {location}.")
-            except IndexError:
-                raise ValueError(f"Location {location} is not on the island.")
-
             animals = location_animals["pop"]
             for animal in animals:
+
                 if animal["species"] not in Animal.mapping().keys():
                     raise ValueError(f"Invalid species: {animal}.")
                 species = animal["species"]
@@ -168,10 +164,12 @@ class Island:
                 if "weight" not in animal:
                     animal["weight"] = Animal.mapping()[species].lognormv()
 
-                cell = self.cell_grid[i][j]
-                age = animal["age"]
-                weight = animal["weight"]
-                cell.animals[species].append(Animal.mapping()[species](age=age, weight=weight))
+                movable, _ = Animal.mapping()[species].motion()
+                if movable[self.geography[i][j]]:
+                    cell = self.cell_grid[i][j]
+                    age = animal["age"]
+                    weight = animal["weight"]
+                    cell.animals[species].append(Animal.mapping()[species](age=age, weight=weight))
 
     @property
     def n_animals_per_species(self):
@@ -240,7 +238,7 @@ class Island:
                                    "Carnivore": len(cell.animals["Carnivore"])}
 
                 babies = []
-                for animal in cell.animals["Herbivore"] + cell.animals["Carnivore"]:
+                for animal in itertools.chain(*cell.animals.values()):
 
                     # Procreation may only take place if the following is satisfied:
                     if animal.w >= animal.zeta * (animal.w_birth + animal.sigma_birth):
@@ -299,15 +297,19 @@ class Island:
         migrating_animals = []
         for i, cells in enumerate(self.cell_grid):
             for j, cell in enumerate(cells):
-                for animal in cell.animals["Herbivore"] + cell.animals["Carnivore"]:
+                for animal in itertools.chain(*cell.animals.values()):
 
                     # The probability of migrating is calculated:
                     if random.random() < animal.mu * animal.fitness:
 
-                        move_x, move_y = random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
-                        new_cell = self.cell_grid[i + move_x][j + move_y]
+                        movable, stride = animal.motion()
+                        x, y = random.choice([(stride, 0),
+                                              (-stride, 0),
+                                              (0, stride),
+                                              (0, -stride)])
 
-                        if new_cell.can_move:
+                        if movable[self.geography[i + x][j + y]]:
+                            new_cell = self.cell_grid[i + x][j + y]
                             movement = (animal, cell, new_cell)
                             migrating_animals.append(movement)
 
@@ -326,7 +328,7 @@ class Island:
 
         for cells in self.cell_grid:
             for cell in cells:
-                for animal in cell.animals["Herbivore"] + cell.animals["Carnivore"]:
+                for animal in itertools.chain(*cell.animals.values()):
                     animal.aging()
 
     def weight_loss(self):
@@ -336,7 +338,7 @@ class Island:
 
         for cells in self.cell_grid:
             for cell in cells:
-                for animal in cell.animals["Herbivore"] + cell.animals["Carnivore"]:
+                for animal in itertools.chain(*cell.animals.values()):
                     animal.lose_weight_year()
 
     def death(self):
@@ -348,7 +350,7 @@ class Island:
             for cell in cells:
 
                 dying_animals = []
-                for animal in cell.animals["Herbivore"] + cell.animals["Carnivore"]:
+                for animal in itertools.chain(*cell.animals.values()):
                     if animal.w <= 0 or random.random() < animal.omega * (1 - animal.fitness):
                         dying_animals.append(animal)
 
@@ -391,7 +393,6 @@ class Cell:
     """
 
     def __init__(self, cell_type):
-        self.can_move = True if cell_type != "W" else False
         self.cell_type = cell_type
         self.fodder = Island.get_fodder_parameter(cell_type)
         self.animals = {"Herbivore": [],
