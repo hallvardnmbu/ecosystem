@@ -122,7 +122,6 @@ Ideer:
   -implementere at ved en liten sjanse kan det skje genmanipulasjon
     da kan vi se hvilke parametre som gir balansert økosystem
 
-
 ---------------------------------------------------------------------------------------------------
 
 Tips:
