@@ -9,8 +9,8 @@ Template for BioSim class.
 import random
 import matplotlib.pyplot as plt
 
-from .island import Island
-from .graphics import Graphics
+from island import Island
+from graphics import Graphics
 
 
 class BioSim:
@@ -96,28 +96,18 @@ class BioSim:
 
         self.island = Island(geography=island_map, ini_pop=ini_pop)
 
-        self.vis_years = vis_years
-        self.ymax_animals = ymax_animals
-        self.cmax_animals = cmax_animals
-        self.hist_specs = hist_specs
-        self.img_years = img_years
-        self.img_dir = img_dir
-        self.img_base = img_base
-        self.img_fmt = img_fmt
-        self.log_file = log_file
-
         self.graphics = Graphics(self.island.geography,
                                  self.island.n_animals_per_species_per_cell,
-                                 self.vis_years,
-                                 self.ymax_animals,
-                                 self.cmax_animals,
-                                 self.hist_specs,
-                                 self.img_years,
-                                 self.img_dir,
-                                 self.img_base,
-                                 self.img_fmt,
-                                 self.log_file)
-        self.graphics.setup()
+                                 vis_years,
+                                 ymax_animals,
+                                 cmax_animals,
+                                 hist_specs,
+                                 img_years,
+                                 img_dir,
+                                 img_base,
+                                 img_fmt,
+                                 log_file)
+
 
     def set_animal_parameters(self, species, params):
         """
@@ -197,7 +187,9 @@ class BioSim:
             Number of years to simulate
         """
 
-        simulate_years = num_years + self.year
+        simulate_years = num_years + self.year + 1
+        self.graphics.setup(simulate_years)
+
         while self.year < simulate_years:
 
             self.graphics.update_graphics(self.year,
@@ -266,4 +258,4 @@ if __name__ == "__main__":
                                        range(50)]}]
 
     sim = BioSim(geogr, animals)
-    sim.simulate(200)
+    sim.simulate(50)
