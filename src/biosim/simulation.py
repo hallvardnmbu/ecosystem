@@ -258,4 +258,4 @@ if __name__ == "__main__":
                                        range(50)]}]
 
     sim = BioSim(geogr, animals)
-    sim.simulate(50)
+    sim.simulate(40)

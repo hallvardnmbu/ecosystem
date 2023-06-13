@@ -42,14 +42,15 @@ class Graphics:
         self.cmax_herb = cmax["Herbivore"]
         self.cmax_carn = cmax["Carnivore"]
 
-        # - `hist_specs` is a dictionary with one entry per property for which a histogram
-        #   shall be shown. For each property, a dictionary providing the maximum value
-        #   and the bin width must be given, e.g.,
-        #
-        #   .. code:: python
-        #
-        #      {'weight': {'max': 80, 'delta': 2},
-        #       'fitness': {'max': 1.0, 'delta': 0.05}}
+        if hist_specs is not None:
+            for prop in hist_specs:
+                if prop not in ["weight", "age", "fitness"]:
+                    raise ValueError("Invalid property for histogram specification.")
+                if "max" not in hist_specs[prop] or "delta" not in hist_specs[prop]:
+                    raise ValueError("Invalid histogram specification.")
+                self.hist_specs = hist_specs
+        else:
+            self.hist_specs = None
 
         self.hist_specs = hist_specs
         self.img_years = img_years
@@ -128,6 +129,18 @@ class Graphics:
                                               color=(0.949, 0.7647, 0.56078),
                                               label="Carnivores")[0]
             self._line_ax.legend()
+        else:
+            old_x_herb, old_y_herb = self.n_herbs.get_data()
+            old_x_carn, old_y_carn = self.n_carns.get_data()
+            x_herb = np.arange(old_x_herb[-1] + 1, final_year)
+            x_carn = np.arange(old_x_carn[-1] + 1, final_year)
+            if len(x_herb) > 0:
+                y_herb = np.full_like(x_herb, np.nan, dtype=float)
+                self.n_herbs.set_data(np.hstack((old_x_herb, x_herb)),
+                                      np.hstack((old_y_herb, y_herb)))
+                self.n_carns.set_data(np.hstack((old_x_carn, x_carn)),
+                                      np.hstack((old_y_carn, y_herb)))
+                self._line_ax.set_xlim(0, final_year)
 
         if self._map_plot is None:
             self._map_plot = self._fig.add_subplot(self.gs[4:7, :9])
@@ -197,7 +210,7 @@ class Graphics:
         self._update_year_counter(year)
         self._update_line_plot(year, n_animals)
         self._update_heatmap(n_animals_cells)
-        self._update_animal_features(animals)
+        self._update_animal_features(animals, self.hist_specs)
         plt.pause(0.001)
 
     def island_map(self, my_colours=None):
@@ -307,6 +320,15 @@ class Graphics:
         return herb, carn
 
     def _update_heatmap(self, density):
+        """
+        Update the heatmap of animal distributions
+        .
+        Parameters
+        ----------
+        density : dict
+            A dictionary with cell coordinates as keys and dictionaries with the amount of each
+            species in that cell as values.
+        """
 
         herb, carn = self._animal_data(density)
 
@@ -320,7 +342,36 @@ class Graphics:
         # self._herb_plot.canvas.draw()
         # self._carn_plot.canvas.draw()
 
-    def _update_animal_features(self, animals):
+    def _update_animal_features(self, animals, hist_specs):
+        """
+        Update the histograms of animal features.
+
+        Parameters
+        ----------
+        animals : dict
+            A dictionary with species as keys and lists of animal objects as values.
+        hist_specs : dict
+            A dictionary specifying the histogram specifications for each feature.
+        """
+
+        if hist_specs is not None:
+            for feature, specs in hist_specs.items():
+                if feature == "age":
+                    age_max = specs["max"]
+                    age_bins = np.arange(0, age_max, specs["delta"])
+                elif feature == "weight":
+                    weight_max = specs["max"]
+                    weight_bins = np.arange(0, weight_max, specs["delta"])
+                else:
+                    fitness_max = specs["max"]
+                    fitness_bins = np.arange(0, fitness_max, specs["delta"])
+        else:
+            age_max = 60
+            age_bins = np.arange(0, age_max, 5)
+            fitness_max = 1
+            fitness_bins = np.arange(0, fitness_max, 0.1)
+            weight_max = 60
+            weight_bins = np.arange(0, weight_max, 5)
 
         herbs = animals["Herbivore"]
         carns = animals["Carnivore"]
@@ -332,22 +383,41 @@ class Graphics:
         carns_age = [carn.a for carn in carns]
 
         self._age_ax.clear()
-        self._age_ax.hist(herbs_age, bins=10, alpha=0.5, label="Herbivores", color=colours[0])
-        self._age_ax.hist(carns_age, bins=10, alpha=0.5, label="Carnivores", color=colours[1])
+        self._age_ax.hist(herbs_age,
+                          bins=age_bins,
+                          alpha=0.8,
+                          color=colours[0])
+        self._age_ax.hist(carns_age,
+                          bins=age_bins,
+                          alpha=0.8,
+                          color=colours[1])
+        self._age_ax.set_xlim(0, age_max)
         self._age_ax.set_title("Age")
 
         herbs_weight = [herb.w for herb in herbs]
         carns_weight = [carn.w for carn in carns]
         self._weight_ax.clear()
-        self._weight_ax.hist(herbs_weight, bins=10, alpha=0.5, label="Herbivores", color=colours[0])
-        self._weight_ax.hist(carns_weight, bins=10, alpha=0.5, label="Carnivores", color=colours[1])
+        self._weight_ax.hist(herbs_weight,
+                             bins=weight_bins,
+                             alpha=0.8,
+                             color=colours[0])
+        self._weight_ax.hist(carns_weight,
+                             bins=weight_bins,
+                             alpha=0.8,
+                             color=colours[1])
+        self._weight_ax.set_xlim(0, weight_max)
         self._weight_ax.set_title("Weight")
 
         herbs_fitness = [herb.fitness for herb in herbs]
         carns_fitness = [carn.fitness for carn in carns]
         self._fitness_ax.clear()
-        self._fitness_ax.hist(herbs_fitness, bins=10, alpha=0.5, label="Herbivores",
+        self._fitness_ax.hist(herbs_fitness,
+                              bins=fitness_bins,
+                              alpha=0.8,
                               color=colours[0])
-        self._fitness_ax.hist(carns_fitness, bins=10, alpha=0.5, label="Carnivores",
+        self._fitness_ax.hist(carns_fitness,
+                              bins=fitness_bins,
+                              alpha=0.8,
                               color=colours[1])
+        self._fitness_ax.set_xlim(0, fitness_max)
         self._fitness_ax.set_title("Fitness")
