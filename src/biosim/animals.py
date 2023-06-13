@@ -130,7 +130,7 @@ class Animal:
                 raise ValueError("Weight should be positive.")
             else:
                 self.w = weight
-        except ValueError:
+        except TypeError:
             raise ValueError(f"Age: {age} and weight: {weight} must both be numbers.")
 
     def aging(self):
