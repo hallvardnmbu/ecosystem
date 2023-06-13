@@ -296,12 +296,14 @@ def test_migrate(reset_animal_params):
                   WWWWWWWWWWWWW"""
 
 
-    [{"loc": (7, 7), "pop": [{"species": "Herbivore", "age": 0, "weight": 50000},{"species": "Herbivore", "age": 0, "weight": 50000} for i in range(500)]}],
+    ini_pop_herbs=[{"loc": (7, 7), "pop": [{"species": "Herbivore", "age": 0, "weight": 50000} for i in range(1000)]}],
+    ini_pop_carns=[{"loc": (7, 7), "pop": [{"species": "Carnivore", "age": 0, "weight": 50000} for i in range(500)]}],
 
-    island = Island(geog, ini_pop)
 
-    animals = [{"loc": (7, 7), "pop": [{"species": "Herbivore", "age": 0, "weight": 20}]}]
-    island.add_population(animal)
+    island = Island(geog)
+    island.add_population(ini_pop_herbs)
+    island.add_population(ini_pop_carns)
+
 
     # Set the parameters so that the animals will migrate (and don't die).
     Herbivore.set_parameters({'mu': 1, 'omega': 0, 'gamma': 0, 'eta': 0,
@@ -309,12 +311,19 @@ def test_migrate(reset_animal_params):
     Carnivore.set_parameters({'mu': 1, 'omega': 0, 'gamma': 0, 'eta': 0,
                                  'F': 0, 'a_half': 10000})
 
+    n=island.n_animals
 
+    #all animals should have moved from their initial position
     island.migrate()
+    for species in ["Herbivore", "Carnivore"]:
+        assert island.n_animals_per_species_per_cell[7][7][species] == 0, "Some animals did not migrate."
 
-    length = len(island.cell_grid[2][2].animals["Herbivore"])
-    assert length == 0, "The animals did not migrate correctly."
-    assert island.n_animals == 1, "The animals did not migrate correctly."
+
+    for _ in range(10):
+        island.migrate()
+        #number of animals should not change
+        assert island.n_animals == n, "The animals did not migrate correctly. Number of animals changed."
+
 
 
 def test_migrate_to_water(reset_animal_params):
