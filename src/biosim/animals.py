@@ -255,8 +255,8 @@ class Herbivore(Animal):
 
         Returns
         -------
-        available_fodder : float
-            The amount of fodder left after grazing.
+        grazed : float
+            The amount of fodder grazed.
         """
 
         if available_fodder >= self.F:
