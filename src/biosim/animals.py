@@ -33,7 +33,6 @@ class Animal:
         """
 
         for key, val in new_parameters.items():
-            # Check if parameters are valid:
             if key not in cls.default_parameters():
                 raise KeyError(f"Invalid parameter: {key}")
             try:
@@ -51,7 +50,6 @@ class Animal:
             except TypeError:
                 raise ValueError(f"Value for: {key} should be a number.")
 
-            # Update new parameters:
             setattr(cls, key, val)
 
     @classmethod
@@ -190,7 +188,6 @@ class Animal:
 
         if self.w <= 0:
             return 0
-        # Calculates parts of the fitness function:
         q_pos = (1 + exp(self.phi_age * (self.a - self.a_half))) ** (-1)
         q_neg = (1 + exp(-self.phi_weight * (self.w - self.w_half))) ** (-1)
         return q_pos * q_neg
@@ -234,6 +231,27 @@ class Herbivore(Animal):
                 "omega": 0.4,
                 "F": 10.0}
 
+    @classmethod
+    def motion(cls):
+        """
+        Sets the movement parameters for the Carnivore.
+
+        Returns
+        -------
+        movable : dict
+            Movable terrain.
+        stride : int
+            Step size.
+        """
+
+        cls.movable = {"H": True,
+                       "L": True,
+                       "D": True,
+                       "W": False}
+        cls.stride = 1
+
+        return cls.movable, cls.stride
+
     def __init__(self, age=None, weight=None):
         try:
             self.set_parameters(Herbivore.get_parameters())
@@ -241,6 +259,30 @@ class Herbivore(Animal):
             self.set_parameters(Herbivore.default_parameters())
         super().__init__(weight, age)
         self.species = "Herbivore"
+
+    def graze(self, available_fodder):
+        """
+        An animal tries to graze on the available fodder.
+
+        Parameters
+        ----------
+        available_fodder : float
+            The amount of fodder available at current location.
+
+        Returns
+        -------
+        grazed : float
+            The amount of fodder grazed.
+        """
+
+        if available_fodder >= self.F:
+            self.gain_weight(self.F)
+            grazed = self.F
+        else:
+            self.gain_weight(available_fodder)
+            grazed = available_fodder
+
+        return grazed
 
 
 class Carnivore(Animal):
@@ -282,6 +324,27 @@ class Carnivore(Animal):
                 "F": 50.0,
                 "DeltaPhiMax": 10.0}
 
+    @classmethod
+    def motion(cls):
+        """
+        Sets the movement parameters for the Carnivore.
+
+        Returns
+        -------
+        movable : dict
+            Movable terrain.
+        stride : int
+            Step size.
+        """
+
+        cls.movable = {"H": True,
+                       "L": True,
+                       "D": True,
+                       "W": False}
+        cls.stride = 1
+
+        return cls.movable, cls.stride
+
     def __init__(self, age=None, weight=None):
         try:
             self.set_parameters(Carnivore.get_parameters())
@@ -289,3 +352,43 @@ class Carnivore(Animal):
             self.set_parameters(Carnivore.default_parameters())
         super().__init__(weight, age)
         self.species = "Carnivore"
+
+    def predation(self, herbivores):
+        """
+        The herbivore tries to kill an eat the herbivores at the current location.
+
+        Parameters
+        ----------
+        herbivores : list
+            List of herbivores at current location.
+
+        Returns
+        -------
+        killed : list
+            List of herbivores that were killed.
+        """
+
+        eaten = 0
+        killed = []
+
+        for herbivore in herbivores:
+            if eaten >= self.F:
+                break
+
+            carnivore_fitness = self.fitness
+            herbivore_fitness = herbivore.fitness
+            if carnivore_fitness <= herbivore_fitness:
+                p = 0
+            elif 0 < carnivore_fitness - herbivore_fitness < self.DeltaPhiMax:
+                p = (carnivore_fitness - herbivore_fitness) / self.DeltaPhiMax
+            else:
+                p = 1
+
+            if random.random() < p:
+                eaten += herbivore.w
+
+                self.gain_weight(food=herbivore.w)
+
+                killed.append(herbivore)
+
+        return killed
