@@ -7,7 +7,7 @@ import random
 import textwrap
 import itertools
 
-from animals import Animal
+from .animals import Animal
 
 
 class Island:
@@ -92,6 +92,17 @@ class Island:
         self.cell_grid = self._terraform()
         self.add_population(population=ini_pop) if ini_pop is not None else None
 
+    def population(self):
+        """
+        Returns the population of the island.
+
+        Returns
+        -------
+        list
+            A list of dictionaries specifying the population of the island.
+        """
+        return [cell.animals() for cell in self.cell_grid]
+
     def _terraform(self):
         """
         Checks whether the geography is valid, and creates the grid of cell-objects.
@@ -150,6 +161,8 @@ class Island:
 
         for location_animals in population:
             location = location_animals["loc"]
+            if location[0] > len(self.geography) or location[1] > len(self.geography[0]):
+                raise ValueError(f"Invalid location: {location}.")
 
             i = location[0] - 1
             j = location[1] - 1
@@ -166,7 +179,9 @@ class Island:
                     animal["weight"] = self.species_map[species].lognormv()
 
                 movable, _ = self.species_map[species].motion()
-                if movable[self.geography[i][j]]:
+                if not movable[self.geography[i][j]]:
+                    raise ValueError(f"Invalid terrain: {location}.")
+                else:
                     cell = self.cell_grid[i][j]
                     age = animal["age"]
                     weight = animal["weight"]
@@ -420,11 +435,3 @@ class Cell:
         n_animals_in_cell["Carnivores"] = len(self.animals["Carnivore"])
 
         return n_animals_in_cell
-
-if __name__ == "__main__":
-
-    geogr = """WWW\nWLW\nWWW"""
-
-    animals = [{"loc": (2, 2), "pop": [{"species": "Herbivore", "age": 5, "weight": 20}]}]
-
-    island = Island(geogr, animals)
