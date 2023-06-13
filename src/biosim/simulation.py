@@ -97,13 +97,10 @@ class BioSim:
         self.img_fmt = img_fmt
         self.log_file = log_file
 
-        self.animal_map = Animal.mapping()
-
         self.vis_herbs = []
         self.vis_carns = []
 
-    @staticmethod
-    def set_animal_parameters(species, params):
+    def set_animal_parameters(self, species, params):
         """
         Set parameters for animal species.
 
@@ -123,16 +120,16 @@ class BioSim:
         """
 
         try:
-            Animal.mapping()[species].set_parameters(params)
+            self.island.species_map[species].set_parameters(params)
         except KeyError as e:
             # Here I googled how to retrieve the element in a set. I found that I could use
             # next(iter(...)):
-            difference = next(iter(set(params.keys()) - set(Animal.mapping().keys())))
+            difference = next(iter(set(params.keys()) - set(self.island.species_map.keys())))
             if f"Invalid parameter: {difference}" in str(e):
                 raise KeyError(f"Invalid key: {difference}.")
-            elif species not in Animal.mapping().keys():
+            elif species not in self.island.species_map.keys():
                 raise KeyError(f"Invalid species: {species}. Valid species:"
-                               f" {', '.join(list(Animal.mapping().keys()))}")
+                               f" {', '.join(list(self.island.species_map.keys()))}")
             else:
                 raise KeyError(f"Invalid parameter keys in {params}.")
         except ValueError:
