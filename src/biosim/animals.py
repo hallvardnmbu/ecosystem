@@ -102,22 +102,6 @@ class Animal:
 
         return random.lognormvariate(mu, sigma)
 
-    @classmethod
-    def mapping(cls):
-        """
-        Maps the string to the class.
-        This is done to avoid having to import all the subclasses (upon further expanding for
-        different species/subspecies).
-
-        Returns
-        -------
-        dict
-            Class mapping.
-        """
-
-        return {"Herbivore": Herbivore,
-                "Carnivore": Carnivore}
-
     def __init__(self, weight, age):
         try:
             if int(age) < 0:
