@@ -15,7 +15,7 @@ To make html
      Bruke "r": raw string, for å kunne bruke backslash i latex-kode.
      - r"text here"
      - Dockstring
-       - """
+         """
          .. math::
             latex code
          """
@@ -33,17 +33,14 @@ Plotting pycharm
 
 animals.py
 ----------
-   * Relative imports "."
+* Relative imports "."
+* Flytte spise-funksjonene hit.
+* Legge til hvilke celletyper et dyr kan bevege seg i
+* Legge til hvor mange celler et dyr kan bevege seg
+* "Forenkle" der hvor fitness brukes (slik at det ikke reknes ut mange ganger etter hverandre)
 
 island.py
 ---------
-* Lage en metode: n_animals_per_cell()
-  - Som returnerer: {(x, y): {"Herbivore": herbs_in_cell, "Carnivore": carns_in_cell}}
-* Lage en metode: n_animals_per_species()
-  -Som returnerer: {"Herbivore": n_herbivores, "Carnivore": n_carnivores}
-* Lage en metode: n_animals()
-  - Som returnerer: n_herbivores + n_carnivores
-
 * Fjerne "if ...": i hver annual cycle (for å sjekke om det er dyr i cellen).
 * Forbedre celle-oppsettet (forenkle for-løkkene).
 * Migrasjon
@@ -51,12 +48,20 @@ island.py
 
 simulation.py
 -------------
-* 
+* Lage enkle visualiseringer for:
+  - Antall år: teller
+  - Herbivores sine posisjoner (heatmap)
+  - Carnivores sine posisjoner (heatmap)
+  - Fitness (histogram)
+  - Age (histogram)
+  - Weight (histogram)
+
+  Og gjør det mulig å "fortsette" der du slapp (uten å begynne på nytt?)
 
 visualisation.py
 ----------------
 * Klasse Graphics med: 
-  - ...
+  - det over ^
 
 ---------------------------------------------------------------------------------------------------
 
