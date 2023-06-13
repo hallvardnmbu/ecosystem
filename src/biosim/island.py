@@ -165,7 +165,9 @@ class Island:
                     animal["weight"] = Animal.mapping()[species].lognormv()
 
                 movable, _ = Animal.mapping()[species].motion()
-                if movable[self.geography[i][j]]:
+                if not movable[self.geography[i][j]]:
+                    raise ValueError(f"Invalid location: {location}.")
+                else:
                     cell = self.cell_grid[i][j]
                     age = animal["age"]
                     weight = animal["weight"]
@@ -217,7 +219,7 @@ class Island:
         """
 
         animals = self.n_animals_per_species
-        return animals["Herbivore"] + animals["Carnivore"]
+        return animals["Herbivores"] + animals["Carnivores"]
 
     def procreate(self):
         """
