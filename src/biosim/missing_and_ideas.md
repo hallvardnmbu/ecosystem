@@ -30,21 +30,15 @@ Plotting pycharm
 * plt.pause(1e-6)  # pause 1e-6 seconds
 * counter with help from time_counter.py
 
-
 animals.py
 ----------
 * Relative imports "."
-* Flytte spise-funksjonene hit.
 * Legge til hvilke celletyper et dyr kan bevege seg i
 * Legge til hvor mange celler et dyr kan bevege seg
-* "Forenkle" der hvor fitness brukes (slik at det ikke reknes ut mange ganger etter hverandre)
 
 island.py
 ---------
-* Fjerne "if ...": i hver annual cycle (for å sjekke om det er dyr i cellen).
-* Forbedre celle-oppsettet (forenkle for-løkkene).
-* Migrasjon
-* Død (fjerne dyr)
+* 
 
 simulation.py
 -------------
@@ -70,11 +64,12 @@ visualisation.py
 
 test_animals.py
 ---------------
-* Teste alle metodene
+* Teste (de nye) eat-funksjonene.
+* Fikse de testene som ikke funker.
 
 test_island.py
 --------------
-* Teste alle metodene
+* Fikse de testene som ikke funker.
 * Legge til dyr, teste at det blir lagt til riktig osv.
 * Sjekke at dyr blir lagt til i både Cell.herbivore/carnivore OG Cell.animals
 
@@ -94,29 +89,14 @@ Kan forbedres:
 animals.py
 ----------
 * Forenkle default parameter-funksjonene(?)
-* "huske" ting i formler for å spare tid (mener å huske at det var noe som kunne gjøres)
-* Animal.species -> gjøre dette på en annen måte for å slippe dette?
 
 island.py
 ---------
-* Forbedre indeksering i celler (se f.eks. .add_population())
-* Forbedre .n_animals() (ha en egen variabel for å slippe å ha to for-løkker som blir +- 1
-  ved __init__ og død)
-* Forbedre procreation
-* Generelt: forbedre celle-systemet.
-* Forbedre Cell.add_animal()
-* Gjøre det umulig å legge til "ugyldige" fager i .visualise()
 * Spare tid ved å ikke iterere gjennom vann
   - Bruke itertools
 * Iterere gjennom .animals.values() og ikke .animals["Herbivore"]+.animals["Carnivore"] 
   i for-løkkene
-* Endre key i .animals til klasse-objekt ikke strings.
-
 * Island skal ikke "bruke" animals. Det skal skje i animals.
-* Flytte herbivore_eat_fodder og carnivore_eat_herbivore til animals.py (også andre metoder? fra island til animals)
-* Hvis dyret beveger seg, bør ikke det tas hensyn til cellen med vann, 
-  altså er det 100% sjanse for at en av de tre andre blir flyttet til, ikke 75%
-
 
 GUI:
 ----
