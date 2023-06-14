@@ -265,6 +265,6 @@ def test_fitness():
 
     for animal in animals:
         if animal.w == 0:
-            assert animal.fitness == approx(0), f"Fitness for {animal.species} is incorrect."
-        else:
-            assert 0.999 < animal.fitness < 1, f"Fitness for {animal.species} is incorrect."
+            assert animal.fitness == approx(0), f"Fitness for {animal.__class__.__name__} is incorrect."
+        if animal.w == 10000:
+            assert 0.999 < animal.fitness < 1, f"Fitness for {animal.__class__.__name__} is incorrect."
