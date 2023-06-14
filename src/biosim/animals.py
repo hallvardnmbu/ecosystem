@@ -205,8 +205,6 @@ class Animal:
                         q^+ (a, a_{\frac{1}{2}}) \times q^-(w, w_{\frac{1}{2}}) & \text{elsewhere}
                     \end{cases}
 
-            where
-
             q^\pm (x, x_{\frac{1}{2}}, \phi) = \frac{1}{1 + e^{\pm \phi(x-x_{\frac{1}{2}})}}.
         """
 

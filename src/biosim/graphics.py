@@ -98,7 +98,7 @@ class Graphics:
                    "W": tuple([colour / 255 for colour in [149, 203, 204]])}
 
         if self._fig is None:
-            self._fig = plt.figure(figsize=(12, 8)) # 15, 10
+            self._fig = plt.figure(figsize=(15, 10))
             self.gs = self._fig.add_gridspec(11, 27)
             self._fig.tight_layout()
 

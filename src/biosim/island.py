@@ -208,7 +208,9 @@ class Island:
         The baby is added to the same cell as the parent if the following is met:
         The baby-to-be's weight is less than the parent's weight.
         A probability of min(1, :math:`\gamma` * :math:`\Phi` * N).
-          Where:
+
+        Where:
+
             :math:`\gamma`: species-specific parameter.
             :math:`\Phi`: the parents' fitness.
             N: number of animals of the same species in the cell.
@@ -402,12 +404,14 @@ class Island:
     def yearly_cycle(self):
         """
         Runs through the yearly cycle of the island in the following order:
+
             1. Procreation
             2. Feeding
             3. Migration
             4. Aging
             5. Weight loss
             6. Death
+
         All animals undergo the same steps simultaneously.
         """
 

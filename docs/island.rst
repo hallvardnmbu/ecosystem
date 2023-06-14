@@ -6,11 +6,12 @@ letter in a string passed upon creation of the island. The cells contains inform
 type, the animals currently residing there and its available fodder.
 
 Upon further expansion:
+
 * Add the new terrain-type to the default_fodder_parameters- and get_fodder_parameter-methods.
 
 The animal module
 -----------------
-.. automodule:: island
+.. automodule:: biosim.island
     :members:
     :undoc-members:
     :show-inheritance:

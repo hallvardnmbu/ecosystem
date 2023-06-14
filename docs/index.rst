@@ -18,7 +18,6 @@ customisable, and easy to use.
    animals
    island
    simulation
-   graphics
 
 Indices and tables
 ==================
