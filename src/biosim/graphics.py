@@ -36,7 +36,7 @@ class Graphics:
         self.geography = geography
         self.initial_density = initial_density
         self.vis_years = vis_years
-        self.ymax_animals = ymax_animals if ymax_animals is not None else "auto"
+        self.ymax_animals = ymax_animals
         cmax = cmax_animals if cmax_animals is not None else {"Herbivore": 90,
                                                               "Carnivore": 90}
         self.cmax_herb = cmax["Herbivore"]
@@ -46,7 +46,7 @@ class Graphics:
             for prop in hist_specs:
                 if prop not in ["weight", "age", "fitness"]:
                     raise ValueError("Invalid property for histogram specification.")
-                if "max" not in hist_specs[prop] or "delta" not in hist_specs[prop]:
+                if "max" not in hist_specs[prop] and "delta" not in hist_specs[prop]:
                     raise ValueError("Invalid histogram specification.")
                 self.hist_specs = hist_specs
         else:
@@ -70,7 +70,6 @@ class Graphics:
         self._fig = None
         self._map_plot = None
         self._year_ax = None
-        self._count_plot = None
         self._line_ax = None
         self._animals_plot = None
         self._herb_ax = None
@@ -111,10 +110,7 @@ class Graphics:
         if self._line_ax is None:
             self._line_ax = self._fig.add_subplot(self.gs[:3, 4:])
             self._line_ax.set_title('Number of animals')
-            if self.ymax_animals == "auto":
-                self._line_ax.set_ylim(0, None)
-            else:
-                self._line_ax.set_ylim(0, self.ymax_animals)
+            self._line_ax.set_ylim(0, self.ymax_animals)
             self._line_ax.set_xlim(0, final_year)
             self.herbs = np.arange(0, final_year, self.vis_years)
             self.n_herbs = self._line_ax.plot(self.herbs,
@@ -144,7 +140,7 @@ class Graphics:
 
         if self._map_plot is None:
             self._map_plot = self._fig.add_subplot(self.gs[4:7, :9])
-            self.island_map(self.my_colours)
+            self._island_map(self.my_colours)
             self._map_plot.set_title("Map of Rossumøya (Pylandia)")
 
         herb, carn = self._animal_data(self.initial_density)
@@ -193,18 +189,28 @@ class Graphics:
             self._fitness_ax.set_ylabel('Fitness')
 
     def update_graphics(self, year, n_animals, n_animals_cells, animals):
-        """
+        r"""
         Updates the graphics with new data for the given year.
 
         Parameters
         ----------
         year : int
         n_animals : dict
-            Example: {"Herbivores": 100, "Carnivores": 10}
+
+            .. code:: python
+
+                {"Herbivores": 100, "Carnivores": 10}
+
         n_animals_cells : dict
-            Example: {(10, 10): {"Herbivores": 100, "Carnivores": 10}}
+
+            .. code:: python
+
+                {(10, 10): {"Herbivores": 100, "Carnivores": 10}}
         animals : dict
-            Example: {"Herbivores": [Herbivore(), Herbivore(), ...], ...}
+
+            .. code:: python
+
+                {"Herbivores": [Herbivore(), Herbivore(), ...], ...}
         """
 
         self._update_year_counter(year)
@@ -212,38 +218,6 @@ class Graphics:
         self._update_heatmap(n_animals_cells)
         self._update_animal_features(animals, self.hist_specs)
         plt.pause(0.001)
-
-    def island_map(self, my_colours=None):
-        """
-        Creates the island map.
-
-        Parameters
-        ----------
-        my_colours : dict, optional
-        """
-
-        colours = {"L": [colour / 255 for colour in [185, 214, 135]],
-                   "H": [colour / 255 for colour in [232, 236, 158]],
-                   "D": [colour / 255 for colour in [255, 238, 186]],
-                   "W": [colour / 255 for colour in [149, 203, 204]]}
-
-        if my_colours is not None:
-            for key, val in my_colours.items():
-                colours[key] = val
-
-        coloured_map = [[colours[letter] for letter in row] for row in self.geography]
-
-        self._map_plot.imshow(coloured_map)
-
-        x_ticks = range(len(self.geography[0]))
-        x_ticks_labels = range(1, len(self.geography[0]) + 1)
-        y_ticks = range(len(self.geography))
-        y_ticks_labels = range(1, len(self.geography) + 1)
-
-        self._map_plot.set_xticks(x_ticks)
-        self._map_plot.set_xticklabels(x_ticks_labels)
-        self._map_plot.set_yticks(y_ticks)
-        self._map_plot.set_yticklabels(y_ticks_labels)
 
     def _update_year_counter(self, year):
         """
@@ -282,9 +256,41 @@ class Graphics:
         y_carns[index] = n_animals["Carnivores"]
         self.n_carns.set_ydata(y_carns)
 
-        if self.ymax_animals == "auto":
-            _ylim = max(n_animals.values()) * 1.1
+        if not self.ymax_animals:
+            _ylim = max(max(n_animals.values()) * 1.1, self._line_ax.get_ylim()[1])
             self._line_ax.set_ylim(0, _ylim)
+
+    def _island_map(self, my_colours=None):
+        """
+        Creates the island map.
+
+        Parameters
+        ----------
+        my_colours : dict, optional
+        """
+
+        colours = {"L": [colour / 255 for colour in [185, 214, 135]],
+                   "H": [colour / 255 for colour in [232, 236, 158]],
+                   "D": [colour / 255 for colour in [255, 238, 186]],
+                   "W": [colour / 255 for colour in [149, 203, 204]]}
+
+        if my_colours is not None:
+            for key, val in my_colours.items():
+                colours[key] = val
+
+        coloured_map = [[colours[letter] for letter in row] for row in self.geography]
+
+        self._map_plot.imshow(coloured_map)
+
+        x_ticks = range(len(self.geography[0]))
+        x_ticks_labels = range(1, len(self.geography[0]) + 1)
+        y_ticks = range(len(self.geography))
+        y_ticks_labels = range(1, len(self.geography) + 1)
+
+        self._map_plot.set_xticks(x_ticks)
+        self._map_plot.set_xticklabels(x_ticks_labels)
+        self._map_plot.set_yticks(y_ticks)
+        self._map_plot.set_yticklabels(y_ticks_labels)
 
     def _animal_data(self, density):
         """
@@ -338,9 +344,6 @@ class Graphics:
         water = (149 / 255, 203 / 255, 204 / 255)
         self._herb_plot.cmap.set_bad(water)
         self._carn_plot.cmap.set_bad(water)
-
-        # self._herb_plot.canvas.draw()
-        # self._carn_plot.canvas.draw()
 
     def _update_animal_features(self, animals, hist_specs):
         """

@@ -14,17 +14,23 @@ class Animal:
 
     @classmethod
     def set_parameters(cls, new_parameters):
-        """
+        r"""
         Set the parameters for a species.
         When calling the function, one can call it on both the subclass and the object, with the
         same result.
-            Subclass.set_parameters() or
-            Object.set_parameters()
+
+            .. code:: python
+
+                Subclass.set_parameters()
+                Object.set_parameters()
 
         Parameters
         ----------
         new_parameters : dict
-            {`parameter`: value}
+
+            .. code:: python
+
+                {'parameter': value}
 
         Raises
         ------
@@ -82,7 +88,7 @@ class Animal:
 
     @classmethod
     def lognormv(cls):
-        """
+        r"""
         A continuous probability distribution of a random variable whose
         logarithm is normally distributed, which is used to draw birth weights
 
@@ -90,6 +96,19 @@ class Animal:
         -------
         weight : float
             From the normal distribution.
+
+        Notes
+        -----
+        :math:`\mu` and :math:`\sigma` are calculated from the birth weight and its standard
+        deviation through the following equations:
+
+        .. math::
+
+            \mu = \log \left( \frac{{w_{\text{birth}}^2}}{{\sqrt{{\sigma_{\text{birth}}^2 + w_{\text{birth}}^2}}}} \right)
+
+            \sigma = \sqrt{\log \left( 1 + \frac{{\sigma_{\text{birth}}^2}}{{w_{\text{birth}}^2}} \right)}
+
+        (Retrieved from: https://en.wikipedia.org/wiki/Log-normal_distribution).
         """
 
         try:
@@ -125,22 +144,23 @@ class Animal:
         self.a += 1
 
     def gain_weight(self, food):
-        """
-        Increments the weight of the animal by the factor beta and the amount of food eaten.
+        r"""
+        Increments the weight of the animal by the factor :math:`\beta` and the amount of food
+        eaten.
         """
 
         self.w += self.beta * food
 
     def lose_weight_year(self):
-        """
-        Decrements the weight of the animal by the factor eta.
+        r"""
+        Decrements the weight of the animal by the factor :math:`\eta`.
         """
 
         self.w -= self.eta * self.w
 
     def lose_weight_birth(self, baby_weight):
-        """
-        Decrements the weight of the parent by the factor eta if the parent weights enough.
+        r"""
+        Decrements the weight of the parent by the factor :math:`\xi` if the parent weights enough.
 
         Parameters
         ----------
@@ -150,7 +170,12 @@ class Animal:
         Returns
         -------
         bool
-            True if the parent can lose xi * baby_weight, False otherwise.
+            True if the parent can lose :math:`\xi` * :math:`baby_{weight}`, False otherwise.
+
+        Notes
+        -----
+        If :math:`\xi * baby_{weight}` is greater than the weight of the parent, the parent will
+        not give birth.
         """
 
         if self.w > self.xi * baby_weight:
@@ -161,13 +186,28 @@ class Animal:
 
     @property
     def fitness(self):
-        """
+        r"""
         Calculates the fitness of the animal.
 
         Returns
         -------
         fitness : float
             The fitness of the animal.
+
+        Notes
+        -----
+        The fitness is calculated as follows:
+
+        .. math::
+
+            \Phi = \begin{cases}
+                        0 & w \leq 0 \\
+                        q^+ (a, a_{\frac{1}{2}}) \times q^-(w, w_{\frac{1}{2}}) & \text{elsewhere}
+                    \end{cases}
+
+            where
+
+            q^\pm (x, x_{\frac{1}{2}}, \phi) = \frac{1}{1 + e^{\pm \phi(x-x_{\frac{1}{2}})}}.
         """
 
         if self.w <= 0:
@@ -336,7 +376,7 @@ class Carnivore(Animal):
         super().__init__(weight, age)
 
     def predation(self, herbivores):
-        """
+        r"""
         The herbivore tries to kill an eat the herbivores at the current location.
 
         Parameters
@@ -348,6 +388,18 @@ class Carnivore(Animal):
         -------
         killed : list
             List of herbivores that were killed.
+
+        Notes
+        -----
+        Carnivores try to kill herbivores with a probability given by:
+
+        .. math::
+
+            p = \begin{cases}
+                    0 & \text{if } \Phi_{\text{carn}} \leq \Phi_{\text{herb}} \\
+                    \frac{\Phi_{\text{carn}} - \Phi_{\text{herb}}}{\Delta \Phi_{\text{max}}} & \text{if } 0 < \Phi_{\text{carn}} - \Phi_{\text{herb}} < \Delta \Phi_{\text{max}} \\
+                    1 & \text{otherwise}
+                \end{cases}.
         """
 
         eaten = 0

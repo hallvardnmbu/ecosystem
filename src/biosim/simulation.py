@@ -1,21 +1,79 @@
 """
-Template for BioSim class.
+Module for running a BioSim simulation.
 """
 
 # The material in this file is licensed under the BSD 3-clause license
 # https://opensource.org/licenses/BSD-3-Clause
 # (C) Copyright 2023 Hans Ekkehard Plesser / NMBU
 
-import random
-import matplotlib.pyplot as plt
 
-from island import Island
-from graphics import Graphics
+import random
+
+from .island import Island
+from .graphics import Graphics
 
 
 class BioSim:
-    """
-    Top-level interface to BioSim package.
+    r"""
+    Simulation class.
+
+    Parameters
+    ----------
+    :math:`island_{map}` : str
+        Multi-line string specifying island geography
+    :math:`ini_{pop}` : list
+        List of dictionaries specifying initial population
+    seed : int
+        Integer used as random number seed
+    :math:`vis_{years}` : int
+        Years between visualization updates (if 0, disable graphics)
+    :math:`ymax_{animals}` : int
+        Number specifying y-axis limit for graph showing animal numbers
+    :math:`cmax_{animals}` : dict
+        Color-scale limits for animal densities, see below
+    :math:`hist_{specs}` : dict
+        Specifications for histograms, see below
+    :math:`img_{years}` : int
+        Years between visualizations saved to files (default: :math:`vis_{years}`)
+    :math:`img_{dir}` : str
+        Path to directory for figures
+    :math:`img_{base}` : str
+        Beginning of file name for figures
+    :math:`img_{{fmt}` : str
+        File type for figures, e.g. 'png' or 'pdf'
+    :math:`log_{{file}` : str
+        If given, write animal counts to this file
+
+    Notes
+    -----
+    - If :math:`ymax_{animals}` is None, the y-axis limit should be adjusted automatically.
+    - If :math:`cmax_{animals}` is None, sensible, fixed default values should be used.
+    - :math:`cmax_{animals}` is a dict mapping species names to numbers, e.g.,
+
+      .. code:: python
+
+         {'Herbivore': 50, 'Carnivore': 20}
+
+    - :math:`hist_{specs}` is a dictionary with one entry per property for which a histogram
+      shall be shown. For each property, a dictionary providing the maximum value
+      and the bin width must be given, e.g.,
+
+      .. code:: python
+
+         {'weight': {'max': 80, 'delta': 2},
+          'fitness': {'max': 1.0, 'delta': 0.05}}
+
+      Permitted properties are 'weight', 'age', 'fitness'.
+    - If :math:`img_{dir}` is None, no figures are written to file.
+    - Filenames are formed as
+
+      .. code:: python
+
+         Path(img_dir) / f'{img_base}_{img_number:05d}.{img_fmt}'
+
+      where `img_number` are consecutive image numbers starting from 0.
+
+    - `img_dir` and `img_base` must either be both None or both strings.
     """
 
     def __init__(self,
@@ -31,66 +89,6 @@ class BioSim:
                  img_base=None,
                  img_fmt='png',
                  log_file=None):
-
-        """
-        Parameters
-        ----------
-        island_map : str
-            Multi-line string specifying island geography
-        ini_pop : list
-            List of dictionaries specifying initial population
-        seed : int
-            Integer used as random number seed
-        vis_years : int
-            Years between visualization updates (if 0, disable graphics)
-        ymax_animals : int
-            Number specifying y-axis limit for graph showing animal numbers
-        cmax_animals : dict
-            Color-scale limits for animal densities, see below
-        hist_specs : dict
-            Specifications for histograms, see below
-        img_years : int
-            Years between visualizations saved to files (default: `vis_years`)
-        img_dir : str
-            Path to directory for figures
-        img_base : str
-            Beginning of file name for figures
-        img_fmt : str
-            File type for figures, e.g. 'png' or 'pdf'
-        log_file : str
-            If given, write animal counts to this file
-
-        Notes
-        -----
-        - If `ymax_animals` is None, the y-axis limit should be adjusted automatically.
-        - If `cmax_animals` is None, sensible, fixed default values should be used.
-        - `cmax_animals` is a dict mapping species names to numbers, e.g.,
-
-          .. code:: python
-
-             {'Herbivore': 50, 'Carnivore': 20}
-
-        - `hist_specs` is a dictionary with one entry per property for which a histogram
-          shall be shown. For each property, a dictionary providing the maximum value
-          and the bin width must be given, e.g.,
-
-          .. code:: python
-
-             {'weight': {'max': 80, 'delta': 2},
-              'fitness': {'max': 1.0, 'delta': 0.05}}
-
-          Permitted properties are 'weight', 'age', 'fitness'.
-        - If `img_dir` is None, no figures are written to file.
-        - Filenames are formed as
-
-          .. code:: python
-
-             Path(img_dir) / f'{img_base}_{img_number:05d}.{img_fmt}'
-
-          where `img_number` are consecutive image numbers starting from 0.
-
-        - `img_dir` and `img_base` must either be both None or both strings.
-        """
 
         random.seed(seed)
 
@@ -118,7 +116,7 @@ class BioSim:
         species : str
             Name of species for which parameters shall be set.
         params : dict
-            New parameter values
+            New parameter values.
 
         Raises
         ------
@@ -151,9 +149,9 @@ class BioSim:
         Parameters
         ----------
         landscape : str
-            Code letter for landscape
+            Code letter for landscape.
         params : dict
-            New parameter values
+            New parameter values.
 
         Raises
         ------
@@ -178,13 +176,13 @@ class BioSim:
         self.island.set_fodder_parameters(new_parameters)
 
     def simulate(self, num_years):
-        """
+        r"""
         Run simulation while visualizing the result.
 
         Parameters
         ----------
-        num_years : int
-            Number of years to simulate
+        :math:`num_{years}` : int
+            Number of years to simulate.
         """
 
         simulate_years = num_years + self.year + 1
@@ -204,8 +202,8 @@ class BioSim:
 
         Parameters
         ----------
-        population : List of dictionaries
-            See BioSim Task Description, Sec 3.3.3 for details.
+        population : list of dictionaries
+            Adds a population to the island.
         """
 
         self.island.add_population(population)
@@ -237,25 +235,41 @@ if __name__ == "__main__":
 
     import textwrap
 
-    geogr = """\
-               WWWWWWWWWWWWWWWWWWWWW
-               WWWWWWWWHWWWWLLLLLLLW
-               WHHHHHLLLLWWLLLLLLLWW
-               WHHHHHHHHHWWLLLLLLWWW
-               WHHHHHLLLLLLLLLLLLWWW
-               WHHHHHLLLDDLLLHLLLWWW
-               WHHLLLLLDDDLLLHHHHWWW
-               WWHHHHLLLDDLLLHWWWWWW
-               WHHHLLLLLDDLLLLLLLWWW
-               WHHHHLLLLDDLLLLWWWWWW
-               WWHHHHLLLLLLLLWWWWWWW
-               WWWHHHHLLLLLLLWWWWWWW
-               WWWWWWWWWWWWWWWWWWWWW"""
+    # geogr = """\
+    #            WWWWWWWWWWWWWWWWWWWWW
+    #            WWWWWWWWHWWWWLLLLLLLW
+    #            WHHHHHLLLLWWLLLLLLLWW
+    #            WHHHHHHHHHWWLLLLLLWWW
+    #            WHHHHHLLLLLLLLLLLLWWW
+    #            WHHHHHLLLDDLLLHLLLWWW
+    #            WHHLLLLLDDDLLLHHHHWWW
+    #            WWHHHHLLLDDLLLHWWWWWW
+    #            WHHHLLLLLDDLLLLLLLWWW
+    #            WHHHHLLLLDDLLLLWWWWWW
+    #            WWHHHHLLLLLLLLWWWWWWW
+    #            WWWHHHHLLLLLLLWWWWWWW
+    #            WWWWWWWWWWWWWWWWWWWWW"""
 
-    animals = [{'loc': (3, 3), 'pop': [{'species': 'Herbivore', 'age': 5, 'weight': 20} for _ in
+    # geogr = """\
+    #            WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+    #            WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+    #            WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+    #            WWWHWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+    #            WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"""
+
+    geogr = """\
+               WWWWWWW
+               WWHLHWW
+               WHHHHHW
+               WLHLHLW
+               WHHHHHW
+               WWHLHWW
+               WWWWWWW"""
+
+    animals = [{'loc': (4, 4), 'pop': [{'species': 'Herbivore', 'age': 5, 'weight': 20} for _ in
                                        range(50)]},
-               {'loc': (3, 4), 'pop': [{'species': 'Carnivore', 'age': 5, 'weight': 20} for _ in
+               {'loc': (4, 4), 'pop': [{'species': 'Carnivore', 'age': 5, 'weight': 20} for _ in
                                        range(50)]}]
 
     sim = BioSim(geogr, animals)
-    sim.simulate(40)
+    sim.simulate(200)

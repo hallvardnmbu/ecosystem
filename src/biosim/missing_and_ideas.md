@@ -1,20 +1,25 @@
-Mangler:
-========
-imorgen
-- test til ny funksjon i island
-- fikse plottefunksjonene
-- tox.ini
+I morgen:
+=========
+* test til ny funksjon i island
+* tox.ini
+* save figure og save movie
+* Flytte classmethod movement i animals til Animal?
+* GUI (se under)
+* readme.md
+* Prøv å kun måtte kjøre lognormv() ETT sted.
 
-To make html
-------------
+---------------------------------------------------------------------------------------------------
+
+To make html:
+=============
 * file and class docstrings
 * do not commit build directory
    - only the "red" files
 * advanced sphinxs features is appreciated
 * add the math formulas (nicely formatted)
    - by a good sphinxs theme 
-* Use NEST guide to write good documentation, see
-  https://www.nest-simulator.readthedocs.io/en/latest/developer_space/guidelines/styleguide.html
+* Use NEST guide to write good documentation, see https://nest-simulator.readthedocs.
+  io/en/latest/developer_space/guidelines/styleguide/styleguide.html
 * Formler:
      Bruke "r": raw string, for å kunne bruke backslash i latex-kode.
      - r"text here"
@@ -25,14 +30,9 @@ To make html
          """
        :math:`\frac{1}{2}`
 
-Plotting pycharm
-----------------
-* call plot at the end of the simulation, don't call it 350 times!
-  - call plot once and update data 350 times
-    - see plot_update.py  
-* fig.canas.flush_events()  # flush the GUI events
-* plt.pause(1e-6)  # pause 1e-6 seconds
-* counter with help from time_counter.py
+---------------------------------------------------------------------------------------------------
+Mangler:
+========
 
 animals.py
 ----------
@@ -46,29 +46,30 @@ simulation.py
 -------------
 * Relative imports "."
 
-  Og gjør det mulig å "fortsette" der du slapp (uten å begynne på nytt?)
-
-visualisation.py
-----------------
+graphics.py
+-----------
+* Relative imports "."
+* Save figure
+* Make movie
 
 ---------------------------------------------------------------------------------------------------
 
 /tests
 ======
 
+Kjør med coverage 'pytest --cov --cov-report term-missing', og dekk de viktigste linjene.
+
 test_animals.py
 ---------------
-* Teste (de nye) eat-funksjonene.
 * Fikse de testene som ikke funker.
+* Teste (de nye) eat-funksjonene.
 
 test_island.py
 --------------
 * Fikse de testene som ikke funker.
-* Legge til dyr, teste at det blir lagt til riktig osv.
-* Sjekke at dyr blir lagt til i både Cell.herbivore/carnivore OG Cell.animals
 
 package structure
-----------------
+-----------------
 * directory layout
 * configuration files
   - readme.md
@@ -80,23 +81,28 @@ package structure
 
 Kan forbedres:
 ==============
+
+Sjekk 'run -> profile' for å se hva som tar lang tid (husk å fjerne plottingen)
+
 animals.py
 ----------
 * Forenkle default parameter-funksjonene(?)
-
 * DeltaPhiMax = 15 ? (Det brukte han i forelesningen)
 
 island.py
 ---------
 * Island skal ikke "bruke" animals. Det skal skje i animals.
 * "huske" hvilke celler som er vann for å ikke gå gjennom de, funker det bedre?
-  -lagre i hver celle hvilke naboceller den kan flytte dyra inni til. 
-    kun sjekke en gang om nabocelle er vann eller ikke
+  - lagre i hver celle hvilke naboceller den kan flytte dyra inni til. kun sjekke en gang om 
+    nabocelle er vann eller ikke
 
 GUI:
 ----
 * Tegne kartet
 * Plassere dyr på kartet
+* Simulere x år, velge hist-specs osv.
+
+---------------------------------------------------------------------------------------------------
 
 Endre if-testene. Lage metoder i klassene, som gjør dette lettere:
 ==================================================================
@@ -111,6 +117,7 @@ island.py:
 
 Ideer:
 ======
+
 * Gjemme seg i skogen eller grave seg ned i ørkenen (kan ikke bli spist)
   -Altså at noen arter har større sannsynlighet for å bli spist i ulike habitat
 * Herbivores kan drepe Carnivores HVIS: det er flere enn X Herbivores og mindre enn Y Carnivores
@@ -125,19 +132,11 @@ Ideer:
 * større sannsynlighet for å gå til lowland
 * lav sannsynlighet for å gå til desert
 * høy sannsynliget for å rømme fra carnivores hvis det er mange av de
+* 
 ---------------------------------------------------------------------------------------------------
 
 Tips:
 =====
-* når dyr dør, ikke slett de fra listen mens du går gjennom den.
-  - gjør slik:
-
-       keep the good ones
-
-          d = list(range(10))
-
-          d = [n for n in d if not (n % 2 == 0 or n % 3 == 0)]
-          print(d)
 
 * Tester løper i "tilfeldig" rekkefølge.
   - husk å sette tilbake parapetre hvis duu endrer på dem i en test.

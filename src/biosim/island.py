@@ -7,7 +7,7 @@ import random
 import textwrap
 import itertools
 
-from animals import Animal
+from .animals import Animal
 
 
 class Island:
@@ -37,13 +37,16 @@ class Island:
 
     @classmethod
     def set_fodder_parameters(cls, new_parameters):
-        """
+        r"""
         Set the parameters for the fodder on the island in the different terrain types.
 
         Parameters
         ----------
         new_parameters : dict
-            Example: {`terrain`: value}
+
+            .. code:: python
+
+                {'terrain': value}
 
         Raises
         ------
@@ -111,13 +114,13 @@ class Island:
         return animals
 
     def _terraform(self):
-        """
+        r"""
         Checks whether the geography is valid, and creates the grid of cell-objects.
 
         Raises
         ------
         ValueError
-            If the edges of the map are not `W` (Water).
+            If the edges of the map are not 'W' (Water).
             If the map is not rectangular.
             If the map contains invalid terrain types.
         """
@@ -150,19 +153,22 @@ class Island:
         return cell_grid
 
     def add_population(self, population):
-        """
+        r"""
         Adds a population to the island.
 
         Parameters
         ----------
         population : list of dict
-            Example: [{`loc`: (x, y), `pop`: [{`species`: str, `age`: int, `weight`: float}]}]
+
+            .. code:: python
+
+                [{'loc': (x, y), 'pop': [{'species': str, 'age': int, 'weight': float}]}]
 
         Raises
         ------
         ValueError
             If the location is not on the map.
-            If the location is in Water (`W`).
+            If the location is in Water ('W').
             If the animal is incorrectly defined.
         """
 
@@ -196,14 +202,14 @@ class Island:
                                                                            weight=weight))
 
     def procreate(self):
-        """
+        r"""
         Iterates through all the animals on the island.
         The baby is added to the same cell as the parent if the following is met:
         The baby-to-be's weight is less than the parent's weight.
-        A probability of min(1, gamma * fitness * N).
+        A probability of min(1, :math:`\gamma` * :math:`\Phi` * N).
           Where:
-            gamma: species-specific parameter.
-            fitness: the parents' fitness.
+            :math:`\gamma`: species-specific parameter.
+            :math:`\Phi`: the parents' fitness.
             N: number of animals of the same species in the cell.
         """
 
@@ -263,10 +269,11 @@ class Island:
                                                      if herb not in killed]
 
     def migrate(self):
-        """
+        r"""
         Iterates through all the animals on the island.
-        An animal migrates with a probability of mu * fitness, and moves to a random neighbouring
-        cell.
+        An animal migrates with a probability of :math:`\mu` * :math:`\Phi`, and moves to a
+        random directly neighbouring cell. If the neighbouring cell is immovable for the animal,
+        it refrains from moving.
         """
 
         migrating_animals = []
@@ -317,8 +324,12 @@ class Island:
                     animal.lose_weight_year()
 
     def death(self):
-        """
+        r"""
         Iterates through all the animals on the island and removes them if they die.
+
+        Notes
+        -----
+        An animal dies with a probability of :math:`\omega` * (1 - :math:`\Phi`).
         """
 
         for cells in self.cell_grid:
@@ -334,13 +345,16 @@ class Island:
 
     @property
     def n_animals_per_species(self):
-        """
+        r"""
         Counts the number of animals per species on the island.
 
         Returns
         -------
         n_animals_per_species: dict
-        Example: {`Herbivores`: n_herbivores, `Carnivores`: n_carnivores}
+
+            .. code:: python
+
+                {'Herbivores': n_herbivores, 'Carnivores': n_carnivores}
          """
 
         n_animals_per_species = {"Herbivores": 0, "Carnivores": 0}
@@ -352,13 +366,16 @@ class Island:
 
     @property
     def n_animals_per_species_per_cell(self):
-        """
+        r"""
         Counts the number of animals per species on the island.
 
         Returns
         -------
         n_animals_per_species : dict
-            Example: {(x, y): {`Herbivores`: n_herbivores, `Carnivores`: n_carnivores}}
+
+            .. code:: python
+
+                {(x, y): {'Herbivores': n_herbivores, 'Carnivores': n_carnivores}}
         """
 
         n_animals_per_species_per_cell = {}
@@ -425,13 +442,16 @@ class Cell:
         self.fodder = Island.get_fodder_parameter(self.cell_type)
 
     def n_animals_in_cell(self):
-        """
+        r"""
         Counts the number of animals per species per cell.
 
         Returns
         -------
-        n_animals_per_species : dict
-            Example: {`Herbivores`: n_herbivores, `Carnivores`: n_carnivores}
+        n_animals_in_cell : dict
+
+            .. code:: python
+
+                {'Herbivores': n_herbivores, 'Carnivores': n_carnivores}
         """
         n_animals_in_cell = {}
         n_animals_in_cell["Herbivores"] = len(self.animals["Herbivore"])
