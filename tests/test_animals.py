@@ -13,7 +13,6 @@ from math import log
 from pytest_mock import mocker
 from pytest import approx
 import pytest
-
 # We used the lecture notes, ChatGPT and Stackoverflow in order to gain a basic understanding of how
 # to structure the tests. ChatGPT and Stackoverflow were used as a "teacher", and did not author
 # any of the code we used.

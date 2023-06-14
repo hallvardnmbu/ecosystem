@@ -7,7 +7,7 @@ import random
 import textwrap
 import itertools
 
-from animals import Animal
+from .animals import Animal
 
 
 class Island:
@@ -171,10 +171,13 @@ class Island:
             If the location is not on the map.
             If the location is in Water ('W').
             If the animal is incorrectly defined.
+
+        KeyError
+            If invalid parameters are passed.
         """
 
         for location_animals in population:
-            location = location_animals['loc']
+            location = location_animals["loc"]
             if location[0] > len(self.geography) or location[1] > len(self.geography[0]):
                 raise ValueError(f"Invalid location: {location}.")
 
@@ -193,8 +196,14 @@ class Island:
                     raise ValueError(f"Invalid terrain: {location}.")
                 else:
                     cell = self.cell_grid[i][j]
-                    age = animal["age"]
-                    weight = animal["weight"]
+                    if "age" not in animal:
+                        age = None
+                    else:
+                        age = animal["age"]
+                    if "weight" not in animal:
+                        weight = None
+                    else:
+                        weight = animal["weight"]
                     cell.animals[species].append(self.species_map[species](age=age,
                                                                            weight=weight))
 

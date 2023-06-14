@@ -11,6 +11,7 @@ from src.biosim.animals import Herbivore, Carnivore
 from src.biosim.island import Island
 from pytest import approx
 import pytest
+from pytest_mock import mocker
 
 
 # We used the lecture notes, ChatGPT and Stackoverflow in order to gain a basic understanding of how
@@ -268,7 +269,16 @@ def test_feed(trial_islands):
         assert len(cell.animals["Herbivore"]) == 0, "The carnivore did not feed correctly."
 
 def test_population():
-    pass
+
+    geogr = "WWWWW\nWWLWW\nWLLLW\nWWLWW\nWWWWW"
+    ini_pop_herbs=[{"loc": (3, 3), "pop": [{"species": "Herbivore", "age": 0, "weight": 50}]}]
+    ini_pop_carns=[{"loc": (3, 3), "pop": [{"species": "Carnivore", "age": 0, "weight": 50}]}]
+
+    island = Island(geogr, ini_pop_carns+ini_pop_herbs)
+
+    expected_pop =2
+
+    assert len(island.population()) == expected_pop, "The population list was not created correctly."
 
 def test_migrate(reset_animal_params):
     """Tests that the animals migrate correctly."""
@@ -352,7 +362,7 @@ def test_lose_weight_year(reset_animal_params):
     assert weight == approx(0), "Weight did not decrease correctly."
 
 
-def test_death(reset_animal_params):
+def test_death(reset_animal_params, mocker):
     """Tests that the animals die correctly."""
 
     island = Island(geography="WWW\nWLW\nWWW")

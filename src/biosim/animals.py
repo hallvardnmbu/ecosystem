@@ -125,13 +125,13 @@ class Animal:
         try:
             if not age:
                 self.a = 0
-            if int(age) < 0:
+            elif int(age) < 0:
                 raise ValueError("Age should be positive.")
             else:
                 self.a = age
             if not weight:
                 self.w = self.lognormv()
-            elif weight < 0:
+            elif float(weight) < 0:
                 raise ValueError("Weight should be positive.")
             else:
                 self.w = weight
