@@ -6,33 +6,15 @@ I morgen:
 * Flytte classmethod movement i animals til Animal?
 * GUI (se under)
 * readme.md
-* Prøv å kun måtte kjøre lognormv() ETT sted.
 
 ---------------------------------------------------------------------------------------------------
 
-To make html:
-=============
-* file and class docstrings
-* do not commit build directory
-   - only the "red" files
-* advanced sphinxs features is appreciated
-* add the math formulas (nicely formatted)
-   - by a good sphinxs theme 
-* Use NEST guide to write good documentation, see https://nest-simulator.readthedocs.
-  io/en/latest/developer_space/guidelines/styleguide/styleguide.html
-* Formler:
-     Bruke "r": raw string, for å kunne bruke backslash i latex-kode.
-     - r"text here"
-     - Dockstring
-         """
-         .. math::
-            latex code
-         """
-       :math:`\frac{1}{2}`
-
----------------------------------------------------------------------------------------------------
 Mangler:
 ========
+
+examples
+--------
+* Eksempler på hvordan å bruke BioSim (til dokumentasjon)
 
 animals.py
 ----------
@@ -88,6 +70,7 @@ animals.py
 ----------
 * Forenkle default parameter-funksjonene(?)
 * DeltaPhiMax = 15 ? (Det brukte han i forelesningen)
+* Flytte classmethod movement i animals til Animal?
 
 island.py
 ---------
@@ -132,7 +115,7 @@ Ideer:
 * større sannsynlighet for å gå til lowland
 * lav sannsynlighet for å gå til desert
 * høy sannsynliget for å rømme fra carnivores hvis det er mange av de
-* 
+
 ---------------------------------------------------------------------------------------------------
 
 Tips:

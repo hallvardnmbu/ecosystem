@@ -70,7 +70,7 @@ a:hover {
 .wy-menu-vertical li.toctree-l3.current > a:hover,
 .wy-menu-vertical li.toctree-l4.current > a:hover,
 .wy-menu-vertical li.current > a:hover {
-    background-color: #E5F4F2;
+    background-color: #E5F4F2 !important;
 }
 .wy-menu-vertical li.current li.current a,
 .wy-menu-vertical li.toctree-l1.current > a,
@@ -97,4 +97,39 @@ a:hover {
 .wy-menu-vertical li.current li.toctree-l3:not(.current) li.toctree-l4:not(.current) > a,
 .wy-menu-vertical li.current li.toctree-l4:not(.current) > a {
     background-color: #019A81;
+}
+.wy-menu-vertical li.toctree-li.current > a:hover {
+    background-color: #E5F4F2 !important;
+}
+
+/* Parent menu items */
+.wy-menu-vertical li.toctree-l1 > a:hover,
+.wy-menu-vertical li.toctree-l2 > a:hover,
+.wy-menu-vertical li.toctree-l3 > a:hover,
+.wy-menu-vertical li.toctree-l4 > a:hover,
+.wy-menu-vertical li.current > a:hover {
+    background-color: #E5F4F2;
+}
+
+/* Parent menu items with open submenus */
+.wy-menu-vertical li.toctree-l1.current > a:hover,
+.wy-menu-vertical li.toctree-l2.current > a:hover,
+.wy-menu-vertical li.toctree-l3.current > a:hover,
+.wy-menu-vertical li.toctree-l4.current > a:hover {
+    background-color: #E5F4F2;
+}
+
+/* Submenu items */
+.wy-menu-vertical li.toctree-l1.current li.toctree-l2 > a:hover,
+.wy-menu-vertical li.toctree-l2.current li.toctree-l3 > a:hover,
+.wy-menu-vertical li.toctree-l3.current li.toctree-l4 > a:hover {
+    background-color: #E5F4F2;
+}
+
+/* Image border function: */
+.bordered-image {
+    border: 2px solid #019A81;
+    padding: 0;
+    display: inline-block;
+    box-sizing: border-box;
 }
