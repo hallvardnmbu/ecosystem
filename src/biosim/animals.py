@@ -123,6 +123,8 @@ class Animal:
 
     def __init__(self, weight, age):
         try:
+            if not age:
+                self.a = 0
             if int(age) < 0:
                 raise ValueError("Age should be positive.")
             else:

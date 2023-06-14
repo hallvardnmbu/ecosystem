@@ -7,7 +7,7 @@ import random
 import textwrap
 import itertools
 
-from .animals import Animal
+from animals import Animal
 
 
 class Island:
@@ -174,7 +174,7 @@ class Island:
         """
 
         for location_animals in population:
-            location = location_animals["loc"]
+            location = location_animals['loc']
             if location[0] > len(self.geography) or location[1] > len(self.geography[0]):
                 raise ValueError(f"Invalid location: {location}.")
 
@@ -187,10 +187,6 @@ class Island:
                 if animal["species"] not in self.species_map.keys():
                     raise ValueError(f"Invalid species: {animal}.")
                 species = animal["species"]
-                if "age" not in animal:
-                    animal["age"] = 0
-                if "weight" not in animal:
-                    animal["weight"] = self.species_map[species].lognormv()
 
                 movable, _ = self.species_map[species].motion()
                 if not movable[self.geography[i][j]]:
