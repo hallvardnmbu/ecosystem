@@ -12,8 +12,8 @@ simple biological simulation, and is designed to be easily extendable. The packa
 customisable, and easy to use.
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 3
+   :hidden:
 
    animals
    island

@@ -170,12 +170,12 @@ class Animal:
         Returns
         -------
         bool
-            True if the parent can lose :math:`\xi` * :math:`baby_{weight}`, False otherwise.
+            True if the parent can lose :math:`\xi` * baby_weight, False otherwise.
 
         Notes
         -----
-        If :math:`\xi * baby_{weight}` is greater than the weight of the parent, the parent will
-        not give birth.
+        If :math:`\xi` * baby_weight is greater than the weight of the parent, the parent
+        will not give birth.
         """
 
         if self.w > self.xi * baby_weight:

@@ -12,8 +12,8 @@ Upon further expansion:
 
 * Update the graphics-method in graphics.py to include the new species.
 
-The animal module
------------------
+Module for the species on the island
+------------------------------------
 .. automodule:: biosim.animals
     :members:
     :undoc-members:

@@ -1,0 +1,100 @@
+/* Here I had some help from ChatGPT and Stackoverflow to wrap my head around all the different css-commands. */
+
+/* Background: */
+.wy-nav-content-wrap {
+    background: #E5F4F2;
+}
+.wy-nav-content {
+    background-color: #E5F4F2;
+}
+.wy-side-nav-search {
+    background-color: #019A81;
+}
+.wy-nav-side {
+    background: #019A81
+}
+
+/* Text: */
+.toctree-l1 {
+    color: #000000;
+    background-color: #019A81;
+}
+.toctree-l2 {
+    color: #000000;
+    background-color: #019A81;
+}
+.toctree-l3 {
+    color: #000000;
+    background-color: #019A81;
+}
+.toctree-l4 {
+    color: #000000;
+    background-color: #019A81;
+}
+.docutils.literal.notranslate {
+    color: #000000;
+}
+.wy-menu-vertical li:hover a {
+    color: #000000;
+}
+.wy-menu-vertical a {
+    color: #000000;
+}
+a {
+    color: #000000;
+}
+a:visited {
+    color: #000000;
+}
+a:hover {
+    text-decoration: underline !important;
+    color: #000000;
+}
+.property {
+    color: #000000;
+}
+.sig-param {
+    color: #000000;
+}
+.sig-paren {
+    color: #000000;
+}
+
+/* Dropdown menu (current): */
+.wy-menu-vertical a:hover {
+    background-color: #E5F4F2;
+}
+.wy-menu-vertical li.current li.current a:hover,
+.wy-menu-vertical li.toctree-l1.current > a:hover,
+.wy-menu-vertical li.toctree-l2.current > a:hover,
+.wy-menu-vertical li.toctree-l3.current > a:hover,
+.wy-menu-vertical li.toctree-l4.current > a:hover,
+.wy-menu-vertical li.current > a:hover {
+    background-color: #E5F4F2;
+}
+.wy-menu-vertical li.current li.current a,
+.wy-menu-vertical li.toctree-l1.current > a,
+.wy-menu-vertical li.toctree-l2.current > a,
+.wy-menu-vertical li.toctree-l1.current li.toctree-l3.current > a,
+.wy-menu-vertical li.toctree-l2.current li.toctree-l4.current > a,
+.wy-menu-vertical li.current > a {
+    background-color: #E5F4F2;
+}
+.pre {
+    background-color: transparent;
+}
+
+/* Dropdown menu (not current): */
+.wy-menu-vertical li.current li:not(.current) a,
+.wy-menu-vertical li.toctree-l1:not(.current) > a,
+.wy-menu-vertical li.toctree-l2:not(.current) > a,
+.wy-menu-vertical li.toctree-l3:not(.current) > a,
+.wy-menu-vertical li.toctree-l4:not(.current) > a,
+.wy-menu-vertical li.current:not(.current) > a {
+    background-color: #019A81;
+}
+.wy-menu-vertical li.current li.toctree-l3:not(.current) > a,
+.wy-menu-vertical li.current li.toctree-l3:not(.current) li.toctree-l4:not(.current) > a,
+.wy-menu-vertical li.current li.toctree-l4:not(.current) > a {
+    background-color: #019A81;
+}

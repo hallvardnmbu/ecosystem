@@ -9,8 +9,8 @@ Upon further expansion:
 
 * Add the new terrain-type to the default_fodder_parameters- and get_fodder_parameter-methods.
 
-The animal module
------------------
+Module for the island and its cells
+-----------------------------------
 .. automodule:: biosim.island
     :members:
     :undoc-members:
