@@ -171,6 +171,9 @@ class Island:
             If the location is not on the map.
             If the location is in Water ('W').
             If the animal is incorrectly defined.
+
+        KeyError
+            If invalid parameters are passed.
         """
 
         for location_animals in population:
@@ -187,18 +190,20 @@ class Island:
                 if animal["species"] not in self.species_map.keys():
                     raise ValueError(f"Invalid species: {animal}.")
                 species = animal["species"]
-                if "age" not in animal:
-                    animal["age"] = 0
-                if "weight" not in animal:
-                    animal["weight"] = self.species_map[species].lognormv()
 
                 movable, _ = self.species_map[species].motion()
                 if not movable[self.geography[i][j]]:
                     raise ValueError(f"Invalid terrain: {location}.")
                 else:
                     cell = self.cell_grid[i][j]
-                    age = animal["age"]
-                    weight = animal["weight"]
+                    if "age" not in animal:
+                        age = None
+                    else:
+                        age = animal["age"]
+                    if "weight" not in animal:
+                        weight = None
+                    else:
+                        weight = animal["weight"]
                     cell.animals[species].append(self.species_map[species](age=age,
                                                                            weight=weight))
 
