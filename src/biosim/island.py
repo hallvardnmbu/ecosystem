@@ -105,7 +105,7 @@ class Island:
             A list of dictionaries specifying the population of the island.
         """
 
-        animals = {"Herbivore": [], "Carnivore": []}
+        animals = {cls.__name__: [] for cls in Animal.__subclasses__()}
         for cells in self.cell_grid:
             for cell in cells:
                 for animal in itertools.chain(*cell.animals.values()):
@@ -139,7 +139,8 @@ class Island:
             if self.geography[0][j] != "W" or self.geography[x-1][j] != "W":
                 raise ValueError("The edges of the map must be 'W' (Water).")
 
-        if any(letter not in ["W", "L", "H", "D"] for row in self.geography for letter in row):
+        allowed = Island.default_fodder_parameters().keys()
+        if any(letter not in allowed for row in self.geography for letter in row):
             raise ValueError("The map contains invalid terrain types.")
 
         cell_grid = []
@@ -216,8 +217,8 @@ class Island:
         for cells in self.cell_grid:
             for cell in cells:
 
-                animals_in_cell = {"Herbivore": len(cell.animals["Herbivore"]),
-                                   "Carnivore": len(cell.animals["Carnivore"])}
+                animals_in_cell = {cls.__name__: len(cell.animals[cls.__name__]) for cls in
+                                   Animal.__subclasses__()}
 
                 babies = []
                 for animal in itertools.chain(*cell.animals.values()):
@@ -357,7 +358,7 @@ class Island:
                 {'Herbivores': n_herbivores, 'Carnivores': n_carnivores}
          """
 
-        n_animals_per_species = {"Herbivores": 0, "Carnivores": 0}
+        n_animals_per_species = {cls.__name__+"s": 0 for cls in Animal.__subclasses__()}
         for animals in self.n_animals_per_species_per_cell.values():
             for species, n_animals in animals.items():
                 if n_animals != 0:
@@ -395,7 +396,8 @@ class Island:
         """
 
         animals = self.n_animals_per_species
-        return animals["Herbivore"] + animals["Carnivore"]
+
+        return sum(animals.values())
 
     def yearly_cycle(self):
         """
@@ -431,8 +433,7 @@ class Cell:
     def __init__(self, cell_type):
         self.cell_type = cell_type
         self.fodder = Island.get_fodder_parameter(cell_type)
-        self.animals = {"Herbivore": [],
-                        "Carnivore": []}
+        self.animals = {cls.__name__: [] for cls in Animal.__subclasses__()}
 
     def grow_fodder(self):
         """
@@ -453,8 +454,8 @@ class Cell:
 
                 {'Herbivores': n_herbivores, 'Carnivores': n_carnivores}
         """
-        n_animals_in_cell = {}
-        n_animals_in_cell["Herbivores"] = len(self.animals["Herbivore"])
-        n_animals_in_cell["Carnivores"] = len(self.animals["Carnivore"])
+
+        n_animals_in_cell = {cls.__name__+"s": len(self.animals[cls.__name__]) for cls in
+                             Animal.__subclasses__()}
 
         return n_animals_in_cell

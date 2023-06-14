@@ -106,7 +106,6 @@ class BioSim:
                                  img_fmt,
                                  log_file)
 
-
     def set_animal_parameters(self, species, params):
         """
         Set parameters for animal species.
@@ -218,8 +217,7 @@ class BioSim:
     def num_animals(self):
         """Total number of animals on island."""
 
-        n = self.num_animals_per_species["Herbivores"] + self.num_animals_per_species["Carnivores"]
-        return n
+        return sum(self.num_animals_per_species.values())
 
     @property
     def num_animals_per_species(self):
