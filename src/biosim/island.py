@@ -7,7 +7,7 @@ import random
 import textwrap
 import itertools
 
-from .animals import Animal
+from animals import Animal
 
 
 class Island:

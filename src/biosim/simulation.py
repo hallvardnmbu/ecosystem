@@ -9,8 +9,8 @@ Module for running a BioSim simulation.
 
 import random
 
-from .island import Island
-from .graphics import Graphics
+from island import Island
+from graphics import Graphics
 
 
 class BioSim:
@@ -231,38 +231,29 @@ class BioSim:
 
 if __name__ == "__main__":
 
-    import textwrap
-
     # geogr = """\
-    #            WWWWWWWWWWWWWWWWWWWWW
-    #            WWWWWWWWHWWWWLLLLLLLW
-    #            WHHHHHLLLLWWLLLLLLLWW
-    #            WHHHHHHHHHWWLLLLLLWWW
-    #            WHHHHHLLLLLLLLLLLLWWW
-    #            WHHHHHLLLDDLLLHLLLWWW
-    #            WHHLLLLLDDDLLLHHHHWWW
-    #            WWHHHHLLLDDLLLHWWWWWW
-    #            WHHHLLLLLDDLLLLLLLWWW
-    #            WHHHHLLLLDDLLLLWWWWWW
-    #            WWHHHHLLLLLLLLWWWWWWW
-    #            WWWHHHHLLLLLLLWWWWWWW
-    #            WWWWWWWWWWWWWWWWWWWWW"""
-
-    # geogr = """\
-    #            WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-    #            WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-    #            WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-    #            WWWHWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-    #            WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"""
+    #            WWWWWWW
+    #            WWHLHWW
+    #            WHHHHHW
+    #            WLHLHLW
+    #            WHHHHHW
+    #            WWHLHWW
+    #            WWWWWWW"""
 
     geogr = """\
-               WWWWWWW
-               WWHLHWW
-               WHHHHHW
-               WLHLHLW
-               WHHHHHW
-               WWHLHWW
-               WWWWWWW"""
+               WWWWWWWWWWWWWWWWWWWWW
+               WWWWWWWWHWWWWLLLLLLLW
+               WHHHHHLLLLWWLLLLLLLWW
+               WHHHHHHHHHWWLLLLLLWWW
+               WHHHHHLLLLLLLLLLLLWWW
+               WHHHHHLLLDDLLLHLLLWWW
+               WHHLLLLLDDDLLLHHHHWWW
+               WWHHHHLLLDDLLLHWWWWWW
+               WHHHLLLLLDDLLLLLLLWWW
+               WHHHHLLLLDDLLLLWWWWWW
+               WWHHHHLLLLLLLLWWWWWWW
+               WWWHHHHLLLLLLLWWWWWWW
+               WWWWWWWWWWWWWWWWWWWWW"""
 
     animals = [{'loc': (4, 4), 'pop': [{'species': 'Herbivore', 'age': 5, 'weight': 20} for _ in
                                        range(50)]},

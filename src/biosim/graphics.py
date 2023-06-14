@@ -3,6 +3,7 @@ Package for visualisation of the simulation.
 """
 
 
+import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -144,17 +145,28 @@ class Graphics:
             self._map_plot.set_title("Map of Rossumøya (Pylandia)")
 
         herb, carn = self._animal_data(self.initial_density)
+        herbivore_colour = (0.71764, 0.749, 0.63137)
+        carnivore_colour = (0.949, 0.7647, 0.56078)
 
         if self._herb_ax is None:
             self._herb_ax = self._fig.add_subplot(self.gs[4:7, 9:18])
             self._herb_ax.set_title("Herbivore density")
             self._herb_ax.axis("off")
+            self._herb_ax.set_xlim(-0.75, len(self.geography[0]))
+            self._herb_ax.set_ylim(-0.75, len(self.geography))
+            outline = patches.Rectangle((-0.5, -0.5),
+                                        len(self.geography[0]),
+                                        len(self.geography),
+                                        linewidth=2,
+                                        edgecolor=herbivore_colour,
+                                        facecolor="none")
+            self._herb_ax.add_patch(outline)
 
             self._herb_plot = self._herb_ax.imshow(herb,
                                                    cmap="coolwarm",
                                                    vmin=0,
                                                    vmax=self.cmax_herb)
-            self._herb_plot.cmap.set_bad(colours["W"])
+            self._herb_plot.cmap.set_bad((0, 0, 0))
             self._fig.colorbar(self._herb_plot,
                                ax=self._herb_ax,
                                fraction=0.046, pad=0.04)
@@ -163,30 +175,82 @@ class Graphics:
             self._carn_ax = self._fig.add_subplot(self.gs[4:7, 18:27])
             self._carn_ax.set_title("Carnivore density")
             self._carn_ax.axis("off")
+            self._carn_ax.set_xlim(-0.75, len(self.geography[0]))
+            self._carn_ax.set_ylim(-0.75, len(self.geography))
+            outline = patches.Rectangle((-0.5, -0.5),
+                                        len(self.geography[0]),
+                                        len(self.geography),
+                                        linewidth=2,
+                                        edgecolor=carnivore_colour,
+                                        facecolor="none")
+            self._carn_ax.add_patch(outline)
 
             self._carn_plot = self._carn_ax.imshow(carn,
                                                    cmap="coolwarm",
                                                    vmin=0,
                                                    vmax=self.cmax_carn)
-            self._carn_plot.cmap.set_bad(colours["W"])
+            self._carn_plot.cmap.set_bad((0, 0, 0))
             self._fig.colorbar(self._carn_plot,
                                ax=self._carn_ax,
                                fraction=0.046, pad=0.04)
 
+        if self.hist_specs is not None:
+            for feature, specs in self.hist_specs.items():
+                if feature == "age":
+                    self.age_bins = np.arange(0, specs["max"] + specs["delta"]/2, specs["delta"])
+                elif feature == "weight":
+                    self.weight_bins = np.arange(0, specs["max"] + specs["delta"]/2, specs["delta"])
+                else:
+                    self.fitness_bins = np.arange(0, specs["max"] + specs["delta"]/2, specs["delta"])
+        else:
+            self.age_bins = np.arange(0, 45 + 5/2, 5)
+            self.fitness_bins = np.arange(0, 1 + 0.1/2, 0.1)
+            self.weight_bins = np.arange(0, 60 + 5/2, 5)
+
         if self._age_ax is None:
+            age_counts = np.zeros_like(self.age_bins[:-1], dtype=float)
             self._age_ax = self._fig.add_subplot(self.gs[8:11, 0:9])
-            self._age_ax.set_xlabel('Value')
-            self._age_ax.set_ylabel('Age')
+            self._age_herb = self._age_ax.stairs(age_counts,
+                                                 self.age_bins,
+                                                 color=herbivore_colour,
+                                                 lw=2)
+            self._age_carn = self._age_ax.stairs(age_counts,
+                                                 self.age_bins,
+                                                 color=carnivore_colour,
+                                                 lw=2)
+            self._age_ax.set_ylim([0, 1])
+            self._age_ax.set_xlabel('Age')
+            self._age_ax.set_ylabel('')
 
         if self._weight_ax is None:
+            weight_counts = np.zeros_like(self.weight_bins[:-1], dtype=float)
             self._weight_ax = self._fig.add_subplot(self.gs[8:11, 9:18])
-            self._weight_ax.set_xlabel('Value')
-            self._weight_ax.set_ylabel('Weight')
+            self._weight_herb = self._weight_ax.stairs(weight_counts,
+                                                       self.weight_bins,
+                                                       color=herbivore_colour,
+                                                       lw=2)
+            self._weight_carn = self._weight_ax.stairs(weight_counts,
+                                                       self.weight_bins,
+                                                       color=carnivore_colour,
+                                                       lw=2)
+            self._weight_ax.set_ylim([0, 1])
+            self._weight_ax.set_xlabel('Weight')
+            self._weight_ax.set_ylabel('')
 
         if self._fitness_ax is None:
+            fitness_counts = np.zeros_like(self.fitness_bins[:-1], dtype=float)
             self._fitness_ax = self._fig.add_subplot(self.gs[8:11, 18:27])
-            self._fitness_ax.set_xlabel('Value')
-            self._fitness_ax.set_ylabel('Fitness')
+            self._fitness_herb = self._fitness_ax.stairs(fitness_counts,
+                                                         self.fitness_bins,
+                                                         color=herbivore_colour,
+                                                         lw=2)
+            self._fitness_carn = self._fitness_ax.stairs(fitness_counts,
+                                                         self.fitness_bins,
+                                                         color=carnivore_colour,
+                                                         lw=2)
+            self._fitness_ax.set_ylim([0, 1])
+            self._fitness_ax.set_xlabel('Fitness')
+            self._fitness_ax.set_ylabel('')
 
     def update_graphics(self, year, n_animals, n_animals_cells, animals):
         r"""
@@ -216,7 +280,7 @@ class Graphics:
         self._update_year_counter(year)
         self._update_line_plot(year, n_animals)
         self._update_heatmap(n_animals_cells)
-        self._update_animal_features(animals, self.hist_specs)
+        self._update_animal_features(animals, year)
         plt.pause(0.001)
 
     def _update_year_counter(self, year):
@@ -338,14 +402,13 @@ class Graphics:
 
         herb, carn = self._animal_data(density)
 
-        self._herb_plot.set_data(herb)
-        self._carn_plot.set_data(carn)
+        self._herb_plot.set_data(herb[::-1])
+        self._carn_plot.set_data(carn[::-1])
 
-        water = (149 / 255, 203 / 255, 204 / 255)
-        self._herb_plot.cmap.set_bad(water)
-        self._carn_plot.cmap.set_bad(water)
+        self._herb_plot.cmap.set_bad((1, 1, 1))
+        self._carn_plot.cmap.set_bad((1, 1, 1))
 
-    def _update_animal_features(self, animals, hist_specs):
+    def _update_animal_features(self, animals, year):
         """
         Update the histograms of animal features.
 
@@ -357,70 +420,35 @@ class Graphics:
             A dictionary specifying the histogram specifications for each feature.
         """
 
-        if hist_specs is not None:
-            for feature, specs in hist_specs.items():
-                if feature == "age":
-                    age_max = specs["max"]
-                    age_bins = np.arange(0, age_max, specs["delta"])
-                elif feature == "weight":
-                    weight_max = specs["max"]
-                    weight_bins = np.arange(0, weight_max, specs["delta"])
-                else:
-                    fitness_max = specs["max"]
-                    fitness_bins = np.arange(0, fitness_max, specs["delta"])
-        else:
-            age_max = 60
-            age_bins = np.arange(0, age_max, 5)
-            fitness_max = 1
-            fitness_bins = np.arange(0, fitness_max, 0.1)
-            weight_max = 60
-            weight_bins = np.arange(0, weight_max, 5)
-
         herbs = animals["Herbivore"]
         carns = animals["Carnivore"]
 
-        colours = [(0.71764, 0.749, 0.63137),
-                  (0.949, 0.7647, 0.56078)]
-
         herbs_age = [herb.a for herb in herbs]
         carns_age = [carn.a for carn in carns]
-
-        self._age_ax.clear()
-        self._age_ax.hist(herbs_age,
-                          bins=age_bins,
-                          alpha=0.8,
-                          color=colours[0])
-        self._age_ax.hist(carns_age,
-                          bins=age_bins,
-                          alpha=0.8,
-                          color=colours[1])
-        self._age_ax.set_xlim(0, age_max)
-        self._age_ax.set_title("Age")
+        herbs_age, _ = np.histogram(herbs_age, bins=self.age_bins)
+        carns_age, _ = np.histogram(carns_age, bins=self.age_bins)
+        self._age_herb.set_data(herbs_age)
+        self._age_carn.set_data(carns_age)
 
         herbs_weight = [herb.w for herb in herbs]
         carns_weight = [carn.w for carn in carns]
-        self._weight_ax.clear()
-        self._weight_ax.hist(herbs_weight,
-                             bins=weight_bins,
-                             alpha=0.8,
-                             color=colours[0])
-        self._weight_ax.hist(carns_weight,
-                             bins=weight_bins,
-                             alpha=0.8,
-                             color=colours[1])
-        self._weight_ax.set_xlim(0, weight_max)
-        self._weight_ax.set_title("Weight")
+        herbs_weight, _ = np.histogram(herbs_weight, bins=self.weight_bins)
+        carns_weight, _ = np.histogram(carns_weight, bins=self.weight_bins)
+        self._weight_herb.set_data(herbs_weight)
+        self._weight_carn.set_data(carns_weight)
 
         herbs_fitness = [herb.fitness for herb in herbs]
         carns_fitness = [carn.fitness for carn in carns]
-        self._fitness_ax.clear()
-        self._fitness_ax.hist(herbs_fitness,
-                              bins=fitness_bins,
-                              alpha=0.8,
-                              color=colours[0])
-        self._fitness_ax.hist(carns_fitness,
-                              bins=fitness_bins,
-                              alpha=0.8,
-                              color=colours[1])
-        self._fitness_ax.set_xlim(0, fitness_max)
-        self._fitness_ax.set_title("Fitness")
+        herbs_fitness, _ = np.histogram(herbs_fitness, bins=self.fitness_bins)
+        carns_fitness, _ = np.histogram(carns_fitness, bins=self.fitness_bins)
+        self._fitness_herb.set_data(herbs_fitness)
+        self._fitness_carn.set_data(carns_fitness)
+
+        if year % 5 == 0:
+            _age_ylim = max(max(herbs_age), max(carns_age)) * 1.5
+            _weight_ylim = max(max(herbs_weight), max(carns_weight)) * 1.5
+            _fitness_ylim = max(max(herbs_fitness), max(carns_fitness)) * 1.5
+
+            self._age_ax.set_ylim([0, _age_ylim])
+            self._weight_ax.set_ylim([0, _weight_ylim])
+            self._fitness_ax.set_ylim([0, _fitness_ylim])
