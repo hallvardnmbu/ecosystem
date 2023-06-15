@@ -93,6 +93,8 @@ class Graphics:
         [   Age   ][  Weight ][  Fitness  ]   (histograms)
         """
 
+        final_year += 1
+
         if self._fig is None:
             self._fig = plt.figure(figsize=(15, 10))
             self.gs = self._fig.add_gridspec(11, 27)

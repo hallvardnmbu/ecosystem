@@ -59,9 +59,8 @@ def test_set_animal_parameters(trial_simulation, param, val):
     new_parameter = {param: val}
     trial_simulation.set_animal_parameters("Herbivore", new_parameter)
 
-    assert Animal.mapping()["Herbivore"].get_parameters()[param] == val, "Setting parameters " \
+    assert trial_simulation.species_map["Herbivore"].get_parameters()[param] == val, "Setting parameters " \
                                                                          "didn't work."
-
 
 def test_set_invalid_animal_parameter_keys(trial_simulation):
     """
@@ -70,7 +69,7 @@ def test_set_invalid_animal_parameter_keys(trial_simulation):
 
     with pytest.raises(KeyError):
         trial_simulation.set_animal_parameters("Herbivore", {"a": 2})
-        get_param = Animal.mapping()["Herbivore"].get_parameters()["a"]
+        get_param = trial_simulation.species_map["Herbivore"].get_parameters()["a"]
         assert get_param == 2, "Setting wrong parameter key worked."
 
 
@@ -87,7 +86,7 @@ def test_set_invalid_animal_parameter_value_type(trial_simulation, param, val):
 
     with pytest.raises(ValueError):
         trial_simulation.set_animal_parameters("Herbivore", {param: val})
-        get_param = Animal.mapping()["Herbivore"].get_parameters()[param]
+        get_param = trial_simulation.species_map["Herbivore"].get_parameters()[param]
         assert get_param == val, "Setting wrong parameter values worked."
 
 
@@ -104,7 +103,7 @@ def test_set_invalid_animal_parameter_values(trial_simulation, param, val):
 
     with pytest.raises(ValueError):
         trial_simulation.set_animal_parameters("Herbivore", {param: val})
-        get_param = Animal.mapping()["Herbivore"].get_parameters()[param]
+        get_param = trial_simulation.species_map["Herbivore"].get_parameters()[param]
         assert get_param == val, "Setting wrong parameter values worked."
 
 
