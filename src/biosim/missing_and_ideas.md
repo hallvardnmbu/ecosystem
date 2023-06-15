@@ -3,7 +3,6 @@ I morgen:
 * test til ny funksjon i island
 * tox.ini
 * save figure og save movie
-* Flytte classmethod movement i animals til Animal?
 * GUI (se under)
 * readme.md
 
@@ -14,16 +13,11 @@ Mangler:
 
 examples
 --------
-* Eksempler på hvordan å bruke BioSim (til dokumentasjon)
+* Eksempler på hvordan å bruke BioSim (fyll inn de tre filene i mappe 'examples')
 
 animals.py
 ----------
 * Relative imports "."
-* Trenger ikke dette? Eller gjør vi det?
-*       try:
-            self.set_parameters(Carnivore.get_parameters())
-        except AttributeError:
-            self.set_parameters(Carnivore.default_parameters())
 
 island.py
 ---------
@@ -49,10 +43,13 @@ Kjør med coverage 'pytest --cov --cov-report term-missing', og dekk de viktigst
 test_animals.py
 ---------------
 * Fikse de testene som ikke funker.
-* Teste (de nye) eat-funksjonene.
 
 test_island.py
 --------------
+* Fikse de testene som ikke funker.
+
+test_simulation.py
+------------------
 * Fikse de testene som ikke funker.
 
 package structure
@@ -73,7 +70,6 @@ animals.py
 ----------
 * Forenkle default parameter-funksjonene(?)
 * DeltaPhiMax = 15 ? (Det brukte han i forelesningen)
-* Flytte classmethod movement i animals til Animal?
 
 island.py
 ---------
@@ -125,5 +121,5 @@ Tips:
 =====
 
 * Tester løper i "tilfeldig" rekkefølge.
-  - husk å sette tilbake parapetre hvis duu endrer på dem i en test.
+  - husk å sette tilbake parametre hvis du endrer på dem i en test.
 * bruk statistical tests på cases der alle carnivores eller alle herbivores dør

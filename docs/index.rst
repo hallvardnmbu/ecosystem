@@ -1,8 +1,3 @@
-.. BioSim documentation master file, created by
-   sphinx-quickstart on Wed Jun 14 08:06:57 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to BioSim's documentation!
 ==================================
 
@@ -15,17 +10,15 @@ Welcome to BioSim's documentation!
       customisable, and easy to use.
    </div>
 
-
 .. image:: _static/images/abstract_island.png
    :width: 700px
    :align: center
-   :class: bordered-image
-
+   :class: bordered-image´
 
 .. raw:: html
 
    <div style="text-align: right; font-size: 12px; margin-top: 5px;">
-      (Painting created by DALL·E-prompt of an abstract depiction of the BioSim package.)
+      (Painting created by a DALL·E-prompt of an abstract depiction of the BioSim package.)
    </div>
 
 .. toctree::
@@ -37,10 +30,3 @@ Welcome to BioSim's documentation!
    simulation
    examples
    expansion
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
