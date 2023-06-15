@@ -93,10 +93,7 @@ class Graphics:
         [   Age   ][  Weight ][  Fitness  ]   (histograms)
         """
 
-        colours = {"L": tuple([colour / 255 for colour in [185, 214, 135]]),
-                   "H": tuple([colour / 255 for colour in [232, 236, 158]]),
-                   "D": tuple([colour / 255 for colour in [255, 238, 186]]),
-                   "W": tuple([colour / 255 for colour in [149, 203, 204]])}
+        final_year += 1
 
         if self._fig is None:
             self._fig = plt.figure(figsize=(15, 10))
