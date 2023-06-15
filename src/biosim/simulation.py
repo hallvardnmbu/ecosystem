@@ -86,7 +86,7 @@ class BioSim:
                  hist_specs=None,
                  img_years=1,
                  img_dir=None,
-                 img_base=None,
+                 img_base="U13",
                  img_fmt='png',
                  log_file=None):
 
@@ -94,17 +94,17 @@ class BioSim:
 
         self.island = Island(geography=island_map, ini_pop=ini_pop)
 
-        self.graphics = Graphics(self.island.geography,
-                                 self.island.n_animals_per_species_per_cell,
-                                 vis_years,
-                                 ymax_animals,
-                                 cmax_animals,
-                                 hist_specs,
-                                 img_years,
-                                 img_dir,
-                                 img_base,
-                                 img_fmt,
-                                 log_file)
+        self.graphics = Graphics(geography=self.island.geography,
+                                 initial_density=self.island.n_animals_per_species_per_cell,
+                                 vis_years=vis_years,
+                                 ymax_animals=ymax_animals,
+                                 cmax_animals=cmax_animals,
+                                 hist_specs=hist_specs,
+                                 img_years=img_years,
+                                 img_dir=img_dir,
+                                 img_base=img_base,
+                                 img_fmt=img_fmt,
+                                 log_file=log_file)
 
     def set_animal_parameters(self, species, params):
         """
@@ -225,41 +225,12 @@ class BioSim:
 
         return self.island.n_animals_per_species
 
-    def make_movie(self):
-        """Create MPEG4 movie from visualization images saved."""
-        pass
+    def make_movie(self, movie_fmt="mp4"):
+        """
+        Create MPEG4 movie from visualization images saved.
+        """
 
+        if movie_fmt not in ["mp4", "gif"]:
+            raise ValueError(f"Invalid movie format {movie_fmt} (valid: mp4 or gif).")
 
-if __name__ == "__main__":
-
-    # geogr = """\
-    #            WWWWWWW
-    #            WWHLHWW
-    #            WHHHHHW
-    #            WLHLHLW
-    #            WHHHHHW
-    #            WWHLHWW
-    #            WWWWWWW"""
-
-    geogr = """\
-               WWWWWWWWWWWWWWWWWWWWW
-               WWWWWWWWHWWWWLLLLLLLW
-               WHHHHHLLLLWWLLLLLLLWW
-               WHHHHHHHHHWWLLLLLLWWW
-               WHHHHHLLLLLLLLLLLLWWW
-               WHHHHHLLLDDLLLHLLLWWW
-               WHHLLLLLDDDLLLHHHHWWW
-               WWHHHHLLLDDLLLHWWWWWW
-               WHHHLLLLLDDLLLLLLLWWW
-               WHHHHLLLLDDLLLLWWWWWW
-               WWHHHHLLLLLLLLWWWWWWW
-               WWWHHHHLLLLLLLWWWWWWW
-               WWWWWWWWWWWWWWWWWWWWW"""
-
-    animals = [{'loc': (4, 4), 'pop': [{'species': 'Herbivore', 'age': 5, 'weight': 20} for _ in
-                                       range(50)]},
-               {'loc': (4, 4), 'pop': [{'species': 'Carnivore', 'age': 5, 'weight': 20} for _ in
-                                       range(50)]}]
-
-    sim = BioSim(geogr, animals)
-    sim.simulate(200)
+        self.graphics.make_movie(movie_fmt)

@@ -3,7 +3,6 @@ I morgen:
 * test til ny funksjon i island
 * mock fitness in death test? hunt??
 * tox.ini
-* save figure og save movie
 * GUI (se under)
 * readme.md
 
@@ -31,8 +30,6 @@ simulation.py
 graphics.py
 -----------
 * Relative imports "."
-* Save figure
-* Make movie
 
 ---------------------------------------------------------------------------------------------------
 

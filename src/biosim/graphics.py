@@ -3,9 +3,11 @@ Contains visualisation of the simulation.
 """
 
 
+import matplotlib.backends.backend_agg as agg
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
+import subprocess
 import os
 
 
@@ -31,7 +33,6 @@ class Graphics:
                  img_base,
                  img_fmt,
                  log_file,
-                 img_name="dv",
                  my_colours=None):
 
         self.geography = geography
@@ -54,16 +55,20 @@ class Graphics:
             self.hist_specs = None
 
         self.hist_specs = hist_specs
-        self.img_years = img_years
-        self.img_base = img_base
-        self.img_fmt = img_fmt
-        self.log_file = log_file
-        self.img_name = img_name
-        self.my_colours = my_colours
+        self._img_years = img_years
+        self._img_fmt = img_fmt
+        self._log_file = log_file
         self._img_ctr = 0
+        self.my_colours = my_colours
 
-        if img_dir is not None:
-            self._img_base = os.path.join(img_dir, img_name)
+        if img_dir:
+            if os.path.isabs(img_dir):
+                os.makedirs(img_dir, exist_ok=True)
+                self._img_base = os.path.join(img_dir, img_base)
+            else:
+                default_dir = os.path.join(_DEFAULT_GRAPHICS_DIR, img_dir)
+                os.makedirs(default_dir, exist_ok=True)
+                self._img_base = os.path.join(default_dir, img_base)
         else:
             self._img_base = None
 
@@ -93,8 +98,6 @@ class Graphics:
         [   Age   ][  Weight ][  Fitness  ]   (histograms)
         """
 
-        final_year += 1
-
         if self._fig is None:
             self._fig = plt.figure(figsize=(15, 10))
             self.gs = self._fig.add_gridspec(11, 27)
@@ -109,7 +112,7 @@ class Graphics:
             self._line_ax = self._fig.add_subplot(self.gs[:3, 4:])
             self._line_ax.set_title('Number of animals')
             self._line_ax.set_ylim(0, self.ymax_animals)
-            self._line_ax.set_xlim(0, final_year)
+            self._line_ax.set_xlim(0, final_year-1)
             self.herbs = np.arange(0, final_year, self.vis_years)
             self.n_herbs = self._line_ax.plot(self.herbs,
                                               np.full_like(self.herbs, np.nan, dtype=float),
@@ -255,7 +258,7 @@ class Graphics:
             self._fitness_ax.set_xlabel('Fitness')
             self._fitness_ax.set_ylabel('')
 
-    def update_graphics(self, year, n_animals, n_animals_cells, animals):
+    def update_graphics(self, year, n_animals, n_animals_cells, animals, speed=1e-6):
         r"""
         Updates the graphics with new data for the given year.
 
@@ -285,7 +288,73 @@ class Graphics:
         self._update_line_plot(year, n_animals)
         self._update_heatmap(n_animals_cells)
         self._update_animal_features(animals, year)
-        plt.pause(0.001)
+        self._fig.canvas.flush_events()
+        plt.pause(speed)
+
+        self._save_image(year)
+
+    def make_movie(self, movie_fmt="mp4"):
+        """
+        Creates MPEG4 movie from visualization images saved.
+
+        Parameters
+        ----------
+        movie_fmt : str, optional
+            The movie format to use. Either "mp4" or "gif".
+
+        Notes
+        -----
+            Requires ffmpeg for MP4 and magick for GIF.
+            The movie is stored as img_base + movie_fmt.
+        """
+
+        if not self._img_base:
+            raise RuntimeError("No filename defined.")
+
+        if movie_fmt == 'mp4':
+            try:
+                # Parameters chosen according to http://trac.ffmpeg.org/wiki/Encode/H.264,
+                # section "Compatibility"
+                subprocess.check_call([_FFMPEG_BINARY,
+                                       '-i', '{base}_%05d.{fmt}'.format(base=self._img_base,
+                                                                        fmt=self._img_fmt),
+                                       '-y',
+                                       '-profile:v', 'baseline',
+                                       '-level', '3.0',
+                                       '-pix_fmt', 'yuv420p',
+                                       '{}.{}'.format(self._img_base, movie_fmt)])
+            except subprocess.CalledProcessError as err:
+                raise RuntimeError('ERROR: ffmpeg failed with: {}'.format(err))
+        elif movie_fmt == 'gif':
+            try:
+                subprocess.check_call([_MAGICK_BINARY,
+                                       '-delay', '1',
+                                       '-loop', '0',
+                                       '{base}_*.{fmt}'.format(base=self._img_base,
+                                                               fmt=self._img_fmt),
+                                       '{}.{}'.format(self._img_base, movie_fmt)])
+            except subprocess.CalledProcessError as err:
+                raise RuntimeError('ERROR: convert failed with: {}'.format(err))
+        else:
+            raise ValueError('Unknown movie format: ' + movie_fmt)
+
+    def _save_image(self, step):
+        """
+        Saves graphics to file if file name given.
+
+        Parameters
+        ----------
+        step : int
+            Current step of simulation.
+        """
+
+        if self._img_base is None or step % self._img_years != 0:
+            return
+
+        plt.savefig('{base}_{num:05d}.{type}'.format(base=self._img_base,
+                                                     num=self._img_ctr,
+                                                     type=self._img_fmt))
+        self._img_ctr += 1
 
     def _update_year_counter(self, year):
         """
