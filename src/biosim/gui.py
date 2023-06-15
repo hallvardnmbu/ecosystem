@@ -16,7 +16,7 @@ from .simulation import BioSim
 _MAP_SIZE = 10
 
 
-class GUI(tk.Tk):
+class BioSimGUI(tk.Tk):
     """
     Graphical User Interface (GUI) superclass for the simulation of an ecosystem.
 
@@ -303,6 +303,9 @@ class AddAnimals(tk.Frame):
                                  command=self.restart)
         clear_button.place(anchor="se", relx=1.0, rely=1.0, x=-120, y=-5)
 
+        geogr = "\n".join(self.master.grid_map)
+        self.sim = BioSim(island_map=geogr, ini_pop=self.master.population)
+
     def navigate_page(self):
         """
         Navigate back to the drawing page.
@@ -398,6 +401,8 @@ class AddAnimals(tk.Frame):
         """
 
         self.master.population = []
+        geogr = "\n".join(self.master.grid_map)
+        self.sim = BioSim(island_map=geogr, ini_pop=self.master.population)
 
     def simulate(self):
         """
@@ -408,9 +413,9 @@ class AddAnimals(tk.Frame):
             raise ValueError("Number of years to simulate has not been specified.")
         else:
             years = int(self.year_entry.get())
-            geogr = "\n".join(self.master.grid_map)
-            BioSim(island_map=geogr, ini_pop=self.master.population).simulate(years)
+            self.sim.add_population(self.master.population)
+            self.sim.simulate(years)
 
 
-app = GUI(map_size=_MAP_SIZE)
+app = BioSimGUI(map_size=_MAP_SIZE)
 app.mainloop()

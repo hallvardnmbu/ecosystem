@@ -28,5 +28,6 @@ Welcome to BioSim's documentation!
    animals
    island
    simulation
+   gui
    examples
    expansion

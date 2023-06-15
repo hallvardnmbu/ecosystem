@@ -14,7 +14,7 @@ In order to modify the species, the following steps are necessary:
 
 In order to modify the terrain-types, the following steps are necessary:
 
-* Add the new terrain-type to :mod:`default_fodder_parameters` and :mod:`get_fodder_parameter`.
+* Add the new terrain-type to :code:`default_fodder_parameters` and :code:`get_fodder_parameter`.
 
 .. raw:: html
 
@@ -25,7 +25,7 @@ In order to modify the terrain-types, the following steps are necessary:
 Adding a new species (without specifying a new feed- and graphics-method):
 --------------------------------------------------------------------------
 
-* Addition to :mod:`animals` (paste at the bottom of the module and modify):
+* Addition to :mod:`animals.py` (paste at the bottom of the module and modify):
 
     .. code-block:: python
 
@@ -89,7 +89,7 @@ Here a new species called "Bird" is added. The bird-species has a modified strid
 Adding a new terrain-type ("M" for "Mountain"):
 -----------------------------------------------
 
-* :mod:`default_fodder_parameters`
+* :code:`default_fodder_parameters`
 
     .. code-block:: python
 
@@ -106,7 +106,7 @@ Adding a new terrain-type ("M" for "Mountain"):
 
             return {"H": 300, "L": 800, "D": 0, "W": 0, "M": 100}
 
-* :mod:`get_fodder_parameters`
+* :code:`get_fodder_parameters`
 
     .. code-block:: python
 
@@ -132,11 +132,11 @@ Adding a new terrain-type ("M" for "Mountain"):
                     "W": cls.W,
                     "M": cls.M}[terrain_type]
 
-Notes:
-------
+From island to mainland:
+------------------------
 
-If it is desired to create a mainland-map, it is also necessary to modify the :mod:`_terraform()
-`-method in :mod:`island.py`. The necessary code to change (or remove) is the following:
+If it is desired to create a mainland-map, it is also necessary to modify :code:`_terraform()` in
+:mod:`island.py`. The necessary code to change (or remove) is the following:
 
     .. code-block:: python
 
@@ -146,3 +146,11 @@ If it is desired to create a mainland-map, it is also necessary to modify the :m
         for j in range(y):
             if self.geography[0][j] != "W" or self.geography[x-1][j] != "W":
                 raise ValueError("The edges of the map must be 'W' (Water).")
+
+Notes on changing the GUI:
+--------------------------
+
+If it is desired to change the GUI, contact the authors of this package or try modifying the code
+yourself. As the GUI was meant as a fun side-project, it was not prioritised when it came to
+generalising the code, and was therefore buildt for the specific case of Herbivores and
+Carnivores on an island of terrain-types Lowland, Highland, Desert and Water.

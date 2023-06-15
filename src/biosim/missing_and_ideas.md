@@ -3,7 +3,6 @@ I morgen:
 * test til ny funksjon i island
 * mock fitness in death test? hunt??
 * tox.ini
-* GUI (se under)
 * readme.md
 
 ---------------------------------------------------------------------------------------------------
@@ -13,7 +12,7 @@ Mangler:
 
 examples
 --------
-* Eksempler på hvordan å bruke BioSim (fyll inn de tre filene i mappe 'examples')
+* Eksempler på hvordan å bruke BioSim (fyll inn de to filene i mappe 'examples')
 
 animals.py
 ----------
@@ -78,20 +77,7 @@ island.py
 
 GUI:
 ----
-* Tegne kartet
-* Plassere dyr på kartet
-* Simulere x år, velge hist-specs osv.
-
----------------------------------------------------------------------------------------------------
-
-Endre if-testene. Lage metoder i klassene, som gjør dette lettere:
-==================================================================
-
-island.py:
-----------
-* 80: if self.terrain[location[0]-1][location[1]-1] == "W":
-* 156: if terrain[i][0] != "W" or terrain[i][Y-1] != "W"
-* 159: if terrain[0][j] != "W" or terrain[X-1][j] != "W":
+* Velge hist-specs osv.
 
 ---------------------------------------------------------------------------------------------------
 
