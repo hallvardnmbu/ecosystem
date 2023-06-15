@@ -9,6 +9,7 @@ Tests for the island module.
 
 from src.biosim.animals import Herbivore, Carnivore
 from src.biosim.island import Island
+import itertools
 from pytest import approx
 import pytest
 from pytest_mock import mocker
@@ -271,14 +272,19 @@ def test_feed(trial_islands):
 def test_population():
 
     geogr = "WWWWW\nWWLWW\nWLLLW\nWWLWW\nWWWWW"
-    ini_pop_herbs=[{"loc": (3, 3), "pop": [{"species": "Herbivore", "age": 0, "weight": 50}]}]
-    ini_pop_carns=[{"loc": (3, 3), "pop": [{"species": "Carnivore", "age": 0, "weight": 50}]}]
+    pop=[{"loc": (3, 3), "pop": [{"species": "Herbivore", "age": 5,
+                                "weight": 20} for _ in range(10)]},
+        {"loc": (3, 4), "pop": [{"species": "Carnivore","age": 5,
+                                "weight": 20} for _ in range(5)]}]
 
-    island = Island(geogr, ini_pop_carns+ini_pop_herbs)
+    island = Island(geogr, pop)
 
-    expected_pop =2
+    pop=0
+    for species in island.population.values():
+        pop += len(species)
 
-    assert len(island.population()) == expected_pop, "The population list was not created correctly."
+
+    assert pop == 15, "The population list was not created correctly."
 
 def test_migrate(reset_animal_params):
     """Tests that the animals migrate correctly."""
