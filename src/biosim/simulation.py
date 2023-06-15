@@ -131,11 +131,11 @@ class BioSim:
             # Here I googled how to retrieve the element in a set. I found that I could use
             # next(iter(...)):
             difference = next(iter(set(params.keys()) - set(self.island.species_map.keys())))
-            if f"Invalid parameter: {difference}" in str(e):
-                raise KeyError(f"Invalid key: {difference}.")
-            elif species not in self.island.species_map.keys():
+            if species not in self.island.species_map.keys():
                 raise KeyError(f"Invalid species: {species}. Valid species:"
                                f" {', '.join(list(self.island.species_map.keys()))}")
+            elif f"Invalid parameter: {difference}" in str(e):
+                raise KeyError(f"Invalid key: {difference}.")
             else:
                 raise KeyError(f"Invalid parameter keys in {params}.")
         except ValueError:

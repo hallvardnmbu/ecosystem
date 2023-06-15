@@ -1,6 +1,7 @@
 I morgen:
 =========
-* test til ny funksjon i island
+* test til ny set_motion
+* 
 * mock fitness in death test? hunt??
 * tox.ini
 * save figure og save movie

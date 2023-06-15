@@ -185,6 +185,27 @@ def test_create_animal_nonnumber(age, weight):
     with pytest.raises(ValueError):
         Herbivore(age=age, weight=weight), "Creating animal with non-numbers worked."
 
+def test_set_motion(trial_animals):
+    """Tests that the motion is set correctly."""
+
+        for animal in trial_animals:
+            animal.set_motion(1)
+            assert animal.f == 1, f"Motion for {animal.species} is wrongly set."
+
+def test_set_motion_negative(trial_animals):
+    """Tests that the motion is set correctly."""
+
+        for animal in trial_animals:
+            with pytest.raises(ValueError):
+                animal.set_motion(-1), f"Setting negative motion for {animal.species} worked."
+
+def tests_set_motion_nonnumber(trial_animals):
+    """
+    Tests that the motion is set correctly.
+    """
+    for animal in trial_animals:
+        with pytest.raises(ValueError):
+            animal.set_motion("a"), f"Setting non-number motion for {animal.species} worked."
 
 def test_aging(trial_animals):
     """Tests that the age increases by one after aging() is called."""
