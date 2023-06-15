@@ -35,6 +35,8 @@ Welcome to BioSim's documentation!
    animals
    island
    simulation
+   examples
+   expansion
 
 Indices and tables
 ==================

@@ -1,5 +1,5 @@
 """
-Package for visualisation of the simulation.
+Contains visualisation of the simulation.
 """
 
 

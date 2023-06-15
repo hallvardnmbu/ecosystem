@@ -19,6 +19,11 @@ examples
 animals.py
 ----------
 * Relative imports "."
+* Trenger ikke dette? Eller gjør vi det?
+*       try:
+            self.set_parameters(Carnivore.get_parameters())
+        except AttributeError:
+            self.set_parameters(Carnivore.default_parameters())
 
 island.py
 ---------
@@ -55,8 +60,6 @@ package structure
 * directory layout
 * configuration files
   - readme.md
-  - setup.cfg
-    - Homepage for package and specific URLs
   - tox.ini
 
 ---------------------------------------------------------------------------------------------------

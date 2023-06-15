@@ -1,5 +1,5 @@
 """
-Module for the island and its cells.
+Contains the island and its cells.
 """
 
 
@@ -7,7 +7,7 @@ import random
 import textwrap
 import itertools
 
-from animals import Animal
+from .animals import Animal
 
 
 class Island:
@@ -90,28 +90,13 @@ class Island:
     def __init__(self, geography, ini_pop=None):
         self.year = 0
         self.geography = textwrap.dedent(geography).split("\n")
-        self.species_map = {cls.__name__: cls for cls in Animal.__subclasses__()}
+        self.species_map = {}
+        for cls in Animal.__subclasses__():
+            self.species_map[cls.__name__] = cls
+            cls.set_motion()
         self.set_fodder_parameters(self.default_fodder_parameters())
         self.cell_grid = self._terraform()
         self.add_population(population=ini_pop) if ini_pop is not None else None
-
-    def population(self):
-        """
-        Returns the population of the island.
-
-        Returns
-        -------
-        list
-            A list of dictionaries specifying the population of the island.
-        """
-
-        animals = {cls.__name__: [] for cls in Animal.__subclasses__()}
-        for cells in self.cell_grid:
-            for cell in cells:
-                for animal in itertools.chain(*cell.animals.values()):
-                    animals[animal.__class__.__name__].append(animal)
-
-        return animals
 
     def _terraform(self):
         r"""
@@ -406,6 +391,25 @@ class Island:
 
         return sum(animals.values())
 
+    @property
+    def population(self):
+        """
+        Returns the population of the island.
+
+        Returns
+        -------
+        list
+            A list of dictionaries specifying the population of the island.
+        """
+
+        animals = {cls.__name__: [] for cls in Animal.__subclasses__()}
+        for cells in self.cell_grid:
+            for cell in cells:
+                for animal in itertools.chain(*cell.animals.values()):
+                    animals[animal.__class__.__name__].append(animal)
+
+        return animals
+
     def yearly_cycle(self):
         """
         Runs through the yearly cycle of the island in the following order:
@@ -428,6 +432,7 @@ class Island:
         self.death()
 
         self.year += 1
+
 
 class Cell:
     """

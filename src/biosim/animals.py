@@ -1,5 +1,5 @@
 """
-Module for the different animal species.
+Contains the different animal species.
 """
 
 
@@ -11,6 +11,85 @@ class Animal:
     """
     Parent class for animal species.
     """
+
+    @classmethod
+    def motion(cls):
+        """
+        Get the movement parameters for the species.
+
+        Returns
+        -------
+        movable : dict
+            Movable terrain.
+        stride : int
+            Step size.
+        """
+
+        return cls.movable, cls.stride
+
+    @classmethod
+    def set_motion(cls, new_movable=None, new_stride=None):
+        """
+        Sets the movement parameters for the species.
+
+        Parameters
+        ----------
+        new_movable : dict
+            Movable terrain.
+        new_stride : int
+            Step size.
+        """
+
+        if new_stride is not None:
+            try:
+                if new_stride < 0:
+                    raise ValueError("Stride should be nonzero or positive.")
+                cls.stride = round(new_stride)
+            except TypeError:
+                raise TypeError("Stride should be a number.")
+        else:
+            stride, _ = cls.default_motion()
+            cls.stride = stride
+
+        if new_movable is not None:
+            _, movable = cls.default_motion()
+            if not all(key in movable.keys() for key in new_movable.keys()):
+                raise ValueError("Invalid keys in new_movable.")
+            for key, bool in new_movable.items():
+                cls.movable[key] = bool
+        else:
+            _, movable = cls.default_motion()
+            cls.movable = movable
+
+        return
+
+    @classmethod
+    def get_parameters(cls):
+        """
+        Get the parameters for a species.
+
+        Returns
+        -------
+        parameters : dict
+        """
+
+        parameters = {"w_birth": cls.w_birth,
+                      "sigma_birth": cls.sigma_birth,
+                      "beta": cls.beta,
+                      "eta": cls.eta,
+                      "a_half": cls.a_half,
+                      "phi_age": cls.phi_age,
+                      "w_half": cls.w_half,
+                      "phi_weight": cls.phi_weight,
+                      "mu": cls.mu,
+                      "gamma": cls.gamma,
+                      "zeta": cls.zeta,
+                      "xi": cls.xi,
+                      "omega": cls.omega,
+                      "F": cls.F}
+        if cls is Carnivore:
+            parameters["DeltaPhiMax"] = cls.DeltaPhiMax
+        return parameters
 
     @classmethod
     def set_parameters(cls, new_parameters):
@@ -59,34 +138,6 @@ class Animal:
             setattr(cls, key, val)
 
     @classmethod
-    def get_parameters(cls):
-        """
-        Get the parameters for a species.
-
-        Returns
-        -------
-        parameters : dict
-        """
-
-        parameters = {"w_birth": cls.w_birth,
-                      "sigma_birth": cls.sigma_birth,
-                      "beta": cls.beta,
-                      "eta": cls.eta,
-                      "a_half": cls.a_half,
-                      "phi_age": cls.phi_age,
-                      "w_half": cls.w_half,
-                      "phi_weight": cls.phi_weight,
-                      "mu": cls.mu,
-                      "gamma": cls.gamma,
-                      "zeta": cls.zeta,
-                      "xi": cls.xi,
-                      "omega": cls.omega,
-                      "F": cls.F}
-        if cls is Carnivore:
-            parameters["DeltaPhiMax"] = cls.DeltaPhiMax
-        return parameters
-
-    @classmethod
     def lognormv(cls):
         r"""
         A continuous probability distribution of a random variable whose
@@ -104,9 +155,11 @@ class Animal:
 
         .. math::
 
-            \mu = \log \left( \frac{{w_{\text{birth}}^2}}{{\sqrt{{\sigma_{\text{birth}}^2 + w_{\text{birth}}^2}}}} \right)
+            \mu = \log \left( \frac{{w_{\text{birth}}^2}}{{\sqrt{{\sigma_{\text{birth}}^2
+            + w_{\text{birth}}^2}}}} \right)
 
-            \sigma = \sqrt{\log \left( 1 + \frac{{\sigma_{\text{birth}}^2}}{{w_{\text{birth}}^2}} \right)}
+            \sigma = \sqrt{\log \left( 1 + \frac{{\sigma_{\text{birth}}^2}}{{w_{\text{birth}}^2}}
+            \right)}
 
         (Retrieved from: https://en.wikipedia.org/wiki/Log-normal_distribution).
         """
@@ -256,25 +309,19 @@ class Herbivore(Animal):
                 "F": 10.0}
 
     @classmethod
-    def motion(cls):
+    def default_motion(cls):
         """
-        Sets the movement parameters for the Carnivore.
+        Default movement parameters for Herbivores.
 
         Returns
         -------
-        movable : dict
-            Movable terrain.
         stride : int
             Step size.
+        movable : dict
+            Movable terrain.
         """
 
-        cls.movable = {"H": True,
-                       "L": True,
-                       "D": True,
-                       "W": False}
-        cls.stride = 1
-
-        return cls.movable, cls.stride
+        return 1, {"H": True, "L": True, "D": True, "W": False}
 
     def __init__(self, age=None, weight=None):
         try:
@@ -348,25 +395,19 @@ class Carnivore(Animal):
                 "DeltaPhiMax": 10.0}
 
     @classmethod
-    def motion(cls):
+    def default_motion(cls):
         """
-        Sets the movement parameters for the Carnivore.
+        Default movement parameters for Carnivores.
 
         Returns
         -------
-        movable : dict
-            Movable terrain.
         stride : int
             Step size.
+        movable : dict
+            Movable terrain.
         """
 
-        cls.movable = {"H": True,
-                       "L": True,
-                       "D": True,
-                       "W": False}
-        cls.stride = 1
-
-        return cls.movable, cls.stride
+        return 1, {"H": True, "L": True, "D": True, "W": False}
 
     def __init__(self, age=None, weight=None):
         try:
@@ -397,7 +438,9 @@ class Carnivore(Animal):
 
             p = \begin{cases}
                     0 & \text{if } \Phi_{\text{carn}} \leq \Phi_{\text{herb}} \\
-                    \frac{\Phi_{\text{carn}} - \Phi_{\text{herb}}}{\Delta \Phi_{\text{max}}} & \text{if } 0 < \Phi_{\text{carn}} - \Phi_{\text{herb}} < \Delta \Phi_{\text{max}} \\
+                    \frac{\Phi_{\text{carn}} - \Phi_{\text{herb}}}{\Delta \Phi_{\text{max}}} &
+                    \text{if } 0 < \Phi_{\text{carn}} - \Phi_{\text{herb}} <
+                    \Delta \Phi_{\text{max}} \\
                     1 & \text{otherwise}
                 \end{cases}.
         """

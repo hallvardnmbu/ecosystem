@@ -1,5 +1,5 @@
 """
-Module for running a BioSim simulation.
+Contains simulation.
 """
 
 # The material in this file is licensed under the BSD 3-clause license
@@ -9,8 +9,8 @@ Module for running a BioSim simulation.
 
 import random
 
-from island import Island
-from graphics import Graphics
+from .island import Island
+from .graphics import Graphics
 
 
 class BioSim:
@@ -192,7 +192,7 @@ class BioSim:
             self.graphics.update_graphics(self.year,
                                           self.num_animals_per_species,
                                           self.island.n_animals_per_species_per_cell,
-                                          self.island.population())
+                                          self.island.population)
             self.island.yearly_cycle()
 
     def add_population(self, population):

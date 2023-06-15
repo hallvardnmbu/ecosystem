@@ -63,10 +63,6 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 html_css_files = ['css/custom.css']
 
-# html_theme_options = {
-#     'style_nav_header_background': '#019A81'
-# }
-
 
 # -- Extension configuration -------------------------------------------------
 
