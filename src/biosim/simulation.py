@@ -228,37 +228,3 @@ class BioSim:
     def make_movie(self):
         """Create MPEG4 movie from visualization images saved."""
         pass
-
-if __name__ == "__main__":
-
-    # geogr = """\
-    #            WWWWWWW
-    #            WWHLHWW
-    #            WHHHHHW
-    #            WLHLHLW
-    #            WHHHHHW
-    #            WWHLHWW
-    #            WWWWWWW"""
-
-    geogr = """\
-               WWWWWWWWWWWWWWWWWWWWW
-               WWWWWWWWHWWWWLLLLLLLW
-               WHHHHHLLLLWWLLLLLLLWW
-               WHHHHHHHHHWWLLLLLLWWW
-               WHHHHHLLLLLLLLLLLLWWW
-               WHHHHHLLLDDLLLHLLLWWW
-               WHHLLLLLDDDLLLHHHHWWW
-               WWHHHHLLLDDLLLHWWWWWW
-               WHHHLLLLLDDLLLLLLLWWW
-               WHHHHLLLLDDLLLLWWWWWW
-               WWHHHHLLLLLLLLWWWWWWW
-               WWWHHHHLLLLLLLWWWWWWW
-               WWWWWWWWWWWWWWWWWWWWW"""
-
-    animals = [{'loc': (4, 4), 'pop': [{'species': 'Herbivore', 'age': 5, 'weight': 20} for _ in
-                                       range(50)]},
-               {'loc': (4, 4), 'pop': [{'species': 'Carnivore', 'age': 5, 'weight': 20} for _ in
-                                       range(50)]}]
-
-    sim = BioSim(geogr, animals)
-    sim.simulate(200)
