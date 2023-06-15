@@ -93,11 +93,6 @@ class Graphics:
         [   Age   ][  Weight ][  Fitness  ]   (histograms)
         """
 
-        colours = {"L": tuple([colour / 255 for colour in [185, 214, 135]]),
-                   "H": tuple([colour / 255 for colour in [232, 236, 158]]),
-                   "D": tuple([colour / 255 for colour in [255, 238, 186]]),
-                   "W": tuple([colour / 255 for colour in [149, 203, 204]])}
-
         if self._fig is None:
             self._fig = plt.figure(figsize=(15, 10))
             self.gs = self._fig.add_gridspec(11, 27)
@@ -163,7 +158,7 @@ class Graphics:
             self._herb_ax.add_patch(outline)
 
             self._herb_plot = self._herb_ax.imshow(herb,
-                                                   cmap="coolwarm",
+                                                   cmap="Greens",
                                                    vmin=0,
                                                    vmax=self.cmax_herb)
             self._herb_plot.cmap.set_bad((0, 0, 0))
@@ -186,7 +181,7 @@ class Graphics:
             self._carn_ax.add_patch(outline)
 
             self._carn_plot = self._carn_ax.imshow(carn,
-                                                   cmap="coolwarm",
+                                                   cmap="Oranges",
                                                    vmin=0,
                                                    vmax=self.cmax_carn)
             self._carn_plot.cmap.set_bad((0, 0, 0))
@@ -197,11 +192,17 @@ class Graphics:
         if self.hist_specs is not None:
             for feature, specs in self.hist_specs.items():
                 if feature == "age":
-                    self.age_bins = np.arange(0, specs["max"] + specs["delta"]/2, specs["delta"])
+                    self.age_bins = np.arange(0,
+                                              specs["max"] + specs["delta"]/2,
+                                              specs["delta"])
                 elif feature == "weight":
-                    self.weight_bins = np.arange(0, specs["max"] + specs["delta"]/2, specs["delta"])
+                    self.weight_bins = np.arange(0,
+                                                 specs["max"] + specs["delta"]/2,
+                                                 specs["delta"])
                 else:
-                    self.fitness_bins = np.arange(0, specs["max"] + specs["delta"]/2, specs["delta"])
+                    self.fitness_bins = np.arange(0,
+                                                  specs["max"] + specs["delta"]/2,
+                                                  specs["delta"])
         else:
             self.age_bins = np.arange(0, 45 + 5/2, 5)
             self.fitness_bins = np.arange(0, 1 + 0.1/2, 0.1)
@@ -270,6 +271,7 @@ class Graphics:
             .. code:: python
 
                 {(10, 10): {"Herbivores": 100, "Carnivores": 10}}
+
         animals : dict
 
             .. code:: python
@@ -296,10 +298,12 @@ class Graphics:
         if hasattr(self, "txt"):
             self.txt.remove()
 
-        self.txt = self._year_ax.text(0.5, 0.5, text.format(year), fontsize=10,
-                                  horizontalalignment='center',
-                                  verticalalignment='center',
-                                  transform=self._year_ax.transAxes)
+        self.txt = self._year_ax.text(0.5, 0.5,
+                                      text.format(year),
+                                      fontsize=10,
+                                      horizontalalignment='center',
+                                      verticalalignment='center',
+                                      transform=self._year_ax.transAxes)
         self.txt.set_text(text.format(year))
 
     def _update_line_plot(self, year, n_animals):
@@ -384,8 +388,8 @@ class Graphics:
             herb.append(row_herb)
             carn.append(row_carn)
 
-        herb = [[np.nan if val==0 else val for val in row] for row in herb]
-        carn = [[np.nan if val==0 else val for val in row] for row in carn]
+        herb = [[np.nan if val == 0 else val for val in row] for row in herb]
+        carn = [[np.nan if val == 0 else val for val in row] for row in carn]
 
         return herb, carn
 
@@ -414,10 +418,9 @@ class Graphics:
 
         Parameters
         ----------
+        year : int
         animals : dict
             A dictionary with species as keys and lists of animal objects as values.
-        hist_specs : dict
-            A dictionary specifying the histogram specifications for each feature.
         """
 
         herbs = animals["Herbivore"]

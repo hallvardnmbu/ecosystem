@@ -399,7 +399,7 @@ class Island:
         Returns
         -------
         list
-            A list of dictionaries specifying the population of the island.
+            A dictionary of lists specifying the population of the island.
         """
 
         animals = {cls.__name__: [] for cls in Animal.__subclasses__()}
