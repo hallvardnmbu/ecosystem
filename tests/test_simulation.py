@@ -159,8 +159,6 @@ def test_set_invalid_landscape_parameter_value_type(trial_simulation, landscape,
         get_param = trial_simulation.island.landscape_map[landscape].get_parameters()[param]
         assert get_param == val, "Setting wrong parameter values worked."
 
-
-
 def test_add_population(trial_simulation_empty):
     """
     Tests that the number of animals increases correctly when simulating.
@@ -173,5 +171,19 @@ def test_add_population(trial_simulation_empty):
 
     assert trial_simulation_empty.num_animals == 1, "Population is not added correctly."
 
+def test_num_animals(trial_simulation):
+    """
+    Tests that the number of animals increases correctly when simulating.
+    """
 
+    assert trial_simulation.num_animals == 150+40, "Number of animals is not increasing correctly."
 
+def test_num_animals_per_species(trial_simulation):
+    """
+    Tests that the number of animals increases correctly when simulating.
+    """
+
+    assert trial_simulation.num_animals_per_species == {"Herbivore": 150, "Carnivore": 40}, "Number of animals per " \
+
+def test_make_movie(trial_simulation):
+    """ Tests that the movie is created correctly. """

@@ -175,7 +175,7 @@ class BioSim:
         self.island.set_fodder_parameters(new_parameters)
 
     def simulate(self, num_years):
-        r"""
+        """
         Run simulation while visualizing the result.
 
         Parameters
@@ -184,7 +184,7 @@ class BioSim:
             Number of years to simulate.
         """
 
-        simulate_years = num_years + self.year
+        simulate_years = num_years + self.year+1
         self.graphics.setup(simulate_years)
 
         while self.year < simulate_years:

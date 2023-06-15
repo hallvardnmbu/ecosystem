@@ -109,7 +109,7 @@ class Graphics:
             self._line_ax = self._fig.add_subplot(self.gs[:3, 4:])
             self._line_ax.set_title('Number of animals')
             self._line_ax.set_ylim(0, self.ymax_animals)
-            self._line_ax.set_xlim(0, final_year)
+            self._line_ax.set_xlim(0, final_year-1)
             self.herbs = np.arange(0, final_year, self.vis_years)
             self.n_herbs = self._line_ax.plot(self.herbs,
                                               np.full_like(self.herbs, np.nan, dtype=float),
