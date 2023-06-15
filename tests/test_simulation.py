@@ -89,6 +89,17 @@ def test_set_invalid_animal_parameter_value_type(trial_simulation, param, val):
         get_param = trial_simulation.species_map["Herbivore"].get_parameters()[param]
         assert get_param == val, "Setting wrong parameter values worked."
 
+def invalid_species(trial_simulation):
+    """
+    Tests that wrong species cannot be set.
+    """
+
+    with pytest.raises(KeyError):
+        trial_simulation.set_animal_parameters("Human", {"eta": 0.1})
+        get_param = trial_simulation.species_map["Human"].get_parameters()["eta"]
+        assert get_param == 0.1, "Setting wrong species worked."
+
+
 def test_year_construction(trial_simulation):
     """
     Tests that the year increases correctly when simulating.
@@ -147,7 +158,7 @@ def test_set_wrong_landscape_parameter_keys(trial_simulation, landscape, param, 
 @pytest.mark.parametrize("landscape, param, val",
                         [["H", "f_max", "a"],
                         ["H", "f_max", [1]],
-                        ["H", "f_max", ["a"]],
+                        ["H", "f_max", -1],
                         ["H", "f_max", {"a": 1}]])
 def test_set_invalid_landscape_parameter_value_type(trial_simulation, landscape, param, val):
     """
