@@ -188,24 +188,34 @@ def test_create_animal_nonnumber(age, weight):
 def test_set_motion(trial_animals):
     """Tests that the motion is set correctly."""
 
-        for animal in trial_animals:
-            animal.set_motion(1)
-            assert animal.f == 1, f"Motion for {animal.species} is wrongly set."
+    for animal in trial_animals:
+        animal.set_motion(new_stride=1)
+        assert animal.stride == 1, f"Motion for {animal.species} is wrongly set."
+
 
 def test_set_motion_negative(trial_animals):
     """Tests that the motion is set correctly."""
 
-        for animal in trial_animals:
-            with pytest.raises(ValueError):
-                animal.set_motion(-1), f"Setting negative motion for {animal.species} worked."
+    for animal in trial_animals:
+        with pytest.raises(ValueError):
+            animal.set_motion(new_stride=-1), f"Setting negative motion for {animal.species} worked."
 
-def tests_set_motion_nonnumber(trial_animals):
+def test_set_motion_nonnumber(trial_animals):
     """
     Tests that the motion is set correctly.
     """
     for animal in trial_animals:
-        with pytest.raises(ValueError):
-            animal.set_motion("a"), f"Setting non-number motion for {animal.species} worked."
+        with pytest.raises(TypeError):
+            animal.set_motion(new_stride="a"), f"Setting non-number motion for {animal.species} worked."
+
+def test_set_motion_terrain(trial_animals):
+    """Tests that the motion is set correctly."""
+
+    for animal in trial_animals:
+        with pytest.raises(KeyError):
+            animal.set_motion(new_movable={"w":True}), f"Setting motion terrain thats not in map for {animal.species} worked."
+
+
 
 def test_aging(trial_animals):
     """Tests that the age increases by one after aging() is called."""

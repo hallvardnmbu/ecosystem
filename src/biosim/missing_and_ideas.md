@@ -1,7 +1,6 @@
 I morgen:
 =========
 * test til ny set_motion
-* 
 * mock fitness in death test? hunt??
 * tox.ini
 * save figure og save movie
@@ -101,7 +100,7 @@ island.py:
 
 Ideer:
 ======
-
+* motion avhengig av fitness
 * Gjemme seg i skogen eller grave seg ned i ørkenen (kan ikke bli spist)
   -Altså at noen arter har større sannsynlighet for å bli spist i ulike habitat
 * Herbivores kan drepe Carnivores HVIS: det er flere enn X Herbivores og mindre enn Y Carnivores
