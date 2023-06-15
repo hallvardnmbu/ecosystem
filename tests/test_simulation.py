@@ -59,7 +59,7 @@ def test_set_animal_parameters(trial_simulation, param, val):
     new_parameter = {param: val}
     trial_simulation.set_animal_parameters("Herbivore", new_parameter)
 
-    assert trial_simulation.species_map["Herbivore"].get_parameters()[param] == val, "Setting parameters " \
+    assert trial_simulation.island.species_map["Herbivore"].get_parameters()[param] == val, "Setting parameters " \
                                                                          "didn't work."
 
 def test_set_invalid_animal_parameter_keys(trial_simulation):
@@ -89,31 +89,12 @@ def test_set_invalid_animal_parameter_value_type(trial_simulation, param, val):
         get_param = trial_simulation.species_map["Herbivore"].get_parameters()[param]
         assert get_param == val, "Setting wrong parameter values worked."
 
-
-@pytest.mark.parametrize("param, val",
-                         [["eta", -1],
-                          ["eta", "a"],
-                          ["eta", [1]],
-                          ["eta", ["a"]],
-                          ["eta", {"a": 1}]])
-def test_set_invalid_animal_parameter_values(trial_simulation, param, val):
-    """
-    Tests that wrong parameter value types cannot be set.
-    """
-
-    with pytest.raises(ValueError):
-        trial_simulation.set_animal_parameters("Herbivore", {param: val})
-        get_param = trial_simulation.species_map["Herbivore"].get_parameters()[param]
-        assert get_param == val, "Setting wrong parameter values worked."
-
-
 def test_year_construction(trial_simulation):
     """
     Tests that the year increases correctly when simulating.
     """
 
     assert trial_simulation.island.year == 0, "Year is not constructed correctly."
-
 
 def test_year_increase(trial_simulation):
     """
@@ -123,7 +104,61 @@ def test_year_increase(trial_simulation):
     num_years = 10
     trial_simulation.simulate(num_years)
 
-    assert trial_simulation.island.year == num_years, "Year is not increasing correctly."
+    assert trial_simulation.year == num_years + 1, "Year is not increasing correctly."
+
+@pytest.mark.parametrize("landscape, param, val",
+                        [["H", "f_max", 300],
+                         ["L", "f_max", 700]])
+def test_set_landscape_parameters(trial_simulation, landscape, param, val):
+    """
+    Tests that the landscape parameters are set correctly.
+    """
+    new_parameter = {param: val}
+    trial_simulation.set_landscape_parameters(landscape, new_parameter)
+
+    assert trial_simulation.island.get_fodder_parameter(landscape) == val, "Setting parameters " \
+                                                                                      "didn't work."
+
+@pytest.mark.parametrize("landscape, param, val",
+                        [["J", "f_max", 700],
+                         ["h", "f_max", 700]])
+def test_set_wrong_landscape(trial_simulation, landscape, param, val):
+    """
+    Tests that wrong landscape cannot be set.
+    """
+    with pytest.raises(ValueError):
+        trial_simulation.set_landscape_parameters(landscape, {param: val})
+
+        get_param = trial_simulation.island.landscape_map[landscape].get_parameters()[param]
+        assert get_param == val, "Setting wrong landscape worked."
+@pytest.mark.parametrize("landscape, param, val",
+                         [["H", "alpha", 700],
+                         ["L", 2, 700]])
+def test_set_wrong_landscape_parameter_keys(trial_simulation, landscape, param, val):
+    """
+        Tests that wrong parameter key cannot be set.
+        """
+
+    with pytest.raises(KeyError):
+        trial_simulation.set_landscape_parameters(landscape, {param: val})
+        get_param = trial_simulation.island.landscape_map[landscape].get_parameters()[param]
+        assert get_param == val, "Setting wrong parameter key worked."
+
+@pytest.mark.parametrize("landscape, param, val",
+                        [["H", "f_max", "a"],
+                        ["H", "f_max", [1]],
+                        ["H", "f_max", ["a"]],
+                        ["H", "f_max", {"a": 1}]])
+def test_set_invalid_landscape_parameter_value_type(trial_simulation, landscape, param, val):
+    """
+    Tests that wrong parameter value types cannot be set.
+    """
+
+    with pytest.raises(ValueError):
+        trial_simulation.set_landscape_parameters(landscape, {param: val})
+        get_param = trial_simulation.island.landscape_map[landscape].get_parameters()[param]
+        assert get_param == val, "Setting wrong parameter values worked."
+
 
 
 def test_add_population(trial_simulation_empty):

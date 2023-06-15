@@ -161,7 +161,7 @@ class BioSim:
         """
 
         if "f_max" not in params:
-            raise ValueError(f"Invalid parameter key {params}. Valid keys are 'f_max'.")
+            raise KeyError(f"Invalid parameter key {params}. Valid keys are 'f_max'.")
         else:
             try:
                 if params["f_max"] < 0:
@@ -184,7 +184,7 @@ class BioSim:
             Number of years to simulate.
         """
 
-        simulate_years = num_years + self.year + 1
+        simulate_years = num_years + self.year
         self.graphics.setup(simulate_years)
 
         while self.year < simulate_years:
