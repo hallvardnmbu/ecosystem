@@ -1,11 +1,11 @@
 I morgen:
 =========
-* mock fitness in death test? hunt??
+* spørsmål om cetup.cfg eksempelfiler
+  * også om pytest i project requirements
 * tox.ini
-* save figure og save movie
-* GUI (se under)
-* readme.md
-
+* legge alle tester in classer
+* test_make_movie
+* mock fitness in death test? hunt??
 ---------------------------------------------------------------------------------------------------
 
 Mangler:

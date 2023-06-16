@@ -198,7 +198,7 @@ class Graphics:
                 elif feature == "weight":
                     self.weight_bins = np.arange(0, specs["max"] + specs["delta"]/2, specs["delta"])
                 else:
-                    self.fitness_bins = np.arange(0, specs["max"] + specs["delta"]/2, specs["delta"])
+                    self.fitness_bins = np.arange(0, specs["max"]+specs["delta"]/2, specs["delta"])
         else:
             self.age_bins = np.arange(0, 45 + 5/2, 5)
             self.fitness_bins = np.arange(0, 1 + 0.1/2, 0.1)
@@ -293,10 +293,13 @@ class Graphics:
         if hasattr(self, "txt"):
             self.txt.remove()
 
-        self.txt = self._year_ax.text(0.5, 0.5, text.format(year), fontsize=10,
-                                  horizontalalignment='center',
-                                  verticalalignment='center',
-                                  transform=self._year_ax.transAxes)
+        self.txt = self._year_ax.text(0.5,
+                                      0.5,
+                                      text.format(year),
+                                      fontsize=10,
+                                      horizontalalignment='center',
+                                      verticalalignment='center',
+                                      transform=self._year_ax.transAxes)
         self.txt.set_text(text.format(year))
 
     def _update_line_plot(self, year, n_animals):
@@ -378,11 +381,12 @@ class Graphics:
                 cell = f"({x+1}, {y+1})"
                 row_herb.append(density[cell].get("Herbivores", 0))
                 row_carn.append(density[cell].get("Carnivores", 0))
+
             herb.append(row_herb)
             carn.append(row_carn)
 
-        herb = [[np.nan if val==0 else val for val in row] for row in herb]
-        carn = [[np.nan if val==0 else val for val in row] for row in carn]
+        herb = [[np.nan if val == 0 else val for val in row] for row in herb]
+        carn = [[np.nan if val == 0 else val for val in row] for row in carn]
 
         return herb, carn
 

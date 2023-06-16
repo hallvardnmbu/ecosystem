@@ -418,7 +418,7 @@ class Carnivore(Animal):
 
     def predation(self, herbivores):
         r"""
-        The herbivore tries to kill an eat the herbivores at the current location.
+        The herbivore tries to kill and eat the herbivores at the current location.
 
         Parameters
         ----------
