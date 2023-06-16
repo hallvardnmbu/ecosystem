@@ -7,6 +7,7 @@ Contains simulation.
 # (C) Copyright 2023 Hans Ekkehard Plesser / NMBU
 
 
+import matplotlib.pyplot as plt
 import random
 
 from .island import Island
@@ -174,7 +175,7 @@ class BioSim:
         new_parameters = {landscape: params["f_max"]}
         self.island.set_fodder_parameters(new_parameters)
 
-    def simulate(self, num_years):
+    def simulate(self, num_years, speed=1e-6):
         """
         Run simulation while visualizing the result.
 
@@ -182,6 +183,8 @@ class BioSim:
         ----------
         num_years : int
             Number of years to simulate.
+        speed : float, optional
+            The interval between plot data-updates.
         """
 
         simulate_years = num_years + self.year + 1
@@ -192,8 +195,11 @@ class BioSim:
             self.graphics.update_graphics(self.year,
                                           self.num_animals_per_species,
                                           self.island.n_animals_per_species_per_cell,
-                                          self.island.population)
+                                          self.island.population,
+                                          speed)
             self.island.yearly_cycle()
+
+        plt.draw()
 
     def add_population(self, population):
         """

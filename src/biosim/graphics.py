@@ -3,7 +3,6 @@ Contains visualisation of the simulation.
 """
 
 
-import matplotlib.backends.backend_agg as agg
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
@@ -258,7 +257,7 @@ class Graphics:
             self._fitness_ax.set_xlabel('Fitness')
             self._fitness_ax.set_ylabel('')
 
-    def update_graphics(self, year, n_animals, n_animals_cells, animals, speed=1e-6):
+    def update_graphics(self, year, n_animals, n_animals_cells, animals, speed):
         r"""
         Updates the graphics with new data for the given year.
 
@@ -282,6 +281,9 @@ class Graphics:
             .. code:: python
 
                 {"Herbivores": [Herbivore(), Herbivore(), ...], ...}
+
+        speed : float
+            Pause between visualization updates in seconds.
         """
 
         self._update_year_counter(year)

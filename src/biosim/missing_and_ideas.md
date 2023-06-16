@@ -2,8 +2,12 @@ I morgen:
 =========
 * test til ny set_motion
 * mock fitness in death test? hunt??
+* mock random.random -> 1 (100%)
 * tox.ini
 * readme.md
+
+* Rekn ut alle statiske sannsynligheter i starten av simuleringen.
+* I starten av island: hente ut kun de cellene som er beboelige av dyrene.
 
 ---------------------------------------------------------------------------------------------------
 
@@ -28,6 +32,10 @@ simulation.py
 
 graphics.py
 -----------
+* Relative imports "."
+
+gui.py
+------
 * Relative imports "."
 
 ---------------------------------------------------------------------------------------------------
