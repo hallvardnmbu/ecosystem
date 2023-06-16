@@ -1,6 +1,5 @@
 I morgen:
 =========
-* test til ny set_motion
 * mock fitness in death test? hunt??
 * tox.ini
 * save figure og save movie
