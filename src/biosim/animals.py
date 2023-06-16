@@ -54,7 +54,7 @@ class Animal:
         if new_movable is not None:
             _, movable = cls.default_motion()
             if not all(key in movable.keys() for key in new_movable.keys()):
-                raise ValueError("Invalid keys in new_movable.")
+                raise KeyError("Invalid keys in new_movable.")
             for key, boolean in new_movable.items():
                 cls.movable[key] = boolean
         else:
