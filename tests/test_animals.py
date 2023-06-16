@@ -10,6 +10,7 @@ Tests for the animals module.
 from src.biosim.animals import Herbivore, Carnivore
 import scipy.stats as stat
 from math import log
+from unittest import mock
 from pytest import approx
 import pytest
 # We used the lecture notes, ChatGPT and Stackoverflow in order to gain a basic understanding of how
@@ -140,7 +141,7 @@ def test_lognormv(trial_animals):
         assert p_val > 0.01, "Weights are not normally distributed (p < 0.01)."
 
 
-def test_lognormv_with_animals(trial_animals):
+def test_lognormv_with_animals(trial_animals, mocker):
     """Tests that the lognormv function works correctly."""
 
     mocker.patch("random.lognormvariate", return_value=1)
@@ -148,7 +149,7 @@ def test_lognormv_with_animals(trial_animals):
         assert animal.lognormv() == 1, "Calling lognormv with an animal didn't work."
 
 
-def test_lognormv_without_animals():
+def test_lognormv_without_animals(mocker):
     """Tests that the lognormv function works correctly."""
 
     mocker.patch("random.lognormvariate", return_value=1)

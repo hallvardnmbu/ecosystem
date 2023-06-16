@@ -9,6 +9,7 @@ Tests for the island module.
 
 from src.biosim.animals import Herbivore, Carnivore
 from src.biosim.island import Island
+from unittest import mock
 from pytest import approx
 import pytest
 
@@ -311,7 +312,8 @@ def test_migrate(reset_animal_params):
     # all animals should have moved from their initial position
     island.migrate()
     for species in ["Herbivores", "Carnivores"]:
-        assert island.n_animals_per_species_per_cell['(3, 3)'][species] == 0, "Some animals did not migrate."
+        assert island.n_animals_per_species_per_cell['(3, 3)'][species] \
+            == 0, "Some animals did not migrate."
 
     n = island.n_animals
     for _ in range(10):
