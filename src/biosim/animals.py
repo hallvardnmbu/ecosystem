@@ -137,6 +137,16 @@ class Animal:
 
             setattr(cls, key, val)
 
+        cls.update_p_procreate()
+
+    @classmethod
+    def update_p_procreate(cls):
+        """
+        Updates the probability of procreation for the species.
+        """
+
+        cls.p_procreate = cls.zeta * (cls.w_birth + cls.sigma_birth)
+
     @classmethod
     def lognormv(cls):
         r"""
@@ -462,7 +472,11 @@ class Carnivore(Animal):
                 p = 1
 
             if random.random() < p:
+
+                # Fikse her, self.F
+
                 eaten += herbivore.w
+
 
                 self.gain_weight(food=herbivore.w)
 

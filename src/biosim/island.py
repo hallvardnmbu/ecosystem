@@ -94,6 +94,7 @@ class Island:
         for cls in Animal.__subclasses__():
             self.species_map[cls.__name__] = cls
             cls.set_motion()
+            cls.set_parameters(cls.default_parameters())
         self.set_fodder_parameters(self.default_fodder_parameters())
         self.cell_grid, self.habitable_cells = self._terraform()
         self.add_population(population=ini_pop) if ini_pop is not None else None
@@ -226,7 +227,7 @@ class Island:
             for animal in itertools.chain(*cell.animals.values()):
 
                 # Procreation may only take place if the following is satisfied:
-                if animal.w >= animal.zeta * (animal.w_birth + animal.sigma_birth):
+                if animal.w >= animal.p_procreate:
 
                     n = animals_in_cell[animal.__class__.__name__]
                     if random.random() < min(1, animal.gamma * animal.fitness * n):

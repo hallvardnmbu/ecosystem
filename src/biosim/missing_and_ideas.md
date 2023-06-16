@@ -7,7 +7,8 @@ I morgen:
 * readme.md
 
 * Rekn ut alle statiske sannsynligheter i starten av simuleringen.
-* I starten av island: hente ut kun de cellene som er beboelige av dyrene.
+
+* Lagre fitness når de blir brukt.
 
 ---------------------------------------------------------------------------------------------------
 
