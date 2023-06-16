@@ -207,17 +207,17 @@ def test_add_population_wrong_pop_values(trial_islands, dict_key, dict_value):
             island.add_population(animal), "Population was added with an invalid parameter."
 
 
-@pytest.mark.parametrize("x, y, f", [
-                          [1, 0, Island.default_fodder_parameters()["W"]],
-                          [1, 1, Island.default_fodder_parameters()["L"]],
-                          [1, 2, Island.default_fodder_parameters()["H"]],
-                          [1, 3, Island.default_fodder_parameters()["D"]]
+@pytest.mark.parametrize("pos, f", [
+                          [(2, 1), Island.default_fodder_parameters()["W"]],
+                          [(2, 2), Island.default_fodder_parameters()["L"]],
+                          [(2, 3), Island.default_fodder_parameters()["H"]],
+                          [(2, 4), Island.default_fodder_parameters()["D"]]
 ])
-def test_island_cells_fodder(x, y, f):
+def test_island_cells_fodder(pos, f):
     """Tests that the island cells are created correctly."""
 
     island = Island(geography="WWWWW\nWLHDW\nWWWWW")
-    assert island.cell_grid[x][y].fodder == f, "The island cells were not constructed correctly."
+    assert island.cells[pos].fodder == f, "The island cells were not constructed correctly."
 
 
 def test_procreate(trial_islands):
@@ -234,7 +234,7 @@ def test_procreate(trial_islands):
 
         assert island.n_animals == 2, "Procreated incorrectly."
 
-        assert len(island.cell_grid[1][1].animals["Herbivore"]) == 2, "Procreated incorrectly."
+        assert len(island.cells[(2, 2)].animals["Herbivore"]) == 2, "Procreated incorrectly."
 
 
 def test_procreate_no_procreation(trial_islands):
@@ -251,7 +251,7 @@ def test_procreate_no_procreation(trial_islands):
 
         assert island.n_animals == 1, "Procreated when not supposed to."
 
-        length = len(island.cell_grid[1][1].animals["Herbivore"])
+        length = len(island.cells[(2, 2)].animals["Herbivore"])
         assert length == 1, "Procreated when not supposed to."
 
 
@@ -263,7 +263,7 @@ def test_feed(trial_islands):
                                            {"species": "Carnivore", "age": 0, "weight": 20}]}]
         island.add_population(animals)
 
-        cell = island.cell_grid[1][1]
+        cell = island.cells[(2, 2)]
 
         # Set the parameters so that the carnivore will eat the herbivore.
         Herbivore.set_parameters({"phi_age": 0, "phi_weight": 0.01})
@@ -312,7 +312,7 @@ def test_migrate(reset_animal_params):
     # all animals should have moved from their initial position
     island.migrate()
     for species in ["Herbivores", "Carnivores"]:
-        assert island.n_animals_per_species_per_cell['(3, 3)'][species] \
+        assert island.n_animals_per_species_per_cell[(3, 3)][species] \
             == 0, "Some animals did not migrate."
 
     n = island.n_animals
@@ -336,7 +336,7 @@ def test_migrate_to_water(reset_animal_params):
 
     island.migrate()
 
-    length = len(island.cell_grid[1][1].animals["Herbivore"])
+    length = len(island.cells[(2, 2)].animals["Herbivore"])
     assert length == 1, "The animals did not migrate correctly."
     assert island.n_animals == 1, "The animals did not migrate correctly."
 
@@ -355,7 +355,7 @@ def test_aging(reset_animal_params):
     num_years = 10
     for _ in range(num_years):
         island.ageing()
-    age = island.cell_grid[1][1].animals["Herbivore"][0].a
+    age = island.cells[(2, 2)].animals["Herbivore"][0].a
 
     assert age == num_years, "The animals did not age correctly."
 
@@ -374,7 +374,7 @@ def test_lose_weight_year(reset_animal_params):
     num_years = 10
     for _ in range(num_years):
         island.weight_loss()
-    weight = island.cell_grid[1][1].animals["Herbivore"][0].w
+    weight = island.cells[(2, 2)].animals["Herbivore"][0].w
 
     assert weight == approx(0), "Weight did not decrease correctly."
 
@@ -392,7 +392,7 @@ def test_death(reset_animal_params, mocker):
 
     island.death()
 
-    length = len(island.cell_grid[1][1].animals["Herbivore"])
+    length = len(island.cells[(2, 2)].animals["Herbivore"])
     assert length == 0, "The animals did not die correctly."
     assert island.n_animals == 0, "The animals did not die correctly."
 

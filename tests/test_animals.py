@@ -33,6 +33,8 @@ def trial_animals():
     age = 0
     weight = 1
     animals = [Herbivore(age, weight), Carnivore(age, weight)]
+    for animal in animals:
+        animal.set_parameters(animal.default_parameters())
 
     yield animals
 
@@ -43,7 +45,7 @@ def trial_animals():
         animal.set_parameters(animal.default_parameters())
 
 
-def test_animal_init():
+def test_animal_init(trial_animals):
     """Tests that the animal is initialized correctly."""
 
     assert Herbivore(1, 1).w_birth == float(8)
@@ -138,7 +140,7 @@ def test_lognormv(trial_animals):
         _, p_val = stat.shapiro(log_weights)
 
         # If the p-value is below the confidence level, we reject the null hypothesis (uniformity).
-        assert p_val > 0.01, "Weights are not normally distributed (p < 0.01)."
+        assert p_val > 0.01, "(WILL SOMETIME FAIL) Weights are not normally distributed (p < 0.01)."
 
 
 def test_lognormv_with_animals(trial_animals, mocker):

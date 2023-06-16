@@ -2,10 +2,10 @@ I morgen:
 =========
 - hallvard
 * test til ny set_motion
+* test de nye funksjonene i island og animals.
 * mock fitness in death test? hunt??
 * mock random.random -> 1 (100%)
-* Rekn ut alle statiske sannsynligheter i starten av simuleringen.
-* Lagre fitness når de blir brukt.
+* Lese gjennom og sjekke alle dockstrings.
 
 - thyra
 * test_biosim_interface.py
