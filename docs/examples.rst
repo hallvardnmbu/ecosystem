@@ -20,17 +20,19 @@ The pros and cons of the GUI:
 
 * Easy to visualise.
 
+* Prevents the user from inputting invalid values.
+
 * A bit clumsy when navigating from the simulation plot back to the GUI.
 
 * Easy to use.
 
-* Able to continue simulating, or reset it.
+* Able to continue on the previous simulation (as well as add animals), or reset it.
 
 * Unable to specify parameters for the simulation.
 
 * Able to navigate back and forth from drawing and simulating.
 
-* Super fun.
+* Super fun!
 
 To use the GUI, run the following code (and change :code:`map_size` to your liking):
 
@@ -40,5 +42,5 @@ To use the GUI, run the following code (and change :code:`map_size` to your liki
 Making a mp4 movie:
 -------------------
 
-.. literalinclude:: ../examples/ex_01_movie.py
+.. literalinclude:: ../examples/example_save_movie.py
     :language: python

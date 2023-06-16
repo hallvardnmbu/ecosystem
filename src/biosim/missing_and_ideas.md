@@ -74,7 +74,7 @@ animals.py
 
 island.py
 ---------
-* Island skal ikke "bruke" animals. Det skal skje i animals.
+* 
 
 GUI:
 ----
