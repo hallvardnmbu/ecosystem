@@ -40,4 +40,4 @@ population = [{"loc": (14, 14),
 
 sim = BioSim(island_map=nmbu, ini_pop=population, seed=123456, vis_years=1)
 
-sim.simulate(200)
+sim.simulate(300)

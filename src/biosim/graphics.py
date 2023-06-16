@@ -33,7 +33,8 @@ class Graphics:
                  img_fmt,
                  log_file,
                  step_size=1,
-                 my_colours=None):
+                 my_colours=None,
+                 terrain_patches=False):
 
         self.geography = geography
         self.initial_density = initial_density
@@ -64,6 +65,7 @@ class Graphics:
         self._log_file = log_file
         self._img_ctr = 0
         self.my_colours = my_colours
+        self.terrain_patches = terrain_patches
 
         if img_dir:
             if os.path.isabs(img_dir):
@@ -145,7 +147,7 @@ class Graphics:
 
         if self._map_plot is None:
             self._map_plot = self._fig.add_subplot(self.gs[4:7, :9])
-            self._island_map(self.my_colours)
+            self._island_map(self.my_colours, self.terrain_patches)
             self._map_plot.set_title("Map of Rossumøya (Pylandia)")
 
         herb, carn = self._animal_data(self.initial_density)
@@ -406,13 +408,14 @@ class Graphics:
             _ylim = max(max(n_animals.values()) * 1.1, self._line_ax.get_ylim()[1])
             self._line_ax.set_ylim(0, _ylim)
 
-    def _island_map(self, my_colours=None):
+    def _island_map(self, my_colours=None, terrain_patches=True):
         """
         Creates the island map.
 
         Parameters
         ----------
         my_colours : dict, optional
+        terrain_patches : bool, optional
         """
 
         colours = {"L": [colour / 255 for colour in [185, 214, 135]],
@@ -437,6 +440,13 @@ class Graphics:
         self._map_plot.set_xticklabels(x_ticks_labels)
         self._map_plot.set_yticks(y_ticks)
         self._map_plot.set_yticklabels(y_ticks_labels)
+
+        if terrain_patches:
+            handler_map = {"Patch": patches.Rectangle}
+            patch = [patches.Patch(color=val,
+                                      label="{0}".format(key)) for key, val in colours.items()]
+            plt.legend(handles=patch, bbox_to_anchor=(1, 1), loc=2, borderaxespad=0.2,
+                       handler_map=handler_map, handlelength=1.5, handleheight=1.5)
 
     def _animal_data(self, density):
         """

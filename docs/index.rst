@@ -13,7 +13,7 @@ Welcome to BioSim's documentation!
 .. image:: _static/images/abstract_island.png
    :width: 700px
    :align: center
-   :class: bordered-image´
+   :class: bordered-image
 
 .. raw:: html
 
