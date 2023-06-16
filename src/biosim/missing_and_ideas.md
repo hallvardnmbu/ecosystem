@@ -2,6 +2,7 @@ I morgen:
 =========
 - hallvard
 * test til ny set_motion
+* mock fitness in death test? hunt??
 * mock random.random -> 1 (100%)
 * Rekn ut alle statiske sannsynligheter i starten av simuleringen.
 * Lagre fitness når de blir brukt.
@@ -22,7 +23,7 @@ Mangler:
 
 examples
 --------
-* Eksempler på hvordan å bruke BioSim (fyll inn de to filene i mappe 'examples')
+* 
 
 animals.py
 ----------
@@ -79,15 +80,11 @@ Sjekk 'run -> profile' for å se hva som tar lang tid (husk å fjerne plottingen
 
 animals.py
 ----------
-* Forenkle default parameter-funksjonene(?)
 * DeltaPhiMax = 15 ? (Det brukte han i forelesningen)
 
 island.py
 ---------
-* Island skal ikke "bruke" animals. Det skal skje i animals.
-* "huske" hvilke celler som er vann for å ikke gå gjennom de, funker det bedre?
-  - lagre i hver celle hvilke naboceller den kan flytte dyra inni til. kun sjekke en gang om 
-    nabocelle er vann eller ikke
+* 
 
 GUI:
 ----

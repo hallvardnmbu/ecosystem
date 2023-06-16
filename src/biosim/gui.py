@@ -300,7 +300,8 @@ class AddAnimals(tk.Frame):
                                  command=self.restart)
         clear_button.place(anchor="se", relx=1.0, rely=1.0, x=-120, y=-5)
 
-        geogr = "\n".join(self.master.grid_map)
+        geogr = ["".join(terrain) for terrain in zip(*self.master.grid_map)]
+        geogr = "\n".join(geogr)
         self.sim = BioSim(island_map=geogr, ini_pop=self.master.population)
 
     def navigate_page(self):
@@ -385,7 +386,7 @@ class AddAnimals(tk.Frame):
         if self.master.grid_map[x][y] == "W":
             return
 
-        self.selected_cell.set((x, y))
+        self.selected_cell.set((y, x))
         canvas.delete("selection")
         canvas.create_rectangle(x * self.cell_size, y * self.cell_size, (x + 1) *
                                 self.cell_size,
@@ -398,7 +399,8 @@ class AddAnimals(tk.Frame):
         """
 
         self.master.population = []
-        geogr = "\n".join(self.master.grid_map)
+        geogr = ["".join(terrain) for terrain in zip(*self.master.grid_map)]
+        geogr = "\n".join(geogr)
         self.sim = BioSim(island_map=geogr, ini_pop=self.master.population)
 
     def simulate(self):

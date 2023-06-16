@@ -96,7 +96,8 @@ class Island:
             cls.set_motion()
             cls.set_parameters(cls.default_parameters())
         self.set_fodder_parameters(self.default_fodder_parameters())
-        self.cell_grid, self.habitable_cells = self._terraform()
+        self.cells, self.habitable_cells = self._terraform()
+        self.habitated_cells = {}
         self.add_population(population=ini_pop) if ini_pop is not None else None
 
     def _terraform(self):
@@ -135,21 +136,19 @@ class Island:
             habitable_types.extend([k for k, v in cls.motion()[0].items() if v is True])
         habitable_types = list(dict.fromkeys(habitable_types))  # Removes duplicates.
 
-        cell_grid = []
-        habitable_cells = []
+        cells = {}
+        habitable_cells = {}
         for i in range(x):
-            row = []
+            # row = []
             for j in range(y):
                 # Creates the cell-objects in the grid with the index corresponding to the terrain:
-                row.append(Cell(cell_type=self.geography[i][j]))
+                cells[(i+1, j+1)] = Cell(cell_type=self.geography[i][j])
 
                 # Retrieves the habitable cells for the animals:
                 if self.geography[i][j] in habitable_types:
-                    habitable_cells.append(row[j])
+                    habitable_cells[cells[(i+1, j+1)]] = (i+1, j+1)
 
-            cell_grid.append(row)
-
-        return cell_grid, habitable_cells
+        return cells, habitable_cells
 
     def add_population(self, population):
         r"""
@@ -182,6 +181,8 @@ class Island:
             i = location[0] - 1
             j = location[1] - 1
 
+            self.habitated_cells[self.cells[(i+1, j+1)]] = (i+1, j+1)
+
             animals = location_animals["pop"]
             for animal in animals:
 
@@ -193,7 +194,7 @@ class Island:
                 if not movable[self.geography[i][j]]:
                     raise ValueError(f"Invalid terrain: {location}.")
                 else:
-                    cell = self.cell_grid[i][j]
+                    cell = self.cells[(i+1, j+1)]
                     if "age" not in animal:
                         age = None
                     else:
@@ -219,9 +220,9 @@ class Island:
             N: number of animals of the same species in the cell.
         """
 
-        for cell in self.habitable_cells:
-            animals_in_cell = {cls.__name__: len(cell.animals[cls.__name__]) for cls in
-                               Animal.__subclasses__()}
+        for cell in self.habitated_cells.keys():
+            p_baby = {cls.__name__: cls.gamma * len(cell.animals[cls.__name__])
+                      for cls in Animal.__subclasses__()}
 
             babies = []
             for animal in itertools.chain(*cell.animals.values()):
@@ -229,8 +230,8 @@ class Island:
                 # Procreation may only take place if the following is satisfied:
                 if animal.w >= animal.p_procreate:
 
-                    n = animals_in_cell[animal.__class__.__name__]
-                    if random.random() < min(1, animal.gamma * animal.fitness * n):
+                    animal.calculate_fitness()
+                    if random.random() < min(1, animal.fitness * p_baby[animal.__class__.__name__]):
                         baby_weight = animal.lognormv()
 
                         # If the parents' weight is greater than the baby's weight * xi, the
@@ -252,7 +253,7 @@ class Island:
         first.
         """
 
-        for cell in self.habitable_cells:
+        for cell in self.habitated_cells.keys():
             if cell.animals["Herbivore"]:
 
                 cell.grow_fodder()
@@ -280,7 +281,7 @@ class Island:
         """
 
         migrating_animals = []
-        for cell in self.habitable_cells:
+        for cell, pos in self.habitated_cells.items():
             for animal in itertools.chain(*cell.animals.values()):
 
                 # The probability of migrating is calculated:
@@ -291,10 +292,10 @@ class Island:
                                           (-stride, 0),
                                           (0, stride),
                                           (0, -stride)])
+                    i, j = pos
 
-                    i, j = self._find_index(cell)
-                    if movable[self.geography[i + x][j + y]]:
-                        new_cell = self.cell_grid[i + x][j + y]
+                    if movable[self.geography[i + x - 1][j + y - 1]]:  # Geography is 0-indexed.
+                        new_cell = self.cells[(i + x, j + y)]
                         movement = (animal, cell, new_cell)
                         migrating_animals.append(movement)
 
@@ -306,33 +307,24 @@ class Island:
             from_cell.animals[animal.__class__.__name__].remove(animal)
             to_cell.animals[animal.__class__.__name__].append(animal)
 
-    def _find_index(self, cell):
+        self._update_habitated_cells()
+
+    def _update_habitated_cells(self):
         """
-        Finds the index of a cell in the cell grid.
-
-        Parameters
-        ----------
-        cell : object
-            The cell to find the index of.
-
-        Returns
-        -------
-        tuple
-            The index of the cell in the cell grid.
+        Updates the list of habitated cells.
         """
 
-        for i in range(len(self.cell_grid)):
-            try:
-                return i, self.cell_grid[i].index(cell)
-            except ValueError:
-                pass
+        self.habitated_cells = {}
+        for cell, pos in self.habitable_cells.items():
+            if cell.animals["Herbivore"] or cell.animals["Carnivore"]:
+                self.habitated_cells[cell] = pos
 
     def ageing(self):
         """
         Iterates through all the animals on the island and ages them accordingly.
         """
 
-        for cell in self.habitable_cells:
+        for cell in self.habitated_cells.keys():
             for animal in itertools.chain(*cell.animals.values()):
                 animal.aging()
 
@@ -341,7 +333,7 @@ class Island:
         Iterates through all the animals on the island and decrements their weight accordingly.
         """
 
-        for cell in self.habitable_cells:
+        for cell in self.habitated_cells.keys():
             for animal in itertools.chain(*cell.animals.values()):
                 animal.lose_weight_year()
 
@@ -354,9 +346,10 @@ class Island:
         An animal dies with a probability of :math:`\omega` * (1 - :math:`\Phi`).
         """
 
-        for cell in self.habitable_cells:
+        for cell in self.habitated_cells.keys():
             dying_animals = []
             for animal in itertools.chain(*cell.animals.values()):
+                animal.calculate_fitness()
                 if animal.w <= 0 or random.random() < animal.omega * (1 - animal.fitness):
                     dying_animals.append(animal)
 
@@ -382,6 +375,7 @@ class Island:
             for species, n_animals in animals.items():
                 if n_animals != 0:
                     n_animals_per_species[species] += n_animals
+
         return n_animals_per_species
 
     @property
@@ -399,9 +393,11 @@ class Island:
         """
 
         n_animals_per_species_per_cell = {}
-        for x, cells in enumerate(self.cell_grid):
-            for y, cell in enumerate(cells):
-                n_animals_per_species_per_cell[f"({x+1}, {y+1})"] = cell.n_animals_in_cell()
+        for pos, cell in self.cells.items():
+            n_herbs = len(cell.animals["Herbivore"])
+            n_carns = len(cell.animals["Carnivore"])
+            n_animals_per_species_per_cell[pos] = {"Herbivores": n_herbs, "Carnivores": n_carns}
+
         return n_animals_per_species_per_cell
 
     @property
@@ -430,7 +426,7 @@ class Island:
         """
 
         animals = {cls.__name__: [] for cls in Animal.__subclasses__()}
-        for cell in self.habitable_cells:
+        for cell in self.habitated_cells:
             for animal in itertools.chain(*cell.animals.values()):
                 animals[animal.__class__.__name__].append(animal)
 

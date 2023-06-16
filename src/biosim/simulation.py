@@ -93,6 +93,11 @@ class BioSim:
 
         random.seed(seed)
 
+        if vis_years == 0 or vis_years is None:
+            self.vis_years = False
+        else:
+            self.vis_years = vis_years
+
         self.island = Island(geography=island_map, ini_pop=ini_pop)
 
         self.graphics = Graphics(geography=self.island.geography,
@@ -187,16 +192,18 @@ class BioSim:
             The interval between plot data-updates.
         """
 
-        simulate_years = num_years + self.year + 1
+        simulate_years = num_years + self.year
         self.graphics.setup(simulate_years)
 
-        while self.year < simulate_years:
+        while self.year <= simulate_years:
 
-            self.graphics.update_graphics(self.year,
-                                          self.num_animals_per_species,
-                                          self.island.n_animals_per_species_per_cell,
-                                          self.island.population,
-                                          speed)
+            if self.vis_years:
+                if self.year % self.vis_years == 0:
+                    self.graphics.update_graphics(self.year,
+                                                  self.num_animals_per_species,
+                                                  self.island.n_animals_per_species_per_cell,
+                                                  self.island.population,
+                                                  speed)
             self.island.yearly_cycle()
 
         plt.draw()

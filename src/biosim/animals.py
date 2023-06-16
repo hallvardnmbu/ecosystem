@@ -201,6 +201,8 @@ class Animal:
         except TypeError:
             raise ValueError(f"Age: {age} and weight: {weight} must both be numbers.")
 
+        self._fitness = None
+
     def aging(self):
         """
         Increments the age of the animal by one year.
@@ -215,6 +217,7 @@ class Animal:
         """
 
         self.w += self.beta * food
+        self.calculate_fitness()
 
     def lose_weight_year(self):
         r"""
@@ -245,19 +248,14 @@ class Animal:
 
         if self.w > self.xi * baby_weight:
             self.w -= self.xi * baby_weight
+            self.calculate_fitness()
             return True
         else:
             return False
 
-    @property
-    def fitness(self):
+    def calculate_fitness(self):
         r"""
         Calculates the fitness of the animal.
-
-        Returns
-        -------
-        fitness : float
-            The fitness of the animal.
 
         Notes
         -----
@@ -274,10 +272,27 @@ class Animal:
         """
 
         if self.w <= 0:
-            return 0
-        q_pos = (1 + exp(self.phi_age * (self.a - self.a_half))) ** (-1)
-        q_neg = (1 + exp(-self.phi_weight * (self.w - self.w_half))) ** (-1)
-        return q_pos * q_neg
+            self._fitness = 0
+        else:
+            q_pos = (1 + exp(self.phi_age * (self.a - self.a_half))) ** (-1)
+            q_neg = (1 + exp(-self.phi_weight * (self.w - self.w_half))) ** (-1)
+
+            self._fitness = q_pos * q_neg
+
+    @property
+    def fitness(self):
+        """
+        Returns the fitness of the animal.
+
+        Returns
+        -------
+        fitness : float
+        """
+
+        if self._fitness is None:
+            self.calculate_fitness()
+
+        return self._fitness
 
 
 class Herbivore(Animal):
@@ -334,10 +349,6 @@ class Herbivore(Animal):
         return 1, {"H": True, "L": True, "D": True, "W": False}
 
     def __init__(self, age=None, weight=None):
-        try:
-            self.set_parameters(Herbivore.get_parameters())
-        except AttributeError:
-            self.set_parameters(Herbivore.default_parameters())
         super().__init__(weight, age)
 
     def graze(self, available_fodder):
@@ -420,10 +431,6 @@ class Carnivore(Animal):
         return 1, {"H": True, "L": True, "D": True, "W": False}
 
     def __init__(self, age=None, weight=None):
-        try:
-            self.set_parameters(Carnivore.get_parameters())
-        except AttributeError:
-            self.set_parameters(Carnivore.default_parameters())
         super().__init__(weight, age)
 
     def predation(self, herbivores):
@@ -459,26 +466,27 @@ class Carnivore(Animal):
         killed = []
 
         for herbivore in herbivores:
-            if eaten >= self.F:
-                break
 
             carnivore_fitness = self.fitness
             herbivore_fitness = herbivore.fitness
+            difference = carnivore_fitness - herbivore_fitness
+
             if carnivore_fitness <= herbivore_fitness:
                 p = 0
-            elif 0 < carnivore_fitness - herbivore_fitness < self.DeltaPhiMax:
-                p = (carnivore_fitness - herbivore_fitness) / self.DeltaPhiMax
+            elif 0 < difference < self.DeltaPhiMax:
+                p = difference / self.DeltaPhiMax
             else:
                 p = 1
 
             if random.random() < p:
 
-                # Fikse her, self.F
-
-                eaten += herbivore.w
-
-
-                self.gain_weight(food=herbivore.w)
+                if herbivore.w < self.F - eaten:
+                    eaten += herbivore.w
+                    self.gain_weight(food=herbivore.w)
+                else:
+                    rest = self.F - eaten
+                    self.gain_weight(food=rest)
+                    break
 
                 killed.append(herbivore)
 
