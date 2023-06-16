@@ -460,9 +460,9 @@ class Graphics:
             row_herb = []
             row_carn = []
             for y in range(len(self.geography[0])):
-                cell = f"({x+1}, {y+1})"
-                row_herb.append(density[cell].get("Herbivores", 0))
-                row_carn.append(density[cell].get("Carnivores", 0))
+                cell = (x+1, y+1)
+                row_herb.append(density[(x+1, y+1)].get("Herbivores", 0))
+                row_carn.append(density[(x+1, y+1)].get("Carnivores", 0))
             herb.append(row_herb)
             carn.append(row_carn)
 

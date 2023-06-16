@@ -8,7 +8,7 @@ I morgen:
 
 * Rekn ut alle statiske sannsynligheter i starten av simuleringen.
 
-* Lagre fitness når de blir brukt.
+* Fikse simuleringen, nå simulerer den 1 år for mye hver gang .simulate() brukes.
 
 ---------------------------------------------------------------------------------------------------
 

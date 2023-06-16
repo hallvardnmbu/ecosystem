@@ -209,7 +209,6 @@ class Animal:
         """
 
         self.a += 1
-        self.calculate_fitness()
 
     def gain_weight(self, food):
         r"""
@@ -226,7 +225,6 @@ class Animal:
         """
 
         self.w -= self.eta * self.w
-        self.calculate_fitness()
 
     def lose_weight_birth(self, baby_weight):
         r"""
