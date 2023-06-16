@@ -152,7 +152,7 @@ def test_set_wrong_landscape(trial_simulation, landscape, param, val):
 
 @pytest.mark.parametrize("landscape, param, val", [
                         ["H", "alpha", 700],
-                        "L", 2, 700
+                        ["L", 2, 700]
 ])
 def test_set_wrong_landscape_parameter_keys(trial_simulation, landscape, param, val):
     """

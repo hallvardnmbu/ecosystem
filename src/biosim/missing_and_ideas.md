@@ -1,11 +1,14 @@
 I morgen:
 =========
-* spørsmål om cetup.cfg eksempelfiler
+* test_biosim_interface.py
+* spørsmål om setup.cfg eksempelfiler se kommentar
   * også om pytest i project requirements
 * tox.ini
 * legge alle tester in classer
 * test_make_movie
-* mock fitness in death test? hunt??
+* mock fitness in death test? hunt
+* other flake8 tests
+* 
 ---------------------------------------------------------------------------------------------------
 
 Mangler:
