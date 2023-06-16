@@ -219,6 +219,14 @@ def test_set_motion_terrain(trial_animals):
     """Tests that the motion is set correctly."""
 
     for animal in trial_animals:
+        animal.set_motion(new_movable={"W": True})
+        assert animal.movable["W"], f"Motion terrain for {animal.species} is wrongly set."
+
+
+def test_set_motion_invalid_terrain(trial_animals):
+    """Tests that the motion is set correctly."""
+
+    for animal in trial_animals:
         with pytest.raises(KeyError):
             animal.set_motion(new_movable={"w": True}), \
                 f"Setting motion terrain thats not in map for {animal.species} worked."
@@ -297,15 +305,15 @@ def test_lose_weight_birth_small_weight(trial_animals):
 def test_fitness():
     """Tests that the fitness is calculated correctly."""
 
-    animals = [Herbivore(age=0, weight=0),
-               Carnivore(age=0, weight=0),
+    animals = [Herbivore(age=0, weight=1),
+               Carnivore(age=0, weight=1),
                Herbivore(age=0, weight=10000),
                Carnivore(age=0, weight=10000)]
 
     for animal in animals:
-        if animal.w == 0:
-            assert animal.fitness == approx(0), \
-                    f"Fitness for {animal.__class__.__name__} is incorrect."
+        if animal.w == 1:
+            animal.w = 0
+            assert animal.fitness == 0,  f"Fitness for {animal.__class__.__name__} is incorrect."
         if animal.w == 10000:
             assert 0.999 < animal.fitness < 1, \
                     f"Fitness for {animal.__class__.__name__} is incorrect."

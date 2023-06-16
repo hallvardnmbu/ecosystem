@@ -63,12 +63,11 @@ def test_default_parameters(trial_islands):
                    "Parameters are wrongly constructed."
 
 
-@pytest.mark.parametrize("dict_key, dict_value", [
-                          ["H", 1],
+@pytest.mark.parametrize("dict_key, dict_value",
+                         [["H", 1],
                           ["L", 1],
                           ["D", 1],
-                          ["W", 1]
-])
+                          ["W", 1]])
 def test_set_parameters(trial_islands, dict_key, dict_value):
     """Tests that the parameters are set correctly."""
 
@@ -79,61 +78,60 @@ def test_set_parameters(trial_islands, dict_key, dict_value):
             "Setting parameters didn't work."
 
 
-@pytest.mark.parametrize("dict_key, dict_value", [
-                          ["H", -1],
+@pytest.mark.parametrize("dict_key, dict_value",
+                         [["H", -1],
                           ["L", -1],
                           ["D", -1],
-                          ["W", -1]
-])
+                          ["W", -1]])
 def test_set_parameters_negative(trial_islands, dict_key, dict_value):
     """Tests that error is raised when negative parameters are passed."""
 
     with pytest.raises(ValueError):
         for island in trial_islands:
             new_parameters = {dict_key: dict_value}
-            island.set_fodder_parameters(new_parameters)
-            available = island.available_fodder[dict_key]
-            assert available == dict_value, "Setting negative parameters worked."
+            island.set_fodder_parameters(new_parameters), "Setting negative parameters worked."
 
 
-@pytest.mark.parametrize("dict_key, dict_value", [
-                        ["S", 1],
-                        ["2", 1],
-                        ["A", 1],
-                        ["s", 1]
-])
+@pytest.mark.parametrize("dict_key, dict_value",
+                         [["S", 1],
+                          ["2", 1],
+                          ["A", 1],
+                          ["s", 1]])
 def test_set_parameters_nonexistent(trial_islands, dict_key, dict_value):
     """Tests that error is raised when nonexistent parameters are passed."""
 
     with pytest.raises(KeyError):
         for island in trial_islands:
             new_parameters = {dict_key: dict_value}
-            island.set_fodder_parameters(new_parameters)
-            available = island.available_fodder[dict_key]
-            assert available == dict_value, "Setting nonexistent parameters worked."
+            island.set_fodder_parameters(new_parameters), "Setting nonexistent parameters worked."
 
 
-@pytest.mark.parametrize("dict_key, dict_value", [
-                          ["H", "a"],
+@pytest.mark.parametrize("dict_key, dict_value",
+                         [["H", "a"],
                           ["L", Herbivore],
                           ["D", (1, 2, 3)],
-                          ["W", [1, 2, 3]]
-])
+                          ["W", [1, 2, 3]]])
 def test_set_parameters_non_numeric(trial_islands, dict_key, dict_value):
     """Tests that error is raised when other than numeric parameters are passed."""
 
     with pytest.raises(ValueError):
         for island in trial_islands:
             new_parameters = {dict_key: dict_value}
-            island.set_fodder_parameters(new_parameters)
-            available = island.available_fodder[dict_key]
-            assert available == dict_value, "Setting non-numeric parameters worked."
+            island.set_fodder_parameters(new_parameters), "Setting non-numeric parameters worked."
 
 
-def test_island_map_edges():
+def test_island_map_edges_row():
     """Tests that error is raised when the island map has edges that are not water."""
 
     geography = """WWW\nWLW\nWLW"""
+    with pytest.raises(ValueError):
+        Island(geography=geography), "Island map with edges that are not water was accepted."
+
+
+def test_island_map_edges_col():
+    """Tests that error is raised when the island map has edges that are not water."""
+
+    geography = """WWW\nWLL\nWWW"""
     with pytest.raises(ValueError):
         Island(geography=geography), "Island map with edges that are not water was accepted."
 
@@ -165,6 +163,17 @@ def test_add_population(trial_islands):
         assert herbivores == 1, "The population was not added correctly."
 
 
+def test_n_animals_in_cell(trial_islands):
+    """Tests that the population is added correctly."""
+
+    for island in trial_islands:
+        animal = [{"loc": (2, 2), "pop": [{"species": "Herbivore"}]}]
+        island.add_population(animal)
+        animals_in_cell = island.cells[(2, 2)].n_animals_in_cell()
+        assert animals_in_cell["Herbivores"] == 1, "The population was not added correctly."
+        assert animals_in_cell["Carnivores"] == 0, "The population was not added correctly."
+
+
 def test_add_population_in_water(trial_islands):
     """Tests that error is raised when the population is added to an invalid location."""
 
@@ -192,12 +201,11 @@ def test_add_population_wrong_species(trial_islands):
             island.add_population(animal), "Population was added with an invalid animal."
 
 
-@pytest.mark.parametrize("dict_key, dict_value", [
-                          ["age", -2],
+@pytest.mark.parametrize("dict_key, dict_value",
+                          [["age", -2],
                           ["weight", -2],
                           ["age", "a"],
-                          ["weight", "a"]
-])
+                          ["weight", "a"]])
 def test_add_population_wrong_pop_values(trial_islands, dict_key, dict_value):
     """Tests that error is raised when the population is added with an invalid animal."""
 
@@ -207,12 +215,11 @@ def test_add_population_wrong_pop_values(trial_islands, dict_key, dict_value):
             island.add_population(animal), "Population was added with an invalid parameter."
 
 
-@pytest.mark.parametrize("pos, f", [
-                          [(2, 1), Island.default_fodder_parameters()["W"]],
+@pytest.mark.parametrize("pos, f",
+                         [[(2, 1), Island.default_fodder_parameters()["W"]],
                           [(2, 2), Island.default_fodder_parameters()["L"]],
                           [(2, 3), Island.default_fodder_parameters()["H"]],
-                          [(2, 4), Island.default_fodder_parameters()["D"]]
-])
+                          [(2, 4), Island.default_fodder_parameters()["D"]]])
 def test_island_cells_fodder(pos, f):
     """Tests that the island cells are created correctly."""
 

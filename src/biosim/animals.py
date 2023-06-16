@@ -174,11 +174,6 @@ class Animal:
         (Retrieved from: https://en.wikipedia.org/wiki/Log-normal_distribution).
         """
 
-        try:
-            cls.get_parameters()
-        except AttributeError:
-            cls.set_parameters(cls.default_parameters())
-
         mu = log((cls.w_birth**2)/sqrt(cls.w_birth**2 + cls.sigma_birth**2))
         sigma = sqrt(log(1 + ((cls.sigma_birth**2)/(cls.w_birth**2))))
 
@@ -194,14 +189,14 @@ class Animal:
                 self.a = age
             if not weight:
                 self.w = self.lognormv()
-            elif float(weight) < 0:
+            elif float(weight) <= 0:
                 raise ValueError("Weight should be positive.")
             else:
                 self.w = weight
-        except TypeError:
+        except ValueError:
             raise ValueError(f"Age: {age} and weight: {weight} must both be numbers.")
-
         self._fitness = None
+        self.set_motion()
 
     def aging(self):
         """

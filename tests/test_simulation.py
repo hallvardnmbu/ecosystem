@@ -20,12 +20,12 @@ def trial_simulation():
                       {"loc": (2, 2), "pop": [{"species": "Carnivore",
                                                "age": 5,
                                                "weight": 20} for _ in range(40)]}]
-    sim = BioSim(island_map="WWWWW\nWLHDW\nWWWWW", ini_pop=sim_population, seed=1)
+    sim = BioSim(island_map="WWWWW\nWLHDW\nWWWWW", ini_pop=sim_population, seed=1, vis_years=0)
 
     yield sim
 
     # Cleanup:
-    sim = BioSim(island_map="WWWWW\nWLHDW\nWWWWW", ini_pop=sim_population, seed=1)
+    sim = BioSim(island_map="WWWWW\nWLHDW\nWWWWW", ini_pop=sim_population, seed=1, vis_years=0)
 
 
 @pytest.fixture

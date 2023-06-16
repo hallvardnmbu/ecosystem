@@ -6,6 +6,7 @@ I morgen:
 * mock fitness in death test? hunt??
 * mock random.random -> 1 (100%)
 * Lese gjennom og sjekke alle dockstrings.
+* Spørre: vits å teste gui.py?
 
 - thyra
 * test_biosim_interface.py
@@ -16,6 +17,7 @@ I morgen:
 * test_make_movie
 * mock fitness in death test? hunt
 * other flake8 tests
+* Dele opp (sortere) testene i unittests, integraltests osv.?
 ---------------------------------------------------------------------------------------------------
 
 Mangler:
