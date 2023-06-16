@@ -13,9 +13,6 @@ import re
 from .simulation import BioSim
 
 
-_MAP_SIZE = 10
-
-
 class BioSimGUI(tk.Tk):
     """
     Graphical User Interface (GUI) superclass for the simulation of an ecosystem.
@@ -415,7 +412,3 @@ class AddAnimals(tk.Frame):
             years = int(self.year_entry.get())
             self.sim.add_population(self.master.population)
             self.sim.simulate(years)
-
-
-app = BioSimGUI(map_size=_MAP_SIZE)
-app.mainloop()
