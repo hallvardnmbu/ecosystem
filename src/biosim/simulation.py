@@ -81,7 +81,7 @@ class BioSim:
                  island_map,
                  ini_pop,
                  seed=1,
-                 vis_years=None,
+                 vis_years=1,
                  ymax_animals=None,
                  cmax_animals=None,
                  hist_specs=None,
@@ -192,10 +192,10 @@ class BioSim:
             The interval between plot data-updates.
         """
 
-        simulate_years = num_years + self.year + 1
+        simulate_years = num_years + self.year
         self.graphics.setup(simulate_years)
 
-        while self.year < simulate_years:
+        while self.year <= simulate_years:
 
             if self.vis_years:
                 if self.year % self.vis_years == 0:

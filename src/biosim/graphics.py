@@ -116,14 +116,14 @@ class Graphics:
             self._line_ax = self._fig.add_subplot(self.gs[:3, 4:])
             self._line_ax.set_title('Number of animals')
             self._line_ax.set_ylim(0, self.ymax_animals)
-            self._line_ax.set_xlim(0, final_year-1)
-            self.herbs = np.arange(0, final_year, self.step_size)
+            self._line_ax.set_xlim(0, final_year)
+            self.herbs = np.arange(0, final_year+1, self.step_size)
             self.n_herbs = self._line_ax.plot(self.herbs,
                                               np.full_like(self.herbs, np.nan, dtype=float),
                                               linestyle="-",
                                               color=(0.71764, 0.749, 0.63137),
                                               label="Herbivores")[0]
-            self.carns = np.arange(0, final_year, self.step_size)
+            self.carns = np.arange(0, final_year+1, self.step_size)
             self.n_carns = self._line_ax.plot(self.carns,
                                               np.full_like(self.carns, np.nan, dtype=float),
                                               linestyle="-",
@@ -133,8 +133,8 @@ class Graphics:
         else:
             old_x_herb, old_y_herb = self.n_herbs.get_data()
             old_x_carn, old_y_carn = self.n_carns.get_data()
-            x_herb = np.arange(old_x_herb[-1] + 1, final_year)
-            x_carn = np.arange(old_x_carn[-1] + 1, final_year)
+            x_herb = np.arange(old_x_herb[-1] + 1, final_year+1)
+            x_carn = np.arange(old_x_carn[-1] + 1, final_year+1)
             if len(x_herb) > 0:
                 y_herb = np.full_like(x_herb, np.nan, dtype=float)
                 self.n_herbs.set_data(np.hstack((old_x_herb, x_herb)),
