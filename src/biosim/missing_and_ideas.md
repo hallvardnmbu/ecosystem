@@ -9,7 +9,6 @@ I morgen:
 * Spørre: vits å teste gui.py?
 * Sortere metodene i klassene i riktig rekkefølge.
 * Se på forelesningsnotater (2 av dem) om hva som vektlegges.
-* Legg til patch for map i graphics.py
 
 - thyra
 * test_biosim_interface.py
