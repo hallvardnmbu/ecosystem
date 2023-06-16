@@ -20,6 +20,6 @@ population = [{"loc": (5, 10),
               {"loc": (5, 10),
                "pop": [{"species": "Carnivore", "age": 5, "weight": 20} for _ in range(40)]}]
 
-sim = BioSim(island_map=geogr, ini_pop=population, seed=123456)
+sim = BioSim(island_map=geogr, ini_pop=population, seed=123456, vis_years=1)
 
 sim.simulate(200)

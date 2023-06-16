@@ -32,11 +32,16 @@ class Graphics:
                  img_base,
                  img_fmt,
                  log_file,
+                 step_size=1,
                  my_colours=None):
 
         self.geography = geography
         self.initial_density = initial_density
-        self.vis_years = vis_years
+        if vis_years:
+            self.vis_years = vis_years
+        else:
+            self.vis_years = 0
+        self.step_size = step_size
         self.ymax_animals = ymax_animals
         cmax = cmax_animals if cmax_animals is not None else {"Herbivore": 90,
                                                               "Carnivore": 90}
@@ -112,13 +117,13 @@ class Graphics:
             self._line_ax.set_title('Number of animals')
             self._line_ax.set_ylim(0, self.ymax_animals)
             self._line_ax.set_xlim(0, final_year-1)
-            self.herbs = np.arange(0, final_year, self.vis_years)
+            self.herbs = np.arange(0, final_year, self.step_size)
             self.n_herbs = self._line_ax.plot(self.herbs,
                                               np.full_like(self.herbs, np.nan, dtype=float),
                                               linestyle="-",
                                               color=(0.71764, 0.749, 0.63137),
                                               label="Herbivores")[0]
-            self.carns = np.arange(0, final_year, self.vis_years)
+            self.carns = np.arange(0, final_year, self.step_size)
             self.n_carns = self._line_ax.plot(self.carns,
                                               np.full_like(self.carns, np.nan, dtype=float),
                                               linestyle="-",
@@ -389,7 +394,7 @@ class Graphics:
         n_animals : dict
         """
 
-        index = year // self.vis_years
+        index = year // self.step_size
         y_herbs = self.n_herbs.get_ydata()
         y_herbs[index] = n_animals["Herbivores"]
         self.n_herbs.set_ydata(y_herbs)

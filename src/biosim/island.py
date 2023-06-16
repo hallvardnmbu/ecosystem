@@ -97,6 +97,7 @@ class Island:
             cls.set_parameters(cls.default_parameters())
         self.set_fodder_parameters(self.default_fodder_parameters())
         self.cell_grid, self.habitable_cells = self._terraform()
+        self.habitated_cells = []
         self.add_population(population=ini_pop) if ini_pop is not None else None
 
     def _terraform(self):
@@ -182,6 +183,8 @@ class Island:
             i = location[0] - 1
             j = location[1] - 1
 
+            self.habitated_cells.append(self.cell_grid[i][j])
+
             animals = location_animals["pop"]
             for animal in animals:
 
@@ -205,6 +208,8 @@ class Island:
                     cell.animals[species].append(self.species_map[species](age=age,
                                                                            weight=weight))
 
+        self.habitated_cells = list(dict.fromkeys(self.habitated_cells))  # Removes duplicates.
+
     def procreate(self):
         r"""
         Iterates through all the animals on the island.
@@ -219,9 +224,9 @@ class Island:
             N: number of animals of the same species in the cell.
         """
 
-        for cell in self.habitable_cells:
-            animals_in_cell = {cls.__name__: len(cell.animals[cls.__name__]) for cls in
-                               Animal.__subclasses__()}
+        for cell in self.habitated_cells:
+            p_baby = {cls.__name__: cls.gamma * len(cell.animals[cls.__name__])
+                      for cls in Animal.__subclasses__()}
 
             babies = []
             for animal in itertools.chain(*cell.animals.values()):
@@ -229,8 +234,7 @@ class Island:
                 # Procreation may only take place if the following is satisfied:
                 if animal.w >= animal.p_procreate:
 
-                    n = animals_in_cell[animal.__class__.__name__]
-                    if random.random() < min(1, animal.gamma * animal.fitness * n):
+                    if random.random() < min(1, animal.fitness * p_baby[animal.__class__.__name__]):
                         baby_weight = animal.lognormv()
 
                         # If the parents' weight is greater than the baby's weight * xi, the
@@ -252,7 +256,7 @@ class Island:
         first.
         """
 
-        for cell in self.habitable_cells:
+        for cell in self.habitated_cells:
             if cell.animals["Herbivore"]:
 
                 cell.grow_fodder()
@@ -280,7 +284,7 @@ class Island:
         """
 
         migrating_animals = []
-        for cell in self.habitable_cells:
+        for cell in self.habitated_cells:
             for animal in itertools.chain(*cell.animals.values()):
 
                 # The probability of migrating is calculated:
@@ -305,6 +309,18 @@ class Island:
             animal, from_cell, to_cell = movement
             from_cell.animals[animal.__class__.__name__].remove(animal)
             to_cell.animals[animal.__class__.__name__].append(animal)
+
+        self._update_habitated_cells()
+
+    def _update_habitated_cells(self):
+        """
+        Updates the list of habitated cells.
+        """
+
+        self.habitated_cells = []
+        for cell in self.habitable_cells:
+            if cell.animals["Herbivore"] or cell.animals["Carnivore"]:
+                self.habitated_cells.append(cell)
 
     def _find_index(self, cell):
         """
@@ -332,7 +348,7 @@ class Island:
         Iterates through all the animals on the island and ages them accordingly.
         """
 
-        for cell in self.habitable_cells:
+        for cell in self.habitated_cells:
             for animal in itertools.chain(*cell.animals.values()):
                 animal.aging()
 
@@ -341,7 +357,7 @@ class Island:
         Iterates through all the animals on the island and decrements their weight accordingly.
         """
 
-        for cell in self.habitable_cells:
+        for cell in self.habitated_cells:
             for animal in itertools.chain(*cell.animals.values()):
                 animal.lose_weight_year()
 
@@ -354,7 +370,7 @@ class Island:
         An animal dies with a probability of :math:`\omega` * (1 - :math:`\Phi`).
         """
 
-        for cell in self.habitable_cells:
+        for cell in self.habitated_cells:
             dying_animals = []
             for animal in itertools.chain(*cell.animals.values()):
                 if animal.w <= 0 or random.random() < animal.omega * (1 - animal.fitness):
@@ -430,7 +446,7 @@ class Island:
         """
 
         animals = {cls.__name__: [] for cls in Animal.__subclasses__()}
-        for cell in self.habitable_cells:
+        for cell in self.habitated_cells:
             for animal in itertools.chain(*cell.animals.values()):
                 animals[animal.__class__.__name__].append(animal)
 

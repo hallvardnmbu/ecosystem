@@ -209,6 +209,7 @@ class Animal:
         """
 
         self.a += 1
+        self.calculate_fitness()
 
     def gain_weight(self, food):
         r"""
@@ -350,10 +351,6 @@ class Herbivore(Animal):
         return 1, {"H": True, "L": True, "D": True, "W": False}
 
     def __init__(self, age=None, weight=None):
-        try:
-            self.set_parameters(Herbivore.get_parameters())
-        except AttributeError:
-            self.set_parameters(Herbivore.default_parameters())
         super().__init__(weight, age)
 
     def graze(self, available_fodder):
@@ -436,10 +433,6 @@ class Carnivore(Animal):
         return 1, {"H": True, "L": True, "D": True, "W": False}
 
     def __init__(self, age=None, weight=None):
-        try:
-            self.set_parameters(Carnivore.get_parameters())
-        except AttributeError:
-            self.set_parameters(Carnivore.default_parameters())
         super().__init__(weight, age)
 
     def predation(self, herbivores):

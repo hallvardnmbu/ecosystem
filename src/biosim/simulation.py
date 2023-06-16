@@ -81,7 +81,7 @@ class BioSim:
                  island_map,
                  ini_pop,
                  seed=1,
-                 vis_years=1,
+                 vis_years=None,
                  ymax_animals=None,
                  cmax_animals=None,
                  hist_specs=None,
@@ -92,6 +92,11 @@ class BioSim:
                  log_file=None):
 
         random.seed(seed)
+
+        if vis_years == 0 or vis_years is None:
+            self.vis_years = False
+        else:
+            self.vis_years = vis_years
 
         self.island = Island(geography=island_map, ini_pop=ini_pop)
 
@@ -192,11 +197,13 @@ class BioSim:
 
         while self.year < simulate_years:
 
-            self.graphics.update_graphics(self.year,
-                                          self.num_animals_per_species,
-                                          self.island.n_animals_per_species_per_cell,
-                                          self.island.population,
-                                          speed)
+            if self.vis_years:
+                if self.year % self.vis_years == 0:
+                    self.graphics.update_graphics(self.year,
+                                                  self.num_animals_per_species,
+                                                  self.island.n_animals_per_species_per_cell,
+                                                  self.island.population,
+                                                  speed)
             self.island.yearly_cycle()
 
         plt.draw()
