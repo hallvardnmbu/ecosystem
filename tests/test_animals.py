@@ -10,7 +10,7 @@ Tests for the animals module.
 from src.biosim.animals import Herbivore, Carnivore
 import scipy.stats as stat
 from math import log
-from pytest_mock import mocker
+from unittest import mock
 from pytest import approx
 import pytest
 # We used the lecture notes, ChatGPT and Stackoverflow in order to gain a basic understanding of how
@@ -185,6 +185,7 @@ def test_create_animal_nonnumber(age, weight):
     with pytest.raises(ValueError):
         Herbivore(age=age, weight=weight), "Creating animal with non-numbers worked."
 
+
 def test_set_motion(trial_animals):
     """Tests that the motion is set correctly."""
 
@@ -198,7 +199,9 @@ def test_set_motion_negative(trial_animals):
 
     for animal in trial_animals:
         with pytest.raises(ValueError):
-            animal.set_motion(new_stride=-1), f"Setting negative motion for {animal.species} worked."
+            animal.set_motion(new_stride=-1), \
+                f"Setting negative motion for {animal.species} worked."
+
 
 def test_set_motion_nonnumber(trial_animals):
     """
@@ -206,15 +209,17 @@ def test_set_motion_nonnumber(trial_animals):
     """
     for animal in trial_animals:
         with pytest.raises(TypeError):
-            animal.set_motion(new_stride="a"), f"Setting non-number motion for {animal.species} worked."
+            animal.set_motion(new_stride="a"), \
+                f"Setting non-number motion for {animal.species} worked."
+
 
 def test_set_motion_terrain(trial_animals):
     """Tests that the motion is set correctly."""
 
     for animal in trial_animals:
         with pytest.raises(KeyError):
-            animal.set_motion(new_movable={"w":True}), f"Setting motion terrain thats not in map for {animal.species} worked."
-
+            animal.set_motion(new_movable={"w": True}), \
+                f"Setting motion terrain thats not in map for {animal.species} worked."
 
 
 def test_aging(trial_animals):
@@ -290,11 +295,15 @@ def test_lose_weight_birth_small_weight(trial_animals):
 def test_fitness():
     """Tests that the fitness is calculated correctly."""
 
-    animals = [Herbivore(age=0, weight=0), Carnivore(age=0, weight=0),
-               Herbivore(age=0, weight=10000), Carnivore(age=0, weight=10000)]
+    animals = [Herbivore(age=0, weight=0),
+               Carnivore(age=0, weight=0),
+               Herbivore(age=0, weight=10000),
+               Carnivore(age=0, weight=10000)]
 
     for animal in animals:
         if animal.w == 0:
-            assert animal.fitness == approx(0), f"Fitness for {animal.__class__.__name__} is incorrect."
+            assert animal.fitness == approx(0), \
+                    f"Fitness for {animal.__class__.__name__} is incorrect."
         if animal.w == 10000:
-            assert 0.999 < animal.fitness < 1, f"Fitness for {animal.__class__.__name__} is incorrect."
+            assert 0.999 < animal.fitness < 1, \
+                    f"Fitness for {animal.__class__.__name__} is incorrect."

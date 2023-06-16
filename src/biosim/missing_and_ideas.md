@@ -1,15 +1,20 @@
 I morgen:
 =========
+- hallvard
 * test til ny set_motion
-* mock fitness in death test? hunt??
 * mock random.random -> 1 (100%)
-* tox.ini
-* readme.md
-
 * Rekn ut alle statiske sannsynligheter i starten av simuleringen.
-
 * Lagre fitness når de blir brukt.
 
+- thyra
+* test_biosim_interface.py
+* spørsmål om setup.cfg eksempelfiler se kommentar
+  * også om pytest i project requirements
+* tox.ini
+* legge alle tester in classer
+* test_make_movie
+* mock fitness in death test? hunt
+* other flake8 tests
 ---------------------------------------------------------------------------------------------------
 
 Mangler:

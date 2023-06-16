@@ -9,11 +9,9 @@ Tests for the island module.
 
 from src.biosim.animals import Herbivore, Carnivore
 from src.biosim.island import Island
-import itertools
+from unittest import mock
 from pytest import approx
 import pytest
-from pytest_mock import mocker
-
 
 # We used the lecture notes, ChatGPT and Stackoverflow in order to gain a basic understanding of how
 # to structure the tests. ChatGPT and Stackoverflow were used as a "teacher", and did not author
@@ -60,28 +58,33 @@ def test_default_parameters(trial_islands):
 
     for island in trial_islands:
         for terrain_type in island.default_fodder_parameters().keys():
-            assert island.get_fodder_parameter(terrain_type) == island.default_fodder_parameters()[terrain_type], "Parameters are wrongly constructed."
+            assert island.get_fodder_parameter(terrain_type) \
+                   == island.default_fodder_parameters()[terrain_type], \
+                   "Parameters are wrongly constructed."
 
 
-@pytest.mark.parametrize("dict_key, dict_value",
-                         [["H", 1],
+@pytest.mark.parametrize("dict_key, dict_value", [
+                          ["H", 1],
                           ["L", 1],
                           ["D", 1],
-                          ["W", 1]])
+                          ["W", 1]
+])
 def test_set_parameters(trial_islands, dict_key, dict_value):
     """Tests that the parameters are set correctly."""
 
     for island in trial_islands:
         new_parameters = {dict_key: dict_value}
         island.set_fodder_parameters(new_parameters)
-        assert island.get_fodder_parameter(dict_key) == dict_value, "Setting parameters didn't work."
+        assert island.get_fodder_parameter(dict_key) == dict_value, \
+            "Setting parameters didn't work."
 
 
-@pytest.mark.parametrize("dict_key, dict_value",
-                         [["H", -1],
+@pytest.mark.parametrize("dict_key, dict_value", [
+                          ["H", -1],
                           ["L", -1],
                           ["D", -1],
-                          ["W", -1]])
+                          ["W", -1]
+])
 def test_set_parameters_negative(trial_islands, dict_key, dict_value):
     """Tests that error is raised when negative parameters are passed."""
 
@@ -93,11 +96,12 @@ def test_set_parameters_negative(trial_islands, dict_key, dict_value):
             assert available == dict_value, "Setting negative parameters worked."
 
 
-@pytest.mark.parametrize("dict_key, dict_value",
-                         [["S", 1],
-                          ["2", 1],
-                          ["A", 1],
-                          ["s", 1]])
+@pytest.mark.parametrize("dict_key, dict_value", [
+                        ["S", 1],
+                        ["2", 1],
+                        ["A", 1],
+                        ["s", 1]
+])
 def test_set_parameters_nonexistent(trial_islands, dict_key, dict_value):
     """Tests that error is raised when nonexistent parameters are passed."""
 
@@ -109,11 +113,12 @@ def test_set_parameters_nonexistent(trial_islands, dict_key, dict_value):
             assert available == dict_value, "Setting nonexistent parameters worked."
 
 
-@pytest.mark.parametrize("dict_key, dict_value",
-                         [["H", "a"],
+@pytest.mark.parametrize("dict_key, dict_value", [
+                          ["H", "a"],
                           ["L", Herbivore],
                           ["D", (1, 2, 3)],
-                          ["W", [1, 2, 3]]])
+                          ["W", [1, 2, 3]]
+])
 def test_set_parameters_non_numeric(trial_islands, dict_key, dict_value):
     """Tests that error is raised when other than numeric parameters are passed."""
 
@@ -187,11 +192,12 @@ def test_add_population_wrong_species(trial_islands):
             island.add_population(animal), "Population was added with an invalid animal."
 
 
-@pytest.mark.parametrize("dict_key, dict_value",
-                         [["age", -2],
+@pytest.mark.parametrize("dict_key, dict_value", [
+                          ["age", -2],
                           ["weight", -2],
                           ["age", "a"],
-                          ["weight", "a"]])
+                          ["weight", "a"]
+])
 def test_add_population_wrong_pop_values(trial_islands, dict_key, dict_value):
     """Tests that error is raised when the population is added with an invalid animal."""
 
@@ -201,12 +207,12 @@ def test_add_population_wrong_pop_values(trial_islands, dict_key, dict_value):
             island.add_population(animal), "Population was added with an invalid parameter."
 
 
-
-@pytest.mark.parametrize("x, y, f",
-                         [[1, 0, Island.default_fodder_parameters()["W"]],
+@pytest.mark.parametrize("x, y, f", [
+                          [1, 0, Island.default_fodder_parameters()["W"]],
                           [1, 1, Island.default_fodder_parameters()["L"]],
                           [1, 2, Island.default_fodder_parameters()["H"]],
-                          [1, 3, Island.default_fodder_parameters()["D"]]])
+                          [1, 3, Island.default_fodder_parameters()["D"]]
+])
 def test_island_cells_fodder(x, y, f):
     """Tests that the island cells are created correctly."""
 
@@ -266,50 +272,55 @@ def test_feed(trial_islands):
 
         island.feed()
 
-        assert cell.fodder == island.get_fodder_parameter(cell.cell_type) - Herbivore.F, "The herbivore did not feed correctly."
-        assert len(cell.animals["Herbivore"]) == 0, "The carnivore did not feed correctly."
+        assert cell.fodder == island.get_fodder_parameter(cell.cell_type) - Herbivore.F,\
+            "The herbivore did not feed correctly."
+        assert len(cell.animals["Herbivore"]) == 0, \
+            "The carnivore did not feed correctly."
+
 
 def test_population():
+    """Tests that the population list is created correctly."""
 
     geogr = "WWWWW\nWWLWW\nWLLLW\nWWLWW\nWWWWW"
-    pop=[{"loc": (3, 3), "pop": [{"species": "Herbivore", "age": 5,
-                                "weight": 20} for _ in range(10)]},
-        {"loc": (3, 4), "pop": [{"species": "Carnivore","age": 5,
-                                "weight": 20} for _ in range(5)]}]
+    pop = [{"loc": (3, 3), "pop": [{"species": "Herbivore", "age": 5,
+                                   "weight": 20} for _ in range(10)]},
+           {"loc": (3, 4), "pop": [{"species": "Carnivore", "age": 5,
+                                    "weight": 20} for _ in range(5)]}]
 
     island = Island(geogr, pop)
 
-    pop=0
+    pop = 0
     for species in island.population.values():
         pop += len(species)
 
-
     assert pop == 15, "The population list was not created correctly."
+
 
 def test_migrate(reset_animal_params):
     """Tests that the animals migrate correctly."""
 
     geogr = "WWWWW\nWWLWW\nWLLLW\nWWLWW\nWWWWW"
-    ini_pop_herbs=[{"loc": (3, 3), "pop": [{"species": "Herbivore", "age": 0, "weight": 50000}]}]
-    ini_pop_carns=[{"loc": (3, 3), "pop": [{"species": "Carnivore", "age": 0, "weight": 50000}]}]
+    ini_pop_herbs = [{"loc": (3, 3), "pop": [{"species": "Herbivore", "age": 0, "weight": 50000}]}]
+    ini_pop_carns = [{"loc": (3, 3), "pop": [{"species": "Carnivore", "age": 0, "weight": 50000}]}]
 
     island = Island(geogr, ini_pop_carns+ini_pop_herbs)
 
     # Set the parameters so that the animals will migrate (and don't die).
-    Herbivore.set_parameters({'mu': 1, 'omega': 0, 'gamma': 0, 'eta': 0,'F': 0, 'a_half': 10000})
+    Herbivore.set_parameters({'mu': 1, 'omega': 0, 'gamma': 0, 'eta': 0, 'F': 0, 'a_half': 10000})
     Carnivore.set_parameters({'mu': 1, 'omega': 0, 'gamma': 0, 'eta': 0, 'F': 0, 'a_half': 10000})
 
-    #all animals should have moved from their initial position
+    # all animals should have moved from their initial position
     island.migrate()
     for species in ["Herbivores", "Carnivores"]:
-        assert island.n_animals_per_species_per_cell['(3, 3)'][species] == 0, "Some animals did not migrate."
+        assert island.n_animals_per_species_per_cell['(3, 3)'][species] \
+            == 0, "Some animals did not migrate."
 
     n = island.n_animals
     for _ in range(10):
         island.migrate()
-        #number of animals should not change
-        assert island.n_animals == n, "The animals did not migrate correctly. Number of animals of island changed."
-
+        # number of animals should not change
+        assert island.n_animals == n, \
+            "The animals did not migrate correctly. Number of animals of island changed."
 
 
 def test_migrate_to_water(reset_animal_params):
