@@ -7,6 +7,7 @@ import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 import subprocess
+import csv
 import os
 
 
@@ -83,6 +84,7 @@ class Graphics:
             self._img_base = None
 
         # The following will be initialized by setup
+        self.final_year = None
         self._fig = None
         self._map_plot = None
         self._year_ax = None
@@ -107,6 +109,8 @@ class Graphics:
         [ Map ][ Herbivores ][ Carnivores ]   (static, heatmap, heatmap)
         [   Age   ][  Weight ][  Fitness  ]   (histograms)
         """
+
+        self.final_year = final_year
 
         if self._fig is None:
             self._fig = plt.figure(figsize=(15, 10))
@@ -305,6 +309,9 @@ class Graphics:
         plt.pause(speed)
 
         self._save_image(year)
+
+        if year == self.final_year:
+            self._save_to_file(n_animals)
 
     def make_movie(self, movie_fmt="mp4"):
         """
@@ -545,3 +552,11 @@ class Graphics:
             self._age_ax.set_ylim([0, _age_ylim])
             self._weight_ax.set_ylim([0, _weight_ylim])
             self._fitness_ax.set_ylim([0, _fitness_ylim])
+
+    def _save_to_file(self, data):
+
+        if self._log_file is not None:
+            with open(self._log_file, "w") as file:
+                write = csv.writer(file)
+                write.writerow(list(data.keys()))
+                write.writerow(list(data.values()))

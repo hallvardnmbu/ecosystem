@@ -133,7 +133,7 @@ class Island:
         # Habitable cell types:
         habitable_types = []
         for cls in Animal.__subclasses__():
-            habitable_types.extend([k for k, v in cls.motion()[0].items() if v is True])
+            habitable_types.extend(k for k, v in cls.motion()[0].items() if v is True)
         habitable_types = list(dict.fromkeys(habitable_types))  # Removes duplicates.
 
         cells = {}
@@ -230,7 +230,6 @@ class Island:
                 # Procreation may only take place if the following is satisfied:
                 if animal.w >= animal.p_procreate:
 
-                    animal.calculate_fitness()
                     if random.random() < min(1, animal.fitness * p_baby[animal.__class__.__name__]):
                         baby_weight = animal.lognormv()
 
@@ -264,9 +263,11 @@ class Island:
                 for herbivore in cell.animals["Herbivore"]:
                     cell.fodder -= herbivore.graze(cell.fodder)
 
+                # Since the Herbivores eat in order of descending fitness, the order is
+                # preserved, and thus the reversion of the list is done without fetching the
+                # newly calculated fitness:
+                cell.animals["Herbivore"] = cell.animals["Herbivore"][::-1]
                 random.shuffle(cell.animals["Carnivore"])
-                cell.animals["Herbivore"] = sorted(cell.animals["Herbivore"],
-                                                   key=lambda herb: herb.fitness)
                 for carnivore in cell.animals["Carnivore"]:
                     killed = carnivore.predation(cell.animals["Herbivore"])
                     cell.animals["Herbivore"] = [herb for herb in cell.animals["Herbivore"]

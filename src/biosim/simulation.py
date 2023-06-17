@@ -202,8 +202,16 @@ class BioSim:
 
         if self.vis_years:
             self.graphics.setup(simulate_years)
+            if self.year % self.vis_years == 0:
+                self.graphics.update_graphics(self.year,
+                                              self.num_animals_per_species,
+                                              self.island.n_animals_per_species_per_cell,
+                                              self.island.population,
+                                              speed)
 
-        while self.year <= simulate_years:
+        while self.year < simulate_years:
+
+            self.island.yearly_cycle()
 
             if self.vis_years:
                 if self.year % self.vis_years == 0:
@@ -212,7 +220,6 @@ class BioSim:
                                                   self.island.n_animals_per_species_per_cell,
                                                   self.island.population,
                                                   speed)
-            self.island.yearly_cycle()
 
         plt.draw()
 

@@ -120,7 +120,7 @@ def test_year_increase(trial_simulation):
     num_years = 10
     trial_simulation.simulate(num_years)
 
-    assert trial_simulation.year == num_years + 1, "Year is not increasing correctly."
+    assert trial_simulation.year == num_years, "Year is not increasing correctly."
 
 
 @pytest.mark.parametrize("landscape, param, val",

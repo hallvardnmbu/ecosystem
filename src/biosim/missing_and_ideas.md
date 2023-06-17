@@ -1,27 +1,22 @@
 I morgen:
 =========
 - hallvard
+* (!!!) LOG_FILE i simulation.py
+* Rydde opp i "n_animals_..." i island.py
 * mock fitness in death test? hunt??
 * mock random.random -> 1 (100%)
 * Lese gjennom og sjekke alle dockstrings.
-* Spørre: vits å teste gui.py?
 * Sortere metodene i klassene i riktig rekkefølge.
-* Se på forelesningsnotater (2 av dem) om hva som vektlegges.
-* Finne ut hva som feiler gitlab-ci
-* log-file in simulation.py
-* simulate() kjører ett år for mye?!
-  -         plain_sim.simulate(num_years=2)
-            assert plain_sim.year == 2
-            assert 3 == 2 
-* Hva skjer her?
+
+* Spørre hjelpelærerne om:
   -         assert os.path.isfile(figfile_base + '_00000.png')
             AssertionError: assert False
              +  where False = <function isfile at 0x10d7abd80>(('figfileroot' + '_00000.png'))
              +    where <function isfile at 0x10d7abd80> = <module 'posixpath' (frozen)>.isfile
-             +      where <module 'posixpath' (frozen)> = os.path 
-* Rydde opp i "n_animals_..." i island.py
+             +      where <module 'posixpath' (frozen)> = os.path
 
 - thyra
+* Finne ut hva som feiler gitlab-ci
 * test_biosim_interface.py
 * spørsmål om setup.cfg eksempelfiler se kommentar
   * også om pytest i project requirements
