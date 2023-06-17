@@ -203,7 +203,7 @@ def test_num_animals_per_species(trial_simulation):
     Tests that the number of animals increases correctly when simulating.
     """
 
-    assert trial_simulation.num_animals_per_species == {"Herbivores": 150, "Carnivores": 40}, \
+    assert trial_simulation.num_animals_per_species == {"Herbivore": 150, "Carnivore": 40}, \
         "Number of animals per is not increasing correctly."
 
 

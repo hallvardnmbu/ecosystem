@@ -158,7 +158,7 @@ def test_add_population(trial_islands):
     for island in trial_islands:
         animal = [{"loc": (2, 2), "pop": [{"species": "Herbivore"}]}]
         island.add_population(animal)
-        herbivores = island.n_animals_per_species["Herbivores"]
+        herbivores = island.n_animals_per_species["Herbivore"]
         assert island.n_animals == 1, "The population was not added correctly."
         assert herbivores == 1, "The population was not added correctly."
 
@@ -170,8 +170,8 @@ def test_n_animals_in_cell(trial_islands):
         animal = [{"loc": (2, 2), "pop": [{"species": "Herbivore"}]}]
         island.add_population(animal)
         animals_in_cell = island.cells[(2, 2)].n_animals_in_cell()
-        assert animals_in_cell["Herbivores"] == 1, "The population was not added correctly."
-        assert animals_in_cell["Carnivores"] == 0, "The population was not added correctly."
+        assert animals_in_cell["Herbivore"] == 1, "The population was not added correctly."
+        assert animals_in_cell["Carnivore"] == 0, "The population was not added correctly."
 
 
 def test_add_population_in_water(trial_islands):
@@ -318,7 +318,7 @@ def test_migrate(reset_animal_params):
 
     # all animals should have moved from their initial position
     island.migrate()
-    for species in ["Herbivores", "Carnivores"]:
+    for species in ["Herbivore", "Carnivore"]:
         assert island.n_animals_per_species_per_cell[(3, 3)][species] \
             == 0, "Some animals did not migrate."
 

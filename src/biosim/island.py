@@ -367,10 +367,10 @@ class Island:
 
             .. code:: python
 
-                {'Herbivores': n_herbivores, 'Carnivores': n_carnivores}
+                {'Herbivore': n_herbivores, ...}
          """
 
-        n_animals_per_species = {cls.__name__+"s": 0 for cls in Animal.__subclasses__()}
+        n_animals_per_species = {cls.__name__: 0 for cls in Animal.__subclasses__()}
         for animals in self.n_animals_per_species_per_cell.values():
             for species, n_animals in animals.items():
                 if n_animals != 0:
@@ -389,14 +389,14 @@ class Island:
 
             .. code:: python
 
-                {(x, y): {'Herbivores': n_herbivores, 'Carnivores': n_carnivores}}
+                {(x, y): {'Herbivore': n_herbivores, ...}}
         """
 
         n_animals_per_species_per_cell = {}
         for pos, cell in self.cells.items():
             n_herbs = len(cell.animals["Herbivore"])
             n_carns = len(cell.animals["Carnivore"])
-            n_animals_per_species_per_cell[pos] = {"Herbivores": n_herbs, "Carnivores": n_carns}
+            n_animals_per_species_per_cell[pos] = {"Herbivore": n_herbs, "Carnivore": n_carns}
 
         return n_animals_per_species_per_cell
 
@@ -488,10 +488,10 @@ class Cell:
 
             .. code:: python
 
-                {'Herbivores': n_herbivores, 'Carnivores': n_carnivores}
+                {'Herbivore': n_herbivores, ...}
         """
 
-        n_animals_in_cell = {cls.__name__+"s": len(self.animals[cls.__name__]) for cls in
+        n_animals_in_cell = {cls.__name__: len(self.animals[cls.__name__]) for cls in
                              Animal.__subclasses__()}
 
         return n_animals_in_cell

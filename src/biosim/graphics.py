@@ -128,13 +128,13 @@ class Graphics:
                                               np.full_like(self.herbs, np.nan, dtype=float),
                                               linestyle="-",
                                               color=(0.71764, 0.749, 0.63137),
-                                              label="Herbivores")[0]
+                                              label="Herbivore")[0]
             self.carns = np.arange(0, final_year+1, self.step_size)
             self.n_carns = self._line_ax.plot(self.carns,
                                               np.full_like(self.carns, np.nan, dtype=float),
                                               linestyle="-",
                                               color=(0.949, 0.7647, 0.56078),
-                                              label="Carnivores")[0]
+                                              label="Carnivore")[0]
             self._line_ax.legend()
         else:
             old_x_herb, old_y_herb = self.n_herbs.get_data()
@@ -279,19 +279,19 @@ class Graphics:
 
             .. code:: python
 
-                {"Herbivores": 100, "Carnivores": 10}
+                {"Herbivore": 100, "Carnivore": 10}
 
         n_animals_cells : dict
 
             .. code:: python
 
-                {(10, 10): {"Herbivores": 100, "Carnivores": 10}}
+                {(10, 10): {"Herbivore": 100, "Carnivore: 10}}
 
         animals : dict
 
             .. code:: python
 
-                {"Herbivores": [Herbivore(), Herbivore(), ...], ...}
+                {"Herbivore": [Herbivore(), Herbivore(), ...], ...}
 
         speed : float
             Pause between visualization updates in seconds.
@@ -401,10 +401,10 @@ class Graphics:
 
         index = year // self.step_size
         y_herbs = self.n_herbs.get_ydata()
-        y_herbs[index] = n_animals["Herbivores"]
+        y_herbs[index] = n_animals["Herbivore"]
         self.n_herbs.set_ydata(y_herbs)
         y_carns = self.n_carns.get_ydata()
-        y_carns[index] = n_animals["Carnivores"]
+        y_carns[index] = n_animals["Carnivore"]
         self.n_carns.set_ydata(y_carns)
 
         if not self.ymax_animals:
@@ -473,8 +473,8 @@ class Graphics:
             row_herb = []
             row_carn = []
             for y in range(len(self.geography[0])):
-                row_herb.append(density[(x+1, y+1)].get("Herbivores", 0))
-                row_carn.append(density[(x+1, y+1)].get("Carnivores", 0))
+                row_herb.append(density[(x+1, y+1)].get("Herbivore", 0))
+                row_carn.append(density[(x+1, y+1)].get("Carnivore", 0))
             herb.append(row_herb)
             carn.append(row_carn)
 
