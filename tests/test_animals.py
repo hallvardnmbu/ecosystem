@@ -201,8 +201,7 @@ def test_set_motion_negative(trial_animals):
 
     for animal in trial_animals:
         with pytest.raises(ValueError):
-            animal.set_motion(new_stride=-1), \
-                f"Setting negative motion for {animal.species} worked."
+            animal.set_motion(new_stride=-1), "Setting negative motion for {animal.species} worked."
 
 
 def test_set_motion_nonnumber(trial_animals):
@@ -211,8 +210,8 @@ def test_set_motion_nonnumber(trial_animals):
     """
     for animal in trial_animals:
         with pytest.raises(TypeError):
-            animal.set_motion(new_stride="a"), \
-                f"Setting non-number motion for {animal.species} worked."
+            animal.set_motion(new_stride="a"), "Setting non-number motion for {animal.species} " \
+                                               "worked."
 
 
 def test_set_motion_terrain(trial_animals):

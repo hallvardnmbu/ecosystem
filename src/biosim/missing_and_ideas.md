@@ -1,14 +1,13 @@
 I morgen:
 =========
 - hallvard
-* test til ny set_motion
-* test de nye funksjonene i island og animals.
 * mock fitness in death test? hunt??
 * mock random.random -> 1 (100%)
 * Lese gjennom og sjekke alle dockstrings.
 * Spørre: vits å teste gui.py?
 * Sortere metodene i klassene i riktig rekkefølge.
 * Se på forelesningsnotater (2 av dem) om hva som vektlegges.
+* Finne ut hva som feiler gitlab-ci
 
 - thyra
 * test_biosim_interface.py
@@ -20,6 +19,7 @@ I morgen:
 * mock fitness in death test? hunt
 * other flake8 tests
 * Dele opp (sortere) testene i unittests, integraltests osv.?
+* Ordne opp i .gitignore (du fjerna den i commit 11:45 fredag)
 ---------------------------------------------------------------------------------------------------
 
 Mangler:
