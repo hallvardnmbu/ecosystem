@@ -8,6 +8,7 @@ I morgen:
 * Sortere metodene i klassene i riktig rekkefølge.
 * Se på forelesningsnotater (2 av dem) om hva som vektlegges.
 * Finne ut hva som feiler gitlab-ci
+* log-file in simulation.py
 
 - thyra
 * test_biosim_interface.py

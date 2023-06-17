@@ -32,9 +32,9 @@ class Graphics:
                  img_base,
                  img_fmt,
                  log_file,
-                 step_size=1,
-                 my_colours=None,
-                 terrain_patches=False):
+                 step_size,
+                 my_colours,
+                 terrain_patches):
 
         self.geography = geography
         self.initial_density = initial_density
@@ -50,12 +50,15 @@ class Graphics:
         self.cmax_carn = cmax["Carnivore"]
 
         if hist_specs is not None:
-            for prop in hist_specs:
-                if prop not in ["weight", "age", "fitness"]:
-                    raise ValueError("Invalid property for histogram specification.")
-                if "max" not in hist_specs[prop] and "delta" not in hist_specs[prop]:
-                    raise ValueError("Invalid histogram specification.")
-                self.hist_specs = hist_specs
+            try:
+                for prop in hist_specs.keys():
+                    if prop not in ["weight", "age", "fitness"]:
+                        raise ValueError("Invalid property for histogram specification.")
+                    if "max" not in hist_specs[prop].keys() and "delta" not in hist_specs[prop].keys():
+                        raise ValueError("Invalid histogram specification.")
+                    self.hist_specs = hist_specs
+            except TypeError:
+                raise TypeError("Invalid histogram specification.")
         else:
             self.hist_specs = None
 
@@ -360,8 +363,7 @@ class Graphics:
         if self._img_base is None or step % self._img_years != 0:
             return
 
-        plt.savefig('{base}_{num:05d}.{type}'.format(base=self._img_base,
-                                                     num=self._img_ctr,
+        plt.savefig('{base}_{num:05d}.{type}'.format(base=self._img_base, num=self._img_ctr,
                                                      type=self._img_fmt))
         self._img_ctr += 1
 
@@ -408,7 +410,7 @@ class Graphics:
             _ylim = max(max(n_animals.values()) * 1.1, self._line_ax.get_ylim()[1])
             self._line_ax.set_ylim(0, _ylim)
 
-    def _island_map(self, my_colours=None, terrain_patches=True):
+    def _island_map(self, my_colours, terrain_patches):
         """
         Creates the island map.
 

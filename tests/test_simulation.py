@@ -218,6 +218,7 @@ def test_make_movie_no_filename(trial_simulation):
     """ Tests that the movie is created correctly. """
 
     with pytest.raises(RuntimeError):
+        trial_simulation.graphics._img_base = "trial"
         trial_simulation.make_movie("mp4")
 
 
@@ -225,4 +226,7 @@ def test_update_graphics(trial_simulation):
     """ Tests that the movie is created correctly. """
 
     trial_simulation.vis_years = 1
+    trial_simulation.graphics.my_colours = {"W": [0, 0, 0]}
+    trial_simulation.graphics.terrain_patches = True
+    trial_simulation.simulate(1)
     trial_simulation.simulate(1)

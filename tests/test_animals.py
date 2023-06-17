@@ -154,6 +154,8 @@ def test_lognormv_with_animals(trial_animals, mocker):
 def test_lognormv_without_animals(mocker):
     """Tests that the lognormv function works correctly."""
 
+    Carnivore.set_parameters(Carnivore.default_parameters())
+
     mocker.patch("random.lognormvariate", return_value=1)
     assert Carnivore.lognormv() == 1, "Calling lognormv without an animal didn't work."
 
@@ -162,8 +164,8 @@ def test_create_animal():
     """Tests that the animal is created correctly."""
 
     animal = Herbivore(age=0, weight=1)
-    assert animal.a == 0, f"Age for {animal.species} is wrongly constructed."
-    assert animal.w == 1, f"Weight for {animal.species} is wrongly constructed."
+    assert animal.a == 0, f"Age for {animal.__class__.__name__} is wrongly constructed."
+    assert animal.w == 1, f"Weight for {animal.__class__.__name__} is wrongly constructed."
 
 
 @pytest.mark.parametrize("age, weight",
@@ -193,7 +195,7 @@ def test_set_motion(trial_animals):
 
     for animal in trial_animals:
         animal.set_motion(new_stride=1)
-        assert animal.stride == 1, f"Motion for {animal.species} is wrongly set."
+        assert animal.stride == 1, f"Motion for {animal.__class__.__name__} is wrongly set."
 
 
 def test_set_motion_negative(trial_animals):
@@ -201,7 +203,9 @@ def test_set_motion_negative(trial_animals):
 
     for animal in trial_animals:
         with pytest.raises(ValueError):
-            animal.set_motion(new_stride=-1), "Setting negative motion for {animal.species} worked."
+            animal.set_motion(new_stride=-1), f"Setting negative motion for" \
+                                              f" {animal.__class__.__name__} " \
+                                              f"worked."
 
 
 def test_set_motion_nonnumber(trial_animals):
@@ -210,8 +214,9 @@ def test_set_motion_nonnumber(trial_animals):
     """
     for animal in trial_animals:
         with pytest.raises(TypeError):
-            animal.set_motion(new_stride="a"), "Setting non-number motion for {animal.species} " \
-                                               "worked."
+            animal.set_motion(new_stride="a"), f"Setting non-number motion for" \
+                                               f" {animal.__class__.__name__} " \
+                                               f"worked."
 
 
 def test_set_motion_terrain(trial_animals):
@@ -219,7 +224,8 @@ def test_set_motion_terrain(trial_animals):
 
     for animal in trial_animals:
         animal.set_motion(new_movable={"W": True})
-        assert animal.movable["W"], f"Motion terrain for {animal.species} is wrongly set."
+        assert animal.movable["W"], f"Motion terrain for {animal.__class__.__name__} is wrongly " \
+                                    f"set."
 
 
 def test_set_motion_invalid_terrain(trial_animals):
@@ -228,7 +234,7 @@ def test_set_motion_invalid_terrain(trial_animals):
     for animal in trial_animals:
         with pytest.raises(KeyError):
             animal.set_motion(new_movable={"w": True}), \
-                f"Setting motion terrain thats not in map for {animal.species} worked."
+                f"Setting motion terrain thats not in map for {animal.__class__.__name__} worked."
 
 
 def test_aging(trial_animals):
@@ -238,7 +244,8 @@ def test_aging(trial_animals):
     for animal in trial_animals:
         for _ in range(num_years):
             animal.aging()
-        assert animal.a == num_years, f"Age for {animal.species} did not increase by one."
+        assert animal.a == num_years, f"Age for {animal.__class__.__name__} did not increase by " \
+                                      f"one."
 
 
 def test_gain_weight(trial_animals):
@@ -256,7 +263,8 @@ def test_gain_weight(trial_animals):
 
         weight *= food + num_years
 
-        assert animal.w == weight, f"Weight for {animal.species} did not increase correctly."
+        assert animal.w == weight, f"Weight for {animal.__class__.__name__} did not increase " \
+                                   f"correctly."
 
 
 def test_lose_weight_year(trial_animals):
@@ -270,7 +278,8 @@ def test_lose_weight_year(trial_animals):
         for _ in range(num_years):
             animal.lose_weight_year()
 
-        assert animal.w == approx(0), f"Weight for {animal.species} did not decrease correctly."
+        assert animal.w == approx(0), f"Weight for {animal.__class__.__name__} did not decrease " \
+                                      f"correctly."
 
 
 def test_lose_weight_birth(trial_animals):
@@ -286,7 +295,8 @@ def test_lose_weight_birth(trial_animals):
         for _ in range(num_years):
             animal.lose_weight_birth(baby_weight)
 
-        assert animal.w == approx(9), f"Weight for {animal.species} did not decrease correctly."
+        assert animal.w == approx(9), f"Weight for {animal.__class__.__name__} did not decrease " \
+                                      f"correctly."
 
 
 def test_lose_weight_birth_small_weight(trial_animals):
@@ -308,6 +318,9 @@ def test_fitness():
                Carnivore(age=0, weight=1),
                Herbivore(age=0, weight=10000),
                Carnivore(age=0, weight=10000)]
+
+    Herbivore.set_parameters(Herbivore.default_parameters())
+    Carnivore.set_parameters(Carnivore.default_parameters())
 
     for animal in animals:
         if animal.w == 1:

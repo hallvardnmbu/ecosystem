@@ -89,7 +89,10 @@ class BioSim:
                  img_dir=None,
                  img_base="U13",
                  img_fmt='png',
-                 log_file=None):
+                 log_file=None,
+                 step_size=1,
+                 my_colours=None,
+                 terrain_patches=False):
 
         random.seed(seed)
 
@@ -110,7 +113,10 @@ class BioSim:
                                  img_dir=img_dir,
                                  img_base=img_base,
                                  img_fmt=img_fmt,
-                                 log_file=log_file)
+                                 log_file=log_file,
+                                 step_size=step_size,
+                                 my_colours=my_colours,
+                                 terrain_patches=terrain_patches)
 
     def set_animal_parameters(self, species, params):
         """
@@ -193,7 +199,9 @@ class BioSim:
         """
 
         simulate_years = num_years + self.year
-        self.graphics.setup(simulate_years)
+
+        if self.vis_years:
+            self.graphics.setup(simulate_years)
 
         while self.year <= simulate_years:
 
