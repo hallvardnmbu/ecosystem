@@ -54,7 +54,8 @@ class Graphics:
                 for prop in hist_specs.keys():
                     if prop not in ["weight", "age", "fitness"]:
                         raise ValueError("Invalid property for histogram specification.")
-                    if "max" not in hist_specs[prop].keys() and "delta" not in hist_specs[prop].keys():
+                    keys = hist_specs[prop].keys()
+                    if "max" not in keys and "delta" not in keys:
                         raise ValueError("Invalid histogram specification.")
                     self.hist_specs = hist_specs
             except TypeError:
@@ -446,7 +447,7 @@ class Graphics:
         if terrain_patches:
             handler_map = {"Patch": patches.Rectangle}
             patch = [patches.Patch(color=val,
-                                      label="{0}".format(key)) for key, val in colours.items()]
+                                   label="{0}".format(key)) for key, val in colours.items()]
             plt.legend(handles=patch, bbox_to_anchor=(1, 1), loc=2, borderaxespad=0.2,
                        handler_map=handler_map, handlelength=1.5, handleheight=1.5)
 
@@ -472,7 +473,6 @@ class Graphics:
             row_herb = []
             row_carn = []
             for y in range(len(self.geography[0])):
-                cell = (x+1, y+1)
                 row_herb.append(density[(x+1, y+1)].get("Herbivores", 0))
                 row_carn.append(density[(x+1, y+1)].get("Carnivores", 0))
             herb.append(row_herb)

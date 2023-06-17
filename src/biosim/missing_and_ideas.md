@@ -21,6 +21,9 @@ I morgen:
 * other flake8 tests
 * Dele opp (sortere) testene i unittests, integraltests osv.?
 * Ordne opp i .gitignore (du fjerna den i commit 11:45 fredag)
+* Fikse setup.cfg
+* Skrive hvordan installere pakken i dokumentasjonen (jeg kan gjøre det hvis du sier hva 
+  "kommandoen" er).
 ---------------------------------------------------------------------------------------------------
 
 Mangler:
@@ -99,21 +102,7 @@ GUI:
 
 Ideer:
 ======
-* motion avhengig av fitness
-* Gjemme seg i skogen eller grave seg ned i ørkenen (kan ikke bli spist)
-  -Altså at noen arter har større sannsynlighet for å bli spist i ulike habitat
-* Herbivores kan drepe Carnivores HVIS: det er flere enn X Herbivores og mindre enn Y Carnivores
- i cellen
-* Dør av overpopulasjon (er vel på en måte sånn allerede, med at det ikke er nok mat?)
-* Dyr kan bli syke (og kan dø)
-* PANDEMI/METEOR! (alle dyr dør)
-  -for eksempel hvis for mange av en art er i en celle,
-  -implementere at ved en liten sjanse kan det skje genmanipulasjon
-    da kan vi se hvilke parametre som gir balansert økosystem
-* flom eller tørke
-* større sannsynlighet for å gå til lowland
-* lav sannsynlighet for å gå til desert
-* høy sannsynliget for å rømme fra carnivores hvis det er mange av de
+* 
 
 ---------------------------------------------------------------------------------------------------
 

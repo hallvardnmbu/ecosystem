@@ -1,5 +1,5 @@
-Further expansion
-=================
+On further expansion
+====================
 
 This package is designed to be easily expandable. Both new species and new terrain-types can be
 added with relative ease.

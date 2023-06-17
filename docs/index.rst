@@ -31,3 +31,4 @@ Welcome to BioSim's documentation!
    gui
    examples
    expansion
+   future

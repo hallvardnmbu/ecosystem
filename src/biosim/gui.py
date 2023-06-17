@@ -234,7 +234,7 @@ class AddAnimals(tk.Frame):
                                         (y + 1) * self.cell_size,
                                         fill=color,
                                         tags=f"cell_{x}_{y}")
-                canvas.tag_bind(f"cell_{x}_{y}", "<Button-1>", self.handle_click)
+                canvas.tag_bind(f"cell_{x}_{y}", "<Button-1>", self._handle_click)
 
         self.validate_integer_cmd = (self.register(self._validate_integer), '%P')
         self.validate_float_cmd = (self.register(self._validate_float), '%P')
@@ -371,7 +371,7 @@ class AddAnimals(tk.Frame):
 
         return re.match(r'^\d*\.?\d*$', value) is not None
 
-    def handle_click(self, event):
+    def _handle_click(self, event):
         """
         Handle clicks on the map, to select the desired cell.
         """

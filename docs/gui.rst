@@ -11,6 +11,9 @@ documentation was used in order to speed up the process of the steep learning cu
 See :mod:`examples` for a demonstration of how to use the GUI as well as some comments on pros
 and cons.
 
+Note: all of these commands below are "automated", meaning that the user doesn't explicitly call
+on any of them. It's all driven by mouse clicks and keyboard input.
+
 Module for the Graphical User Interface (GUI) for the BioSim project
 --------------------------------------------------------------------
 .. automodule:: biosim.gui
