@@ -73,14 +73,20 @@ class Graphics:
         self.terrain_patches = terrain_patches
 
         if img_dir:
-            if os.path.isabs(img_dir):
-                os.makedirs(img_dir, exist_ok=True)
-                self._img_base = os.path.join(img_dir, img_base)
+            self._img_dir = img_dir
+            if os.path.isabs(self._img_dir):
+                os.makedirs(self._img_dir, exist_ok=True)
+                images = os.path.join(self._img_dir, "images")
+                os.makedirs(images, exist_ok=True)
+                self._img_base = os.path.join(images, img_base)
             else:
-                default_dir = os.path.join(_DEFAULT_GRAPHICS_DIR, img_dir)
-                os.makedirs(default_dir, exist_ok=True)
-                self._img_base = os.path.join(default_dir, img_base)
+                self._img_dir = os.path.join(_DEFAULT_GRAPHICS_DIR, self._img_dir)
+                os.makedirs(self._img_dir, exist_ok=True)
+                self._img_base = os.path.join(self._img_dir, "images")
+                os.makedirs(self._img_base, exist_ok=True)
+                self._img_base = os.path.join(self._img_base, img_base)
         else:
+            self._img_dir = None
             self._img_base = None
 
         # The following will be initialized by setup
@@ -272,6 +278,24 @@ class Graphics:
             self._fitness_ax.set_xlabel('Fitness')
             self._fitness_ax.set_ylabel('')
 
+        if self._log_file is not None:
+            if os.path.isabs(self._log_file):
+                os.makedirs(self._log_file, exist_ok=True)
+                self._log_file = os.path.join(self._log_file, "animal_counts")
+
+            if not os.path.isabs(self._log_file) and self._img_dir is not None:
+                if self._img_dir[-1] == ".":
+                    self._log_file = os.path.join(self._img_dir, self._log_file)
+                else:
+                    self._log_file = os.path.join(self._img_dir, "..", self._log_file)
+            elif not os.path.isabs(self._log_file) and self._img_dir is None:
+                os.makedirs(_DEFAULT_GRAPHICS_DIR, exist_ok=True)
+                self._log_file = os.path.join(_DEFAULT_GRAPHICS_DIR, self._log_file)
+
+            with open(self._log_file, "w") as file:
+                write = csv.writer(file)
+                write.writerow(["Year", "Herbivores", "Carnivores"])
+
     def update_graphics(self, year, n_animals, n_animals_cells, animals, speed):
         r"""
         Updates the graphics with new data for the given year.
@@ -309,9 +333,7 @@ class Graphics:
         plt.pause(speed)
 
         self._save_image(year)
-
-        if year == self.final_year:
-            self._save_to_file(n_animals)
+        self._save_to_file(year, n_animals) if self._log_file is not None else None
 
     def make_movie(self, movie_fmt="mp4"):
         """
@@ -331,6 +353,8 @@ class Graphics:
         if not self._img_base:
             raise RuntimeError("No filename defined.")
 
+        _movie_base = os.path.join(self._img_dir, "U13")
+
         if movie_fmt == 'mp4':
             try:
                 # Parameters chosen according to http://trac.ffmpeg.org/wiki/Encode/H.264,
@@ -342,7 +366,7 @@ class Graphics:
                                        '-profile:v', 'baseline',
                                        '-level', '3.0',
                                        '-pix_fmt', 'yuv420p',
-                                       '{}.{}'.format(self._img_base, movie_fmt)])
+                                       '{}.{}'.format(_movie_base, movie_fmt)])
             except subprocess.CalledProcessError as err:
                 raise RuntimeError('ERROR: ffmpeg failed with: {}'.format(err))
         elif movie_fmt == 'gif':
@@ -352,7 +376,7 @@ class Graphics:
                                        '-loop', '0',
                                        '{base}_*.{fmt}'.format(base=self._img_base,
                                                                fmt=self._img_fmt),
-                                       '{}.{}'.format(self._img_base, movie_fmt)])
+                                       '{}.{}'.format(_movie_base, movie_fmt)])
             except subprocess.CalledProcessError as err:
                 raise RuntimeError('ERROR: convert failed with: {}'.format(err))
         else:
@@ -553,10 +577,17 @@ class Graphics:
             self._weight_ax.set_ylim([0, _weight_ylim])
             self._fitness_ax.set_ylim([0, _fitness_ylim])
 
-    def _save_to_file(self, data):
+    def _save_to_file(self, year, data):
+        """
+        Saves the yearly animal counts to file.
 
-        if self._log_file is not None:
-            with open(self._log_file, "w") as file:
-                write = csv.writer(file)
-                write.writerow(list(data.keys()))
-                write.writerow(list(data.values()))
+        Parameters
+        ----------
+        year : int
+        data : dict
+            Animal counts the given year.
+        """
+
+        with open(self._log_file, "a", newline="") as file:
+            write = csv.writer(file)
+            write.writerow([year] + list(data.values()))
