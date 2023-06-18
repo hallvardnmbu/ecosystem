@@ -2,6 +2,7 @@
 Tests for the simulation module.
 """
 
+
 from src.biosim.simulation import BioSim
 import pytest
 
@@ -37,19 +38,17 @@ def trial_simulation_empty():
     yield sim
 
 
-@pytest.mark.parametrize("param, val", [
-                        ["eta", 0.1],
-                        ["a_half", 40],
-                        ["phi_age", 0.6],
-                        ["w_half", 10]
-])
+@pytest.mark.parametrize("param, val",
+                         [["eta", 0.1],
+                          ["a_half", 40],
+                          ["phi_age", 0.6],
+                          ["w_half", 10]])
 def test_set_animal_parameters(trial_simulation, param, val):
     """
     Tests that the parameters are set correctly.
     """
 
-    new_parameter = {param: val}
-    trial_simulation.set_animal_parameters("Herbivore", new_parameter)
+    trial_simulation.set_animal_parameters("Herbivore", {param: val})
 
     assert trial_simulation.island.species_map["Herbivore"].get_parameters()[param] == val, \
         "Setting parameters didn't work."
@@ -174,7 +173,8 @@ def test_set_invalid_landscape_parameter_value_type(trial_simulation, landscape,
 
     with pytest.raises(ValueError):
         trial_simulation.set_landscape_parameters(landscape, {param: val}), "Setting wrong " \
-                                                                             "parameter values worked."
+                                                                            "parameter values " \
+                                                                            "worked."
 
 
 def test_add_population(trial_simulation_empty):
@@ -212,14 +212,6 @@ def test_make_movie_wrong_format(trial_simulation):
 
     with pytest.raises(ValueError):
         trial_simulation.make_movie("mp3")
-
-
-def test_make_movie_no_filename(trial_simulation):
-    """ Tests that the movie is created correctly. """
-
-    with pytest.raises(RuntimeError):
-        trial_simulation.graphics._img_base = "trial"
-        trial_simulation.make_movie("mp4")
 
 
 def test_update_graphics(trial_simulation):

@@ -357,82 +357,6 @@ class Island:
             for animal in dying_animals:
                 cell.animals[animal.__class__.__name__].remove(animal)
 
-    @property
-    def n_animals_per_species(self):
-        r"""
-        Counts the number of animals per species on the island.
-
-        Returns
-        -------
-        n_animals_per_species: dict
-
-            .. code:: python
-
-                {'Herbivore': n_herbivores, ...}
-         """
-
-        n_animals_per_species = {cls.__name__: 0 for cls in Animal.__subclasses__()}
-        for animals in self.n_animals_per_species_per_cell.values():
-            for species, n_animals in animals.items():
-                if n_animals != 0:
-                    n_animals_per_species[species] += n_animals
-
-        return n_animals_per_species
-
-    @property
-    def n_animals_per_species_per_cell(self):
-        r"""
-        Counts the number of animals per species on the island.
-
-        Returns
-        -------
-        n_animals_per_species : dict
-
-            .. code:: python
-
-                {(x, y): {'Herbivore': n_herbivores, ...}}
-        """
-
-        n_animals_per_species_per_cell = {}
-        for pos, cell in self.cells.items():
-            n_herbs = len(cell.animals["Herbivore"])
-            n_carns = len(cell.animals["Carnivore"])
-            n_animals_per_species_per_cell[pos] = {"Herbivore": n_herbs, "Carnivore": n_carns}
-
-        return n_animals_per_species_per_cell
-
-    @property
-    def n_animals(self):
-        """
-        Counts the number of animals on the island.
-
-        Returns
-        -------
-        n_animals : int
-        """
-
-        animals = self.n_animals_per_species
-
-        return sum(animals.values())
-
-    @property
-    def population(self):
-        """
-        Returns the population of the island.
-
-        Returns
-        -------
-        list
-            A dictionary of lists specifying the population of the island.
-        """
-
-        animals = {cls.__name__: [] for cls in Animal.__subclasses__()}
-        for cell in self.habitated_cells:
-            for animal in itertools.chain(*cell.animals.values()):
-                animals[animal.__class__.__name__].append(animal)
-
-        return animals
-
     def yearly_cycle(self):
         """
         Runs through the yearly cycle of the island in the following order:
@@ -456,6 +380,43 @@ class Island:
 
         self.year += 1
 
+    def animals(self):
+        r"""
+        Retrive the information about the animals on the island.
+        
+        Returns
+        -------
+        population : dict
+            A dictionary with lists of the animals per species.
+
+            .. code:: python
+
+                {'Herbivore': [Herbivore(), ...], ...}
+
+        n_animals_per_species : dict
+            A dictionary with the number of animals per species.
+        n_animals_per_species_per_cell : dict
+            A dictionary with the number of animals per species per cell.
+
+            .. code:: python
+
+                {(1, 1): {"Herbivore": n, ...}, ...}
+        """
+
+        population = {cls.__name__: [] for cls in Animal.__subclasses__()}
+        n_animals_per_species = {cls.__name__: 0 for cls in Animal.__subclasses__()}
+        n_animals_per_species_per_cell = {pos: {cls.__name__: 0
+                                                for cls in Animal.__subclasses__()}
+                                          for pos in self.cells.keys()}
+
+        for cell, pos in self.habitated_cells.items():
+            for animal in itertools.chain(*cell.animals.values()):
+                population[animal.__class__.__name__].append(animal)
+                n_animals_per_species[animal.__class__.__name__] += 1
+                n_animals_per_species_per_cell[pos][animal.__class__.__name__] += 1
+
+        return population, n_animals_per_species, n_animals_per_species_per_cell
+
 
 class Cell:
     """
@@ -478,21 +439,3 @@ class Cell:
         """
 
         self.fodder = Island.get_fodder_parameter(self.cell_type)
-
-    def n_animals_in_cell(self):
-        r"""
-        Counts the number of animals per species per cell.
-
-        Returns
-        -------
-        n_animals_in_cell : dict
-
-            .. code:: python
-
-                {'Herbivore': n_herbivores, ...}
-        """
-
-        n_animals_in_cell = {cls.__name__: len(self.animals[cls.__name__]) for cls in
-                             Animal.__subclasses__()}
-
-        return n_animals_in_cell

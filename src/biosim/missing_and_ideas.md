@@ -1,14 +1,14 @@
 I morgen:
 =========
 - hallvard
-* (!!!) LOG_FILE i simulation.py
-* Rydde opp i "n_animals_..." i island.py
-* mock fitness in death test? hunt??
-* mock random.random -> 1 (100%)
 * Lese gjennom og sjekke alle dockstrings.
+* Lese gjennom oppgaveteksten og sjekke at alt er oppfylt.
 * Sortere metodene i klassene i riktig rekkefølge.
+* Lage plots der check_sim blir kjørt med mange forskjellige seeds og plottet oppå hverandre.
 
 * Spørre hjelpelærerne om:
+* Vi lagrer filene på en annen måte (mer avansert), her sjekker den bare om den er lagret i 
+  samme mappe som testen kjøres i. 
   -         assert os.path.isfile(figfile_base + '_00000.png')
             AssertionError: assert False
              +  where False = <function isfile at 0x10d7abd80>(('figfileroot' + '_00000.png'))

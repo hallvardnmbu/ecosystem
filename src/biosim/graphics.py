@@ -23,7 +23,6 @@ class Graphics:
 
     def __init__(self,
                  geography,
-                 initial_density,
                  vis_years,
                  ymax_animals,
                  cmax_animals,
@@ -38,7 +37,6 @@ class Graphics:
                  terrain_patches):
 
         self.geography = geography
-        self.initial_density = initial_density
         if vis_years:
             self.vis_years = vis_years
         else:
@@ -63,17 +61,20 @@ class Graphics:
                 raise TypeError("Invalid histogram specification.")
         else:
             self.hist_specs = None
-
-        self.hist_specs = hist_specs
         self._img_years = img_years
-        self._img_fmt = img_fmt
-        self._log_file = log_file
-        self._img_ctr = 0
+
         self.my_colours = my_colours
         self.terrain_patches = terrain_patches
 
+        if log_file:
+            self._log_file = str(log_file)
+        else:
+            self._log_file = None
+        self._img_ctr = 0
+        self._img_fmt = img_fmt
         if img_dir:
-            self._img_dir = img_dir
+            self._img_dir = str(img_dir)
+            img_base = str(img_base)
             if os.path.isabs(self._img_dir):
                 os.makedirs(self._img_dir, exist_ok=True)
                 images = os.path.join(self._img_dir, "images")
@@ -107,13 +108,21 @@ class Graphics:
         self._weight_ax = None
         self._weight_plot = None
 
-    def setup(self, final_year):
+    def setup(self, final_year, n_species_cells, speed):
         """
         Prepare graphics, with the format:
 
         [ Year ][       Animal count      ]   (line plot)
         [ Map ][ Herbivores ][ Carnivores ]   (static, heatmap, heatmap)
         [   Age   ][  Weight ][  Fitness  ]   (histograms)
+
+        Parameters
+        ----------
+        final_year : int
+        animals : dict
+            Initial animal population (per cell).
+        speed : float
+            Pause between visualisation updates (seconds).
         """
 
         self.final_year = final_year
@@ -164,7 +173,7 @@ class Graphics:
             self._island_map(self.my_colours, self.terrain_patches)
             self._map_plot.set_title("Map of Rossumøya (Pylandia)")
 
-        herb, carn = self._animal_data(self.initial_density)
+        herb, carn = self._animal_data(n_species_cells)
         herbivore_colour = (0.71764, 0.749, 0.63137)
         carnivore_colour = (0.949, 0.7647, 0.56078)
 
@@ -296,7 +305,9 @@ class Graphics:
                 write = csv.writer(file)
                 write.writerow(["Year", "Herbivores", "Carnivores"])
 
-    def update_graphics(self, year, n_animals, n_animals_cells, animals, speed):
+        self._speed = speed
+
+    def update_graphics(self, year, n_species, n_species_cells, animals):
         r"""
         Updates the graphics with new data for the given year.
 
@@ -320,20 +331,17 @@ class Graphics:
             .. code:: python
 
                 {"Herbivore": [Herbivore(), Herbivore(), ...], ...}
-
-        speed : float
-            Pause between visualization updates in seconds.
         """
 
         self._update_year_counter(year)
-        self._update_line_plot(year, n_animals)
-        self._update_heatmap(n_animals_cells)
+        self._update_line_plot(year, n_species)
+        self._update_heatmap(n_species_cells)
         self._update_animal_features(animals, year)
         self._fig.canvas.flush_events()
-        plt.pause(speed)
+        plt.pause(self._speed)
 
         self._save_image(year)
-        self._save_to_file(year, n_animals) if self._log_file is not None else None
+        self._save_to_file(year, n_species) if self._log_file is not None else None
 
     def make_movie(self, movie_fmt="mp4"):
         """
@@ -498,23 +506,36 @@ class Graphics:
             Lists of lists with the amount of each species in each cell.
         """
 
-        herb = []
-        carn = []
-        for x in range(len(self.geography)):
+        # herb = []
+        # carn = []
+        # for x in range(len(self.geography)):
+        #     row_herb = []
+        #     row_carn = []
+        #     for y in range(len(self.geography[0])):
+        #         row_herb.append(density[(x+1, y+1)].get("Herbivore", 0))
+        #         row_carn.append(density[(x+1, y+1)].get("Carnivore", 0))
+        #     herb.append(row_herb)
+        #     carn.append(row_carn)
+
+        herbs = []
+        carns = []
+        for i in range(1, len(self.geography)+1):
             row_herb = []
             row_carn = []
-            for y in range(len(self.geography[0])):
-                row_herb.append(density[(x+1, y+1)].get("Herbivore", 0))
-                row_carn.append(density[(x+1, y+1)].get("Carnivore", 0))
-            herb.append(row_herb)
-            carn.append(row_carn)
+            for j in range(1, len(self.geography[0])+1):
+                herb, carn = density[(i, j)].values()
+                row_herb.append(herb)
+                row_carn.append(carn)
+            herbs.append(row_herb)
+            carns.append(row_carn)
 
-        herb = [[np.nan if val == 0 else val for val in row] for row in herb]
-        carn = [[np.nan if val == 0 else val for val in row] for row in carn]
+
+        herb = [[np.nan if val == 0 else val for val in row] for row in herbs]
+        carn = [[np.nan if val == 0 else val for val in row] for row in carns]
 
         return herb, carn
 
-    def _update_heatmap(self, density):
+    def _update_heatmap(self, n_species_cells):
         """
         Update the heatmap of animal distributions
         .
@@ -525,7 +546,7 @@ class Graphics:
             species in that cell as values.
         """
 
-        herb, carn = self._animal_data(density)
+        herb, carn = self._animal_data(n_species_cells)
 
         self._herb_plot.set_data(herb[::-1])
         self._carn_plot.set_data(carn[::-1])

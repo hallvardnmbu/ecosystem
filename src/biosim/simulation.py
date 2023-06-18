@@ -104,7 +104,6 @@ class BioSim:
         self.island = Island(geography=island_map, ini_pop=ini_pop)
 
         self.graphics = Graphics(geography=self.island.geography,
-                                 initial_density=self.island.n_animals_per_species_per_cell,
                                  vis_years=vis_years,
                                  ymax_animals=ymax_animals,
                                  cmax_animals=cmax_animals,
@@ -117,6 +116,9 @@ class BioSim:
                                  step_size=step_size,
                                  my_colours=my_colours,
                                  terrain_patches=terrain_patches)
+
+        self.n_species = None
+        self.n_species_cell = None
 
     def set_animal_parameters(self, species, params):
         """
@@ -201,13 +203,12 @@ class BioSim:
         simulate_years = num_years + self.year
 
         if self.vis_years:
-            self.graphics.setup(simulate_years)
-            if self.year % self.vis_years == 0:
-                self.graphics.update_graphics(self.year,
-                                              self.num_animals_per_species,
-                                              self.island.n_animals_per_species_per_cell,
-                                              self.island.population,
-                                              speed)
+            animals, self.n_species, self.n_species_cell = self.island.animals()
+            self.graphics.setup(simulate_years, self.n_species_cell, speed)
+            self.graphics.update_graphics(self.year,
+                                          self.n_species,
+                                          self.n_species_cell,
+                                          animals)
 
         while self.year < simulate_years:
 
@@ -215,11 +216,11 @@ class BioSim:
 
             if self.vis_years:
                 if self.year % self.vis_years == 0:
+                    animals, self.n_species, self.n_species_cell = self.island.animals()
                     self.graphics.update_graphics(self.year,
-                                                  self.num_animals_per_species,
-                                                  self.island.n_animals_per_species_per_cell,
-                                                  self.island.population,
-                                                  speed)
+                                                  self.n_species,
+                                                  self.n_species_cell,
+                                                  animals)
 
         plt.draw()
 
@@ -237,21 +238,33 @@ class BioSim:
 
     @property
     def year(self):
-        """Last year simulated."""
+        """
+        Last year simulated.
+        """
 
         return self.island.year
 
     @property
     def num_animals(self):
-        """Total number of animals on island."""
+        """
+        Total number of animals on island.
+        """
 
-        return sum(self.num_animals_per_species.values())
+        if self.n_species is None:
+            _, self.n_species, _ = self.island.animals()
+
+        return sum(self.n_species.values())
 
     @property
     def num_animals_per_species(self):
-        """Number of animals per species in island, as dictionary."""
+        """
+        Number of animals per species in island, as dictionary.
+        """
 
-        return self.island.n_animals_per_species
+        if self.n_species is None:
+            _, self.n_species, _ = self.island.animals()
+
+        return self.n_species
 
     def make_movie(self, movie_fmt="mp4"):
         """

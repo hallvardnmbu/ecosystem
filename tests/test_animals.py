@@ -2,17 +2,13 @@
 Tests for the animals module.
 """
 
-# Each individual test should have a descriptive name
-# When a test fails, the first thing you read is the name
-# Should describe what was tested and failed
-# Should write a docstring to further explain the test
 
 from src.biosim.animals import Herbivore, Carnivore
 import scipy.stats as stat
 from math import log
-from unittest import mock
-from pytest import approx
 import pytest
+
+
 # We used the lecture notes, ChatGPT and Stackoverflow in order to gain a basic understanding of how
 # to structure the tests. ChatGPT and Stackoverflow were used as a "teacher", and did not author
 # any of the code we used.
@@ -157,7 +153,7 @@ def test_lognormv_without_animals(mocker):
     Carnivore.set_parameters(Carnivore.default_parameters())
 
     mocker.patch("random.lognormvariate", return_value=1)
-    assert Carnivore.lognormv() == 1, "Calling lognormv without an animal didn't work."
+    assert Carnivore.lognormv() == 1, "Calling lognormv using the class didn't work."
 
 
 def test_create_animal():
@@ -278,8 +274,8 @@ def test_lose_weight_year(trial_animals):
         for _ in range(num_years):
             animal.lose_weight_year()
 
-        assert animal.w == approx(0), f"Weight for {animal.__class__.__name__} did not decrease " \
-                                      f"correctly."
+        assert animal.w == pytest.approx(0), f"Weight for {animal.__class__.__name__} did not " \
+                                             f"decrease correctly."
 
 
 def test_lose_weight_birth(trial_animals):
@@ -295,8 +291,8 @@ def test_lose_weight_birth(trial_animals):
         for _ in range(num_years):
             animal.lose_weight_birth(baby_weight)
 
-        assert animal.w == approx(9), f"Weight for {animal.__class__.__name__} did not decrease " \
-                                      f"correctly."
+        assert animal.w == pytest.approx(9), f"Weight for {animal.__class__.__name__} did not " \
+                                             f"decrease correctly."
 
 
 def test_lose_weight_birth_small_weight(trial_animals):
