@@ -287,25 +287,32 @@ class Graphics:
             self._fitness_ax.set_xlabel('Fitness')
             self._fitness_ax.set_ylabel('')
 
-        if self._log_file is not None:
-            if os.path.isabs(self._log_file):
-                os.makedirs(self._log_file, exist_ok=True)
-                self._log_file = os.path.join(self._log_file, "animal_counts")
+        self.setup_log_file() if self._log_file is not None else None
 
-            if not os.path.isabs(self._log_file) and self._img_dir is not None:
-                if self._img_dir[-1] == ".":
-                    self._log_file = os.path.join(self._img_dir, self._log_file)
+        self._speed = speed
+
+    def setup_log_file(self):
+        """
+        Sets up the log file for the simulation.
+        """
+
+        if not os.path.exists(self._log_file):
+            dir = os.path.dirname(self._log_file)
+            if not os.path.exists(dir):
+                os.makedirs(dir, exist_ok=True)
+            if not os.path.isabs(self._log_file):
+                if self._img_dir is not None:
+                    if self._img_dir[-1] == ".":
+                        self._log_file = os.path.join(self._img_dir, self._log_file)
+                    else:
+                        self._log_file = os.path.join(self._img_dir, "..", self._log_file)
                 else:
-                    self._log_file = os.path.join(self._img_dir, "..", self._log_file)
-            elif not os.path.isabs(self._log_file) and self._img_dir is None:
-                os.makedirs(_DEFAULT_GRAPHICS_DIR, exist_ok=True)
-                self._log_file = os.path.join(_DEFAULT_GRAPHICS_DIR, self._log_file)
+                    os.makedirs(_DEFAULT_GRAPHICS_DIR, exist_ok=True)
+                    self._log_file = os.path.join(_DEFAULT_GRAPHICS_DIR, self._log_file)
 
             with open(self._log_file, "w") as file:
                 write = csv.writer(file)
                 write.writerow(["Year", "Herbivores", "Carnivores"])
-
-        self._speed = speed
 
     def update_graphics(self, year, n_species, n_species_cells, animals):
         r"""

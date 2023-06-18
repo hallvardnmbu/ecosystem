@@ -196,7 +196,6 @@ class Animal:
         except ValueError:
             raise ValueError(f"Age: {age} and weight: {weight} must both be numbers.")
         self._fitness = None
-        self.set_motion()
 
     def aging(self):
         """
@@ -428,19 +427,15 @@ class Carnivore(Animal):
     def __init__(self, age=None, weight=None):
         super().__init__(weight, age)
 
-    def predation(self, herbivores):
+    def predation(self, herbivores, herbivores_copy):
         r"""
         The herbivore tries to kill and eat the herbivores at the current location.
 
         Parameters
         ----------
         herbivores : list
-            List of herbivores at current location.
-
-        Returns
-        -------
-        killed : list
-            List of herbivores that were killed.
+            List of herbivores at the current location.
+        herbivores_copy : list
 
         Notes
         -----
@@ -458,31 +453,28 @@ class Carnivore(Animal):
         """
 
         eaten = 0
-        killed = []
+        delta_phi_max = self.DeltaPhiMax
 
-        for herbivore in herbivores:
+        for herbivore in herbivores_copy:
 
-            carnivore_fitness = self.fitness
             herbivore_fitness = herbivore.fitness
+            carnivore_fitness = self.fitness
             difference = carnivore_fitness - herbivore_fitness
 
             if carnivore_fitness <= herbivore_fitness:
                 p = 0
-            elif 0 < difference < self.DeltaPhiMax:
-                p = difference / self.DeltaPhiMax
+            elif 0 < difference < delta_phi_max:
+                p = difference / delta_phi_max
             else:
                 p = 1
 
             if random.random() < p:
 
-                if herbivore.w < self.F - eaten:
+                herbivores.remove(herbivore)
+                rest = self.F - eaten
+                if herbivore.w < rest:
                     eaten += herbivore.w
                     self.gain_weight(food=herbivore.w)
                 else:
-                    rest = self.F - eaten
                     self.gain_weight(food=rest)
                     break
-
-                killed.append(herbivore)
-
-        return killed

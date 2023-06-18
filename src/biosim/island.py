@@ -3,9 +3,10 @@ Contains the island and its cells.
 """
 
 
-import random
-import textwrap
+from operator import attrgetter
 import itertools
+import textwrap
+import random
 
 from .animals import Animal
 
@@ -258,7 +259,7 @@ class Island:
                 cell.grow_fodder()
 
                 cell.animals["Herbivore"] = sorted(cell.animals["Herbivore"],
-                                                   key=lambda herb: herb.fitness,
+                                                   key=attrgetter("fitness"),
                                                    reverse=True)
                 for herbivore in cell.animals["Herbivore"]:
                     cell.fodder -= herbivore.graze(cell.fodder)
@@ -269,9 +270,7 @@ class Island:
                 cell.animals["Herbivore"] = cell.animals["Herbivore"][::-1]
                 random.shuffle(cell.animals["Carnivore"])
                 for carnivore in cell.animals["Carnivore"]:
-                    killed = carnivore.predation(cell.animals["Herbivore"])
-                    cell.animals["Herbivore"] = [herb for herb in cell.animals["Herbivore"]
-                                                 if herb not in killed]
+                    carnivore.predation(cell.animals["Herbivore"], cell.animals["Herbivore"].copy())
 
     def migrate(self):
         r"""
@@ -349,13 +348,16 @@ class Island:
 
         for cell in self.habitated_cells.keys():
             dying_animals = []
-            for animal in itertools.chain(*cell.animals.values()):
+# Sett tilbake til vanlig? (fjern list( ... ).copy())
+            for animal in list(itertools.chain(*cell.animals.values())).copy():
                 animal.calculate_fitness()
                 if animal.w <= 0 or random.random() < animal.omega * (1 - animal.fitness):
                     dying_animals.append(animal)
+# Sett tilbake til vanlig? (fjern vvvvv og ta bort kommentar under)
+                    cell.animals[animal.__class__.__name__].remove(animal)
 
-            for animal in dying_animals:
-                cell.animals[animal.__class__.__name__].remove(animal)
+            # for animal in dying_animals:
+            #     cell.animals[animal.__class__.__name__].remove(animal)
 
     def yearly_cycle(self):
         """

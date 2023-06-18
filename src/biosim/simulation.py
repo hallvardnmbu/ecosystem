@@ -92,7 +92,7 @@ class BioSim:
                  log_file=None,
                  step_size=1,
                  my_colours=None,
-                 terrain_patches=False):
+                 terrain_patches=True):
 
         random.seed(seed)
 
@@ -117,6 +117,7 @@ class BioSim:
                                  my_colours=my_colours,
                                  terrain_patches=terrain_patches)
 
+        self.log_file = log_file
         self.n_species = None
         self.n_species_cell = None
 
@@ -209,10 +210,13 @@ class BioSim:
                                           self.n_species,
                                           self.n_species_cell,
                                           animals)
+        else:
+            self.graphics.setup_log_file() if self.log_file is not None else None
 
         while self.year < simulate_years:
 
             self.island.yearly_cycle()
+
 
             if self.vis_years:
                 if self.year % self.vis_years == 0:
@@ -221,8 +225,13 @@ class BioSim:
                                                   self.n_species,
                                                   self.n_species_cell,
                                                   animals)
+            else:
+                if self.log_file:
+                    _, self.n_species, _ = self.island.animals()
+                    self.graphics._save_to_file(self.year, self.n_species)
 
-        plt.draw()
+        if self.vis_years:
+            plt.draw()
 
     def add_population(self, population):
         """

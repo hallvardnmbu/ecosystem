@@ -4,10 +4,14 @@ I morgen:
 * Lese gjennom og sjekke alle dockstrings.
 * Lese gjennom oppgaveteksten og sjekke at alt er oppfylt.
 * Sortere metodene i klassene i riktig rekkefølge.
-* Lage plots der check_sim blir kjørt med mange forskjellige seeds og plottet oppå hverandre.
+* sjekke at alt funker som det skal (også gui)
+* i feed når sorteres etter fitness: lag ei dict heller som lagrer fitness? Ser ikke ut som det 
+  går an å sortere og lagre verdien samtidig.
+
+* Til eksamen: plots (se mappe)
 
 * Spørre hjelpelærerne om:
-* Vi lagrer filene på en annen måte (mer avansert), her sjekker den bare om den er lagret i 
+* Vi lagrer filene på en annen (mer avansert) måte, her sjekker den bare om den er lagret i 
   samme mappe som testen kjøres i. 
   -         assert os.path.isfile(figfile_base + '_00000.png')
             AssertionError: assert False
@@ -25,7 +29,7 @@ I morgen:
 * test_make_movie
 * mock fitness in death test? hunt
 * other flake8 tests
-* Dele opp (sortere) testene i unittests, integraltests osv.?
+* Dele opp (sortere) testene i unittests, integraltests osv.
 * Ordne opp i .gitignore (du fjerna den i commit 11:45 fredag)
 * Fikse setup.cfg
 * Skrive hvordan installere pakken i dokumentasjonen (jeg kan gjøre det hvis du sier hva 
@@ -38,7 +42,7 @@ Exam evaluation:
 
 Code 70%
 
-* (Almost) all test_biosim_interface.py tests pass
+* (Almost) all reference_tests/test_biosim_interface.py tests pass
 * setup.cfg, setup.py, tox.ini, pyproject.toml in place, based on BioLab example
 * Running tox runs your tests (even if some fail)
 * All flake8 tests pass

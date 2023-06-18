@@ -1,3 +1,1 @@
-Place your example scripts here.
-
-Once you have created the first example, you can updated or delete this file.
+Some example scripts showing how to use the BioSim package.
