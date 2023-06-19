@@ -1,7 +1,7 @@
 I morgen:
 =========
 - hallvard
-* 
+* Skrive "how_to_install" i docs
 
 - thyra
 * Er setup og det helt ferdig??? Viktigst.
@@ -107,4 +107,4 @@ Discussion 20%
 /tests
 ======
 
-Kjør med coverage 'pytest --cov --cov-report term-missing', og dekk de viktigste linjene.
+Kjør med coverage 'pytest --cov --cov-report term-missing', og dekk de viktigste linjene.~~~~

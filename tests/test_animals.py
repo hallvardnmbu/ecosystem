@@ -199,9 +199,8 @@ def test_set_motion_negative(trial_animals):
 
     for animal in trial_animals:
         with pytest.raises(ValueError):
-            animal.set_motion(new_movable={"W": True}, new_stride=-1), f"Setting negative motion for" \
-                                              f" {animal.__class__.__name__} " \
-                                              f"worked."
+            animal.set_motion({"W": True}, -1), f"Setting negative motion for" \
+                                                f" {animal.__class__.__name__} worked."
 
 
 def test_set_motion_nonnumber(trial_animals):

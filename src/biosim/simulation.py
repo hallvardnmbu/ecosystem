@@ -141,7 +141,7 @@ class BioSim:
         except KeyError as e:
             if species not in self.island.species_map.keys():
                 raise ValueError(f"Invalid species: {species}. Valid species:"
-                               f" {', '.join(list(self.island.species_map.keys()))}")
+                                 f" {', '.join(list(self.island.species_map.keys()))}")
             # Here I googled how to retrieve the element in a set. I found that I could use
             # next(iter(...)):
             difference = next(iter(set(params.keys()) - set(self.island.species_map.keys())))

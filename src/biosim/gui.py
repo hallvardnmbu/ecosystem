@@ -278,14 +278,14 @@ class AddAnimals(tk.Frame):
         add_button.grid(row=1, column=10 + map_size, padx=5, pady=5)
 
         button_back = tk.Button(self,
-                           text="Draw map",
-                           width=5,
-                           command=lambda: self.navigate_page_draw())
+                                text="Draw map",
+                                width=5,
+                                command=lambda: self.navigate_page_draw())
         button_back.grid(row=0, column=9 + map_size, padx=5, pady=5)
         button_next = tk.Button(self,
-                           text="Edit parameters",
-                           width=9,
-                           command=lambda: self.navigate_page_params())
+                                text="Edit parameters",
+                                width=9,
+                                command=lambda: self.navigate_page_params())
         button_next.grid(row=0, column=10 + map_size, padx=5, pady=5)
 
         text_label = tk.Label(self, text="# years:")
@@ -490,17 +490,13 @@ class ChangeParams(tk.Frame):
         self.landscape_var = tk.StringVar()
         landscape_params = tk.Label(self, text="Change landscape parameter:")
         landscape_params.grid(row=4, column=1, padx=5, pady=5)
-        h_button = tk.Radiobutton(self, text="H", variable=self.landscape_var,
-                                          value="H")
+        h_button = tk.Radiobutton(self, text="H", variable=self.landscape_var, value="H")
         h_button.grid(row=4, column=2, padx=5, pady=5)
-        l_button = tk.Radiobutton(self, text="L", variable=self.landscape_var,
-                                          value="L")
+        l_button = tk.Radiobutton(self, text="L", variable=self.landscape_var, value="L")
         l_button.grid(row=5, column=2, padx=5, pady=5)
-        d_button = tk.Radiobutton(self, text="D", variable=self.landscape_var,
-                                  value="D")
+        d_button = tk.Radiobutton(self, text="D", variable=self.landscape_var, value="D")
         d_button.grid(row=6, column=2, padx=5, pady=5)
-        w_button = tk.Radiobutton(self, text="W", variable=self.landscape_var,
-                                  value="W")
+        w_button = tk.Radiobutton(self, text="W", variable=self.landscape_var, value="W")
         w_button.grid(row=7, column=2, padx=5, pady=5)
 
         _land_param = tk.Label(self, text="Fodder:")

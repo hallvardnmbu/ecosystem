@@ -43,10 +43,7 @@ Some pros and cons of the GUI:
 
 .. raw:: html
 
-   <video controls style="width: 700px;">
-       <source src="_static/example.mp4" type="video/mp4">
-       Your browser does not support the video tag.
-   </video>
+   <iframe width="700" height="394" src="https://www.youtube.com/embed/1mKAqzywuL8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 To use the GUI, run the following code (and change :code:`map_size` to your liking):
 

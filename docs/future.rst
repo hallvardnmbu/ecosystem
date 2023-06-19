@@ -11,19 +11,6 @@ essence, the following features would be implemented:
 Animals
 -------
 
-.. raw:: html
-
-   <div style="display: flex; width: 580px; margin: 0 auto;">
-       <div style="flex: 1; margin-right: 5px;">
-           <img src="_static/images/sheep.png" alt="Sheep" style="width: 100%; border: 4px solid #019A81;">
-       </div>
-       <div style="flex: 1; margin-left: 5px;">
-           <img src="_static/images/overpopulation.png" alt="Overpopulation" style="width: 100%; border: 4px solid #019A81;">
-       </div>
-   </div>
-
-|
-
 * Hiding.
 
 May hide in the forest, behind rocks or dig down, to prevent being preyed on. This, in turn,
@@ -55,19 +42,6 @@ determined by these preferances, and animals generally move towards the terrains
 Cells
 -----
 
-.. raw:: html
-
-   <div style="display: flex; width: 580px; margin: 0 auto;">
-       <div style="flex: 1; margin-right: 5px;">
-           <img src="_static/images/terrain_types.png" alt="Terrain Types" style="width: 100%; border: 4px solid #019A81;">
-       </div>
-       <div style="flex: 1; margin-left: 5px;">
-           <img src="_static/images/desert.png" alt="Desert" style="width: 100%; border: 4px solid #019A81;">
-       </div>
-   </div>
-
-|
-
 * Vegetation.
 
 The vegetation properties of a cell are determined by the cell type, and changes as the animals
@@ -94,19 +68,6 @@ even strike, and kill everything!
 Island
 ------
 
-.. raw:: html
-
-   <div style="display: flex; width: 580px; margin: 0 auto;">
-       <div style="flex: 1; margin-right: 5px;">
-           <img src="_static/images/rain.png" alt="Rain" style="width: 100%; border: 4px solid #019A81;">
-       </div>
-       <div style="flex: 1; margin-left: 5px;">
-           <img src="_static/images/snow.png" alt="Snow" style="width: 100%; border: 4px solid #019A81;">
-       </div>
-   </div>
-
-|
-
 * Weather.
 
 During a yearly cycle the weather changes. This, in turn, affects the vegetation on the island.
@@ -116,5 +77,3 @@ During a yearly cycle the weather changes. This, in turn, affects the vegetation
 If there for instance are 10X Herbivores (contra Carnivores) in a cell, they achieve pack
 immunity, meaning that the Carnivores are unable to prey on them. Which in turn leads to a higher
 probability of Carnivores dying.
-
-(All images were created by DALL·E)
