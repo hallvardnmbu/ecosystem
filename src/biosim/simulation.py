@@ -2,16 +2,12 @@
 Contains simulation.
 """
 
-# The material in this file is licensed under the BSD 3-clause license
-# https://opensource.org/licenses/BSD-3-Clause
-# (C) Copyright 2023 Hans Ekkehard Plesser / NMBU
-
 
 import matplotlib.pyplot as plt
 import random
 
-from .island import Island
 from .graphics import Graphics
+from .island import Island
 
 
 class BioSim:
@@ -135,6 +131,7 @@ class BioSim:
         Raises
         ------
         KeyError
+            If invalid species is passed.
             If invalid parameter keys are passed.
         ValueError
             If invalid parameter values are passed.
@@ -169,9 +166,10 @@ class BioSim:
 
         Raises
         ------
+        KeyError
+            If invalid parameter keys are passed.
         ValueError
             If invalid landscape type is passed.
-            If invalid parameter keys are passed.
             If invalid parameter values are passed.
         """
 
@@ -191,7 +189,7 @@ class BioSim:
 
     def simulate(self, num_years, speed=1e-6):
         """
-        Run simulation while visualizing the result.
+        Run simulation for a given number of years.
 
         Parameters
         ----------
@@ -216,7 +214,6 @@ class BioSim:
         while self.year < simulate_years:
 
             self.island.yearly_cycle()
-
 
             if self.vis_years:
                 if self.year % self.vis_years == 0:
@@ -245,10 +242,23 @@ class BioSim:
 
         self.island.add_population(population)
 
+    def make_movie(self, movie_fmt="mp4"):
+        """
+        Create MPEG4 movie from visualization images saved.
+        """
+
+        if movie_fmt not in ["mp4", "gif"]:
+            raise ValueError(f"Invalid movie format {movie_fmt} (valid: mp4 or gif).")
+        self.graphics.make_movie(movie_fmt)
+
     @property
     def year(self):
         """
         Last year simulated.
+
+        Returns
+        -------
+        int
         """
 
         return self.island.year
@@ -257,6 +267,10 @@ class BioSim:
     def num_animals(self):
         """
         Total number of animals on island.
+
+        Returns
+        -------
+        int
         """
 
         if self.n_species is None:
@@ -268,18 +282,13 @@ class BioSim:
     def num_animals_per_species(self):
         """
         Number of animals per species in island, as dictionary.
+
+        Returns
+        -------
+        dict
         """
 
         if self.n_species is None:
             _, self.n_species, _ = self.island.animals()
 
         return self.n_species
-
-    def make_movie(self, movie_fmt="mp4"):
-        """
-        Create MPEG4 movie from visualization images saved.
-        """
-
-        if movie_fmt not in ["mp4", "gif"]:
-            raise ValueError(f"Invalid movie format {movie_fmt} (valid: mp4 or gif).")
-        self.graphics.make_movie(movie_fmt)

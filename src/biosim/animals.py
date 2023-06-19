@@ -3,155 +3,30 @@ Contains the different animal species.
 """
 
 
-import random
 from math import exp, sqrt, log
+import random
 
 
 class Animal:
     """
     Parent class for animal species.
+
+    Parameters
+    ----------
+    age : int, optional
+    weight : float, optional
+
+    Raises
+    ------
+    ValueError
+        If age or weight are invalid values.
     """
-
-    @classmethod
-    def motion(cls):
-        """
-        Get the movement parameters for the species.
-
-        Returns
-        -------
-        movable : dict
-            Movable terrain.
-        stride : int
-            Step size.
-        """
-
-        return cls.movable, cls.stride
-
-    @classmethod
-    def set_motion(cls, new_movable=None, new_stride=None):
-        """
-        Sets the movement parameters for the species.
-
-        Parameters
-        ----------
-        new_movable : dict
-            Movable terrain.
-        new_stride : int
-            Step size.
-        """
-
-        if new_stride is not None:
-            try:
-                if new_stride < 0:
-                    raise ValueError("Stride should be nonzero or positive.")
-                cls.stride = round(new_stride)
-            except TypeError:
-                raise TypeError("Stride should be a number.")
-        else:
-            stride, _ = cls.default_motion()
-            cls.stride = stride
-
-        if new_movable is not None:
-            _, movable = cls.default_motion()
-            if not all(key in movable.keys() for key in new_movable.keys()):
-                raise KeyError("Invalid keys in new_movable.")
-            for key, boolean in new_movable.items():
-                cls.movable[key] = boolean
-        else:
-            _, movable = cls.default_motion()
-            cls.movable = movable
-
-        return
-
-    @classmethod
-    def get_parameters(cls):
-        """
-        Get the parameters for a species.
-
-        Returns
-        -------
-        parameters : dict
-        """
-
-        parameters = {"w_birth": cls.w_birth,
-                      "sigma_birth": cls.sigma_birth,
-                      "beta": cls.beta,
-                      "eta": cls.eta,
-                      "a_half": cls.a_half,
-                      "phi_age": cls.phi_age,
-                      "w_half": cls.w_half,
-                      "phi_weight": cls.phi_weight,
-                      "mu": cls.mu,
-                      "gamma": cls.gamma,
-                      "zeta": cls.zeta,
-                      "xi": cls.xi,
-                      "omega": cls.omega,
-                      "F": cls.F}
-        if cls is Carnivore:
-            parameters["DeltaPhiMax"] = cls.DeltaPhiMax
-        return parameters
-
-    @classmethod
-    def set_parameters(cls, new_parameters):
-        r"""
-        Set the parameters for a species.
-        When calling the function, one can call it on both the subclass and the object, with the
-        same result.
-
-            .. code:: python
-
-                Subclass.set_parameters()
-                Object.set_parameters()
-
-        Parameters
-        ----------
-        new_parameters : dict
-
-            .. code:: python
-
-                {'parameter': value}
-
-        Raises
-        ------
-        ValueError
-            If invalid parameters are passed.
-        """
-
-        for key, val in new_parameters.items():
-            if key not in cls.default_parameters():
-                raise KeyError(f"Invalid parameter: {key}")
-            try:
-                if key == "DeltaPhiMax" and val <= 0:
-                    raise ValueError(f"Value for: {key} should be positive.")
-                elif key == "eta" and val > 1:
-                    raise ValueError(f"Value for: {key} should be less than or equal to 1.")
-                else:
-                    try:
-                        if val < 0:
-                            raise ValueError(f"Value for: {key} should be nonzero or positive.")
-                    except TypeError:
-                        raise ValueError(f"Value for: {key} should be a number.")
-            # This extra "except" is needed in case "DeltaPhiMax" or "eta" is not a number.
-            except TypeError:
-                raise ValueError(f"Value for: {key} should be a number.")
-
-            setattr(cls, key, val)
-
-        cls.update_p_procreate()
-
-    @classmethod
-    def update_p_procreate(cls):
-        """
-        Updates the probability of procreation for the species.
-        """
-
-        cls.p_procreate = cls.zeta * (cls.w_birth + cls.sigma_birth)
 
     @classmethod
     def lognormv(cls):
         r"""
-        A continuous probability distribution of a random variable whose
-        logarithm is normally distributed, which is used to draw birth weights
+        A continuous probability distribution of a random variable whose logarithm is normally
+        distributed, which is used to draw birth weights
 
         Returns
         -------
@@ -179,6 +54,157 @@ class Animal:
 
         return random.lognormvariate(mu, sigma)
 
+    @classmethod
+    def motion(cls):
+        r"""
+        Get the movement parameters for the species.
+
+        Returns
+        -------
+        movable : dict
+            Movable terrain.
+
+            .. code:: python
+
+                {'terrain': boolean, ...}
+
+        stride : int
+            Step size (how far (many cells) the species' animals move per year).
+        """
+
+        return cls.movable, cls.stride
+
+    @classmethod
+    def set_motion(cls, new_movable=None, new_stride=None):
+        """
+        Sets the movement parameters for the species.
+
+        Parameters
+        ----------
+        new_movable : dict
+            Movable terrain.
+        new_stride : int
+            Step size.
+
+        Raises
+        ------
+        ValueError
+            If stride is nonzero or negative.
+        TypeError
+            If stride is not a number.
+        KeyError
+            If invalid terrain types are passed to new_movable.
+        """
+
+        if new_stride is not None:
+            try:
+                if new_stride < 0:
+                    raise ValueError("Stride should be nonzero or positive.")
+                cls.stride = round(new_stride)
+            except TypeError:
+                raise TypeError("Stride should be a number.")
+        else:
+            stride, _ = cls.default_motion()
+            cls.stride = stride
+
+        if new_movable is not None:
+            _, movable = cls.default_motion()
+            if not all(key in movable.keys() for key in new_movable.keys()):
+                raise KeyError("New movable terrain contains invalid terrain types.")
+            for key, boolean in new_movable.items():
+                cls.movable[key] = boolean
+        else:
+            _, movable = cls.default_motion()
+            cls.movable = movable
+
+    @classmethod
+    def get_parameters(cls):
+        """
+        Get the parameters for a species.
+
+        Returns
+        -------
+        dict
+        """
+
+        return {"w_birth": cls.w_birth,
+                "sigma_birth": cls.sigma_birth,
+                "beta": cls.beta,
+                "eta": cls.eta,
+                "a_half": cls.a_half,
+                "phi_age": cls.phi_age,
+                "w_half": cls.w_half,
+                "phi_weight": cls.phi_weight,
+                "mu": cls.mu,
+                "gamma": cls.gamma,
+                "zeta": cls.zeta,
+                "xi": cls.xi,
+                "omega": cls.omega,
+                "F": cls.F,
+                "DeltaPhiMax": cls.DeltaPhiMax}
+
+    @classmethod
+    def set_parameters(cls, new_parameters):
+        r"""
+        Set the parameters for a species (and updates the probability of procreation).
+
+        Parameters
+        ----------
+        new_parameters : dict
+
+            .. code:: python
+
+                {'parameter': value, ...}
+
+        Raises
+        ------
+        KeyError
+            If invalid parameter keys are passed.
+        ValueError
+            If invalid parameter values are passed.
+            If invalid parameter types are passed.
+
+        Notes
+        -----
+        When calling the function, one can call it on both the subclass and the object, with the
+        same result.
+
+            .. code:: python
+
+                Subclass.set_parameters()
+                Object.set_parameters()
+        """
+
+        for key, val in new_parameters.items():
+            if key not in cls.default_parameters():
+                raise KeyError(f"Invalid parameter: {key}")
+            try:
+                if key == "DeltaPhiMax" and val <= 0:
+                    raise ValueError(f"Value for: {key} ({val}) should be positive.")
+                elif key == "eta" and val > 1:
+                    raise ValueError(f"Value for: {key} ({val}) should be less than or equal to 1.")
+                else:
+                    try:
+                        if val < 0:
+                            raise ValueError(f"Value for: {key} should be nonzero or positive.")
+                    except TypeError:
+                        raise ValueError(f"Value for: {key} should be a number.")
+            # This extra "except" is needed in case "DeltaPhiMax" or "eta" is not a number.
+            except TypeError:
+                raise ValueError(f"Value for: {key} should be a number.")
+
+            setattr(cls, key, val)
+
+        cls._update_p_procreate()
+
+    @classmethod
+    def _update_p_procreate(cls):
+        """
+        Updates the probability of procreation for the species.
+        """
+
+        cls.p_procreate = cls.zeta * (cls.w_birth + cls.sigma_birth)
+
     def __init__(self, weight, age):
         try:
             if not age:
@@ -197,29 +223,6 @@ class Animal:
             raise ValueError(f"Age: {age} and weight: {weight} must both be numbers.")
         self._fitness = None
 
-    def aging(self):
-        """
-        Increments the age of the animal by one year.
-        """
-
-        self.a += 1
-
-    def gain_weight(self, food):
-        r"""
-        Increments the weight of the animal by the factor :math:`\beta` and the amount of food
-        eaten.
-        """
-
-        self.w += self.beta * food
-        self.calculate_fitness()
-
-    def lose_weight_year(self):
-        r"""
-        Decrements the weight of the animal by the factor :math:`\eta`.
-        """
-
-        self.w -= self.eta * self.w
-
     def lose_weight_birth(self, baby_weight):
         r"""
         Decrements the weight of the parent by the factor :math:`\xi` if the parent weights enough.
@@ -237,7 +240,7 @@ class Animal:
         Notes
         -----
         If :math:`\xi` * baby_weight is greater than the weight of the parent, the parent
-        will not give birth.
+        will neither lose weight nor give birth.
         """
 
         if self.w > self.xi * baby_weight:
@@ -246,6 +249,34 @@ class Animal:
             return True
         else:
             return False
+
+    def gain_weight(self, food):
+        r"""
+        Increments the weight of the animal by the factor :math:`\beta` and the amount of food
+        eaten, and calculates the new fitness of the animal.
+
+        Parameters
+        ----------
+        food : float
+            The amount of food eaten.
+        """
+
+        self.w += self.beta * food
+        self.calculate_fitness()
+
+    def aging(self):
+        """
+        Increments the age of the animal by one year.
+        """
+
+        self.a += 1
+
+    def lose_weight_year(self):
+        r"""
+        Decrements the weight of the animal by the factor :math:`\eta`.
+        """
+
+        self.w -= self.eta * self.w
 
     def calculate_fitness(self):
         r"""
@@ -302,6 +333,21 @@ class Herbivore(Animal):
     """
 
     @classmethod
+    def default_motion(cls):
+        """
+        Default movement parameters for Herbivores.
+
+        Returns
+        -------
+        stride : int
+            Step size.
+        movable : dict
+            Movable terrain.
+        """
+
+        return 1, {"H": True, "L": True, "D": True, "W": False}
+
+    @classmethod
     def default_parameters(cls):
         """
         Default parameters for Herbivores.
@@ -309,7 +355,6 @@ class Herbivore(Animal):
         Returns
         -------
         dict
-            Default parameters for Herbivore.
         """
 
         return {"w_birth": 8.0,
@@ -325,22 +370,8 @@ class Herbivore(Animal):
                 "zeta": 3.5,
                 "xi": 1.2,
                 "omega": 0.4,
-                "F": 10.0}
-
-    @classmethod
-    def default_motion(cls):
-        """
-        Default movement parameters for Herbivores.
-
-        Returns
-        -------
-        stride : int
-            Step size.
-        movable : dict
-            Movable terrain.
-        """
-
-        return 1, {"H": True, "L": True, "D": True, "W": False}
+                "F": 10.0,
+                "DeltaPhiMax": 10.0}
 
     def __init__(self, age=None, weight=None):
         super().__init__(weight, age)
@@ -383,6 +414,21 @@ class Carnivore(Animal):
     """
 
     @classmethod
+    def default_motion(cls):
+        """
+        Default movement parameters for Carnivores.
+
+        Returns
+        -------
+        stride : int
+            Step size.
+        movable : dict
+            Movable terrain.
+        """
+
+        return 1, {"H": True, "L": True, "D": True, "W": False}
+
+    @classmethod
     def default_parameters(cls):
         """
         Default parameters for Carnivores.
@@ -390,7 +436,6 @@ class Carnivore(Animal):
         Returns
         -------
         dict
-            Default parameters for Carnivore.
         """
 
         return {"w_birth": 6.0,
@@ -408,21 +453,6 @@ class Carnivore(Animal):
                 "omega": 0.8,
                 "F": 50.0,
                 "DeltaPhiMax": 10.0}
-
-    @classmethod
-    def default_motion(cls):
-        """
-        Default movement parameters for Carnivores.
-
-        Returns
-        -------
-        stride : int
-            Step size.
-        movable : dict
-            Movable terrain.
-        """
-
-        return 1, {"H": True, "L": True, "D": True, "W": False}
 
     def __init__(self, age=None, weight=None):
         super().__init__(weight, age)

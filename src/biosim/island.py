@@ -31,7 +31,6 @@ class Island:
         Returns
         -------
         dict
-            A dictionary with the default fodder parameters for the different terrain types.
         """
 
         return {"H": 300, "L": 800, "D": 0, "W": 0}
@@ -47,14 +46,14 @@ class Island:
 
             .. code:: python
 
-                {'terrain': value}
+                {'terrain': int, ...}
 
         Raises
         ------
         KeyError
-            If invalid parameters are passed.
+            If invalid parameter keys are passed.
         ValueError
-            If negative parameters are passed.
+            If invalid parameter values are passed.
         """
 
         for key, val in new_parameters.items():
@@ -75,7 +74,7 @@ class Island:
         Parameters
         ----------
         terrain_type : str
-            The terrain type.
+            The terrain type to retrive the f_max from.
 
         Returns
         -------
@@ -105,12 +104,24 @@ class Island:
         r"""
         Checks whether the geography is valid, and creates the grid of cell-objects.
 
+        Returns
+        -------
+        cells : dict
+            A dictionary containing the cells of the island with the location as the keys.
+        habitable_cells : dict
+            A dictionary containing the habitable cells of the island with the cells as the keys.
+
         Raises
         ------
         ValueError
             If the edges of the map are not 'W' (Water).
             If the map is not rectangular.
             If the map contains invalid terrain types.
+
+        Notes
+        -----
+        The reason for retrieving the habitable cells is to make it computationally faster when
+        going through the annual cycle.
         """
 
         x = len(self.geography)
@@ -161,7 +172,7 @@ class Island:
 
             .. code:: python
 
-                [{'loc': (x, y), 'pop': [{'species': str, 'age': int, 'weight': float}]}]
+                [{'loc': (x, y), 'pop': [{'species': str, 'age': int, 'weight': float}]}, ...]
 
         Raises
         ------
@@ -170,8 +181,11 @@ class Island:
             If the location is in Water ('W').
             If the animal is incorrectly defined.
 
-        KeyError
-            If invalid parameters are passed.
+        Notes
+        -----
+        When adding a population to the island, the habitated cells are stored. This makes it
+        significantly faster to go through the annual cycle (by only iterating through the
+        habitated cells).
         """
 
         for location_animals in population:
@@ -211,8 +225,9 @@ class Island:
         r"""
         Iterates through all the animals on the island.
         The baby is added to the same cell as the parent if the following is met:
-        The baby-to-be's weight is less than the parent's weight.
-        A probability of min(1, :math:`\gamma` * :math:`\Phi` * N).
+
+            1. The baby-to-be's weight is less than the parent's weight.
+            2. A probability of min(1, :math:`\gamma` * :math:`\Phi` * N).
 
         Where:
 
@@ -225,8 +240,7 @@ class Island:
             p_baby = {cls.__name__: cls.gamma * len(cell.animals[cls.__name__])
                       for cls in Animal.__subclasses__()}
 
-            babies = []
-            for animal in itertools.chain(*cell.animals.values()):
+            for animal in list(itertools.chain(*cell.animals.values())).copy():
 
                 # Procreation may only take place if the following is satisfied:
                 if animal.w >= animal.p_procreate:
@@ -238,12 +252,7 @@ class Island:
                         # baby is born, and the parents' weight decreases accordingly ^:
                         if animal.lose_weight_birth(baby_weight):
                             baby = animal.__class__(age=0, weight=baby_weight)
-                            # For the newborns to be excluded from being able to procreate,
-                            # they are placed in the parents' cell after the loop.
-                            babies.append(baby)
-
-            for baby in babies:
-                cell.animals[baby.__class__.__name__].append(baby)
+                            cell.animals[baby.__class__.__name__].append(baby)
 
     def feed(self):
         """
@@ -348,16 +357,11 @@ class Island:
 
         for cell in self.habitated_cells.keys():
             dying_animals = []
-# Sett tilbake til vanlig? (fjern list( ... ).copy())
             for animal in list(itertools.chain(*cell.animals.values())).copy():
                 animal.calculate_fitness()
                 if animal.w <= 0 or random.random() < animal.omega * (1 - animal.fitness):
                     dying_animals.append(animal)
-# Sett tilbake til vanlig? (fjern vvvvv og ta bort kommentar under)
                     cell.animals[animal.__class__.__name__].remove(animal)
-
-            # for animal in dying_animals:
-            #     cell.animals[animal.__class__.__name__].remove(animal)
 
     def yearly_cycle(self):
         """
@@ -384,8 +388,8 @@ class Island:
 
     def animals(self):
         r"""
-        Retrive the information about the animals on the island.
-        
+        Retrieve the information about the animals on the island.
+
         Returns
         -------
         population : dict

@@ -112,14 +112,14 @@ class Graphics:
         """
         Prepare graphics, with the format:
 
-        [ Year ][       Animal count      ]   (line plot)
+        [ Year ][       Animal count      ]   (counter, line plot)
         [ Map ][ Herbivores ][ Carnivores ]   (static, heatmap, heatmap)
         [   Age   ][  Weight ][  Fitness  ]   (histograms)
 
         Parameters
         ----------
         final_year : int
-        animals : dict
+        n_species_cells : dict
             Initial animal population (per cell).
         speed : float
             Pause between visualisation updates (seconds).
@@ -253,7 +253,7 @@ class Graphics:
                                                  self.age_bins,
                                                  color=carnivore_colour,
                                                  lw=2)
-            self._age_ax.set_ylim([0, 1])
+            self._age_ax.set_ylim([0, 100])
             self._age_ax.set_xlabel('Age')
             self._age_ax.set_ylabel('')
 
@@ -268,7 +268,7 @@ class Graphics:
                                                        self.weight_bins,
                                                        color=carnivore_colour,
                                                        lw=2)
-            self._weight_ax.set_ylim([0, 1])
+            self._weight_ax.set_ylim([0, 50])
             self._weight_ax.set_xlabel('Weight')
             self._weight_ax.set_ylabel('')
 
@@ -283,7 +283,7 @@ class Graphics:
                                                          self.fitness_bins,
                                                          color=carnivore_colour,
                                                          lw=2)
-            self._fitness_ax.set_ylim([0, 1])
+            self._fitness_ax.set_ylim([0, 100])
             self._fitness_ax.set_xlabel('Fitness')
             self._fitness_ax.set_ylabel('')
 
@@ -293,7 +293,7 @@ class Graphics:
 
     def setup_log_file(self):
         """
-        Sets up the log file for the simulation.
+        Sets up the log file for the simulation if specified.
         """
 
         if not os.path.exists(self._log_file):
@@ -321,13 +321,13 @@ class Graphics:
         Parameters
         ----------
         year : int
-        n_animals : dict
+        n_species : dict
 
             .. code:: python
 
                 {"Herbivore": 100, "Carnivore": 10}
 
-        n_animals_cells : dict
+        n_species_cells : dict
 
             .. code:: python
 
@@ -513,17 +513,6 @@ class Graphics:
             Lists of lists with the amount of each species in each cell.
         """
 
-        # herb = []
-        # carn = []
-        # for x in range(len(self.geography)):
-        #     row_herb = []
-        #     row_carn = []
-        #     for y in range(len(self.geography[0])):
-        #         row_herb.append(density[(x+1, y+1)].get("Herbivore", 0))
-        #         row_carn.append(density[(x+1, y+1)].get("Carnivore", 0))
-        #     herb.append(row_herb)
-        #     carn.append(row_carn)
-
         herbs = []
         carns = []
         for i in range(1, len(self.geography)+1):
@@ -536,7 +525,6 @@ class Graphics:
             herbs.append(row_herb)
             carns.append(row_carn)
 
-
         herb = [[np.nan if val == 0 else val for val in row] for row in herbs]
         carn = [[np.nan if val == 0 else val for val in row] for row in carns]
 
@@ -544,11 +532,11 @@ class Graphics:
 
     def _update_heatmap(self, n_species_cells):
         """
-        Update the heatmap of animal distributions
-        .
+        Update the heatmap of animal distributions.
+
         Parameters
         ----------
-        density : dict
+        n_species_cells : dict
             A dictionary with cell coordinates as keys and dictionaries with the amount of each
             species in that cell as values.
         """
@@ -596,7 +584,8 @@ class Graphics:
         self._fitness_herb.set_data(herbs_fitness)
         self._fitness_carn.set_data(carns_fitness)
 
-        if year % 5 == 0:
+        if year % 15 == 0:
+
             _age_ylim = max(max(herbs_age), max(carns_age)) * 1.5
             _weight_ylim = max(max(herbs_weight), max(carns_weight)) * 1.5
             _fitness_ylim = max(max(herbs_fitness), max(carns_fitness)) * 1.5

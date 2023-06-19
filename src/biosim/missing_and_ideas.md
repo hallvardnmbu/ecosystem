@@ -1,39 +1,35 @@
 I morgen:
 =========
 - hallvard
-* Lese gjennom og sjekke alle dockstrings.
+* lage "film" som bruker GUI og simulerer
 * Lese gjennom oppgaveteksten og sjekke at alt er oppfylt.
-* Sortere metodene i klassene i riktig rekkefølge.
-* sjekke at alt funker som det skal (også gui)
-* i feed når sorteres etter fitness: lag ei dict heller som lagrer fitness? Ser ikke ut som det 
-  går an å sortere og lagre verdien samtidig.
-
 * Til eksamen: plots (se mappe)
 
-* Spørre hjelpelærerne om:
-* Vi lagrer filene på en annen (mer avansert) måte, her sjekker den bare om den er lagret i 
-  samme mappe som testen kjøres i. 
-  -         assert os.path.isfile(figfile_base + '_00000.png')
-            AssertionError: assert False
-             +  where False = <function isfile at 0x10d7abd80>(('figfileroot' + '_00000.png'))
-             +    where <function isfile at 0x10d7abd80> = <module 'posixpath' (frozen)>.isfile
-             +      where <module 'posixpath' (frozen)> = os.path
-
 - thyra
-* Finne ut hva som feiler gitlab-ci
-* test_biosim_interface.py
-* spørsmål om setup.cfg eksempelfiler se kommentar
+* Er setup og det helt ferdig??? Viktigst.
+  * Skrive hvordan installere pakken i dokumentasjonen (jeg kan gjøre det hvis du sier hva 
+    "kommandoen" er).
+  * Fikse setup.cfg
+  * spørsmål om setup.cfg eksempelfiler se kommentar
   * også om pytest i project requirements
-* tox.ini
+  * tox.ini
+    * Når "tox" skrives i terminal failer så å si ALLE testene. Noe er feil.
+* Ordne opp i .gitignore (du fjerna den i commit 11:45 fredag)
+* Finne ut hva som feiler gitlab-ci
 * legge alle tester in classer
-* test_make_movie
 * mock fitness in death test? hunt
 * other flake8 tests
+* test_biosim_interface.py (vi skal IKKE teste visualisering)
+* test_make_movie (er nok ikke vits.)
 * Dele opp (sortere) testene i unittests, integraltests osv.
-* Ordne opp i .gitignore (du fjerna den i commit 11:45 fredag)
-* Fikse setup.cfg
-* Skrive hvordan installere pakken i dokumentasjonen (jeg kan gjøre det hvis du sier hva 
-  "kommandoen" er).
+* Integration tester:
+  * integration test: checkerboard - statistical test
+  * integration test: yearly cycle
+  * integration test: death over flere år, får man en kurve som forventa?
+  * integration test: birth, ca. antall prosent som forventa osv.?
+  * osv. osv. osv.
+  * Lag en del av disse, Thyra.
+* Få 100% coverage i simulation.py
 
 ---------------------------------------------------------------------------------------------------
 

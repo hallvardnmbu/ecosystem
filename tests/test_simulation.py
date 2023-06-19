@@ -214,11 +214,11 @@ def test_make_movie_wrong_format(trial_simulation):
         trial_simulation.make_movie("mp3")
 
 
-def test_update_graphics(trial_simulation):
-    """ Tests that the movie is created correctly. """
-
-    trial_simulation.vis_years = 1
-    trial_simulation.graphics.my_colours = {"W": [0, 0, 0]}
-    trial_simulation.graphics.terrain_patches = True
-    trial_simulation.simulate(1)
-    trial_simulation.simulate(1)
+# def test_update_graphics(trial_simulation):
+#     """ Tests that the movie is created correctly. """
+#
+#     trial_simulation.vis_years = 1
+#     trial_simulation.graphics.my_colours = {"W": [0, 0, 0]}
+#     trial_simulation.graphics.terrain_patches = True
+#     trial_simulation.simulate(1)
+#     trial_simulation.simulate(1)
