@@ -1,11 +1,7 @@
 I morgen:
 =========
 - hallvard
-* lage "film" som bruker GUI og simulerer
-* Oppdatere GUI-gif på nettside.
-* Lese gjennom oppgaveteksten og sjekke at alt er oppfylt.
-* Til eksamen: plots (se mappe)
-  * Sammenlikn vår sample_sim 1000. år med hans (så å si identisk!!! NICE.)
+* 
 
 - thyra
 * Er setup og det helt ferdig??? Viktigst.
@@ -35,38 +31,40 @@ I morgen:
 
 ---------------------------------------------------------------------------------------------------
 
+Til ekasmen:
+============
+* Se mappe "eksamen_bilder" sammenlikn med hans plots.
+* Sammenlikne vår sample_sim 1000. år med han sin.
+* Film (ligger i Exam-mappen)
+* Profile check_sim og ha med i presentasjon
+* Høyreklikk på biosim -> "Diagrams" -> "Show diagram"
+
+---------------------------------------------------------------------------------------------------
+
 Exam evaluation:
 ================
 
 Code 70%
 
-* (Almost) all reference_tests/test_biosim_interface.py tests pass
 * setup.cfg, setup.py, tox.ini, pyproject.toml in place, based on BioLab example
 * Running tox runs your tests (even if some fail)
 * All flake8 tests pass
-* Good variable and method names
 * "Dead code" removed
 * More powerful tests (e.g. statistical tests)
-* Optimized code
-* Elegant solutions
-* Additional features
-* All code thoroughly tidied up
-* Very well worked through docstrings
 
 Delivery 20%
 ------------
 * Does your code deliver on all requirements described in Sec. 1–3 of the task description?
 * Your code runs "out of the box"
-* Parameters for animals, landscapes and plotting can be set
 * Packaging, so that python -m build and tox works
 
 Quality 20%
 -----------
-* Have you followed the directory structure?
-* Sensible organisation of code into classes?
-* Well-chosen class and variable names?
-* Is the encapsulation principle in object-oriented programming observed?
-* Do you follow PEP8 rules (but with lines up to 100 characters allowed)? 
+* Do you follow PEP8 rules (but with lines up to 100 characters allowed)?
+* correct directory layout
+* configuration files
+  - readme.md
+  - tox.ini
 
 Tests 15%
 ---------
@@ -82,15 +80,11 @@ Tests 15%
 
 Documentation 10%
 -----------------
-* Do you have documentation text describing the parts of BioSim and how to use them?
-* Advanced Sphinx features
-  - Math
-  - Code
-  - Figures
+* 
 
 Bonus 5%
 --------
-* Extraordinarily well-written code
+* 
 
 Exam 30%
 
@@ -108,89 +102,9 @@ Discussion 20%
 * Are you aware of its limitations?
 * Can you discuss improvements or extensions to your code?
 
-Mangler:
-========
-
-examples
---------
-* 
-
-animals.py
-----------
-* Relative imports "."
-
-island.py
----------
-* Relative imports "."
-
-simulation.py
--------------
-* Relative imports "."
-
-graphics.py
------------
-* Relative imports "."
-
-gui.py
-------
-* Relative imports "."
-
 ---------------------------------------------------------------------------------------------------
 
 /tests
 ======
 
 Kjør med coverage 'pytest --cov --cov-report term-missing', og dekk de viktigste linjene.
-
-test_animals.py
----------------
-* Fikse de testene som ikke funker.
-
-test_island.py
---------------
-* Fikse de testene som ikke funker.
-
-test_simulation.py
-------------------
-* Fikse de testene som ikke funker.
-
-package structure
------------------
-* directory layout
-* configuration files
-  - readme.md
-  - tox.ini
-
----------------------------------------------------------------------------------------------------
-
-Kan forbedres:
-==============
-
-Sjekk 'run -> profile' for å se hva som tar lang tid (husk å fjerne plottingen)
-
-animals.py
-----------
-* DeltaPhiMax = 15 ? (Det brukte han i forelesningen)
-
-island.py
----------
-* 
-
-GUI:
-----
-* Velge hist-specs osv.
-
----------------------------------------------------------------------------------------------------
-
-Ideer:
-======
-* 
-
----------------------------------------------------------------------------------------------------
-
-Tips:
-=====
-
-* Tester løper i "tilfeldig" rekkefølge.
-  - husk å sette tilbake parametre hvis du endrer på dem i en test.
-* bruk statistical tests på cases der alle carnivores eller alle herbivores dør

@@ -158,9 +158,8 @@ class Animal:
 
         Raises
         ------
-        KeyError
-            If invalid parameter keys are passed.
         ValueError
+            If invalid parameter keys are passed.
             If invalid parameter values are passed.
             If invalid parameter types are passed.
 
@@ -177,7 +176,7 @@ class Animal:
 
         for key, val in new_parameters.items():
             if key not in cls.default_parameters():
-                raise KeyError(f"Invalid parameter: {key}")
+                raise ValueError(f"Invalid parameter: {key}")
             try:
                 if key == "DeltaPhiMax" and val <= 0:
                     raise ValueError(f"Value for: {key} ({val}) should be positive.")

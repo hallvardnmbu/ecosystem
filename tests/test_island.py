@@ -83,7 +83,7 @@ def test_set_parameters_negative(trial_islands, key, val):
 def test_set_parameters_nonexistent(trial_islands, key, val):
     """Tests that error is raised when nonexistent parameters are passed."""
 
-    with pytest.raises(KeyError):
+    with pytest.raises(ValueError):
         for island in trial_islands:
             island.set_fodder_parameters({key: val}), "Setting nonexistent parameters worked."
 

@@ -59,7 +59,7 @@ def test_set_invalid_animal_parameter_key(trial_simulation):
     Tests that wrong parameter key cannot be set.
     """
 
-    with pytest.raises(KeyError):
+    with pytest.raises(ValueError):
         trial_simulation.set_animal_parameters("Herbivore", {"a": 2}), "Setting invalid animal " \
                                                                        "parameter keys worked."
 
@@ -69,7 +69,7 @@ def test_set_invalid_animal_parameter_keys(trial_simulation):
     Tests that wrong parameter key cannot be set.
     """
 
-    with pytest.raises(KeyError):
+    with pytest.raises(ValueError):
         trial_simulation.set_animal_parameters("Herbivore",
                                                {"a": 2, "b": 2}), "Setting invalid animal " \
                                                                   "parameter keys worked."
@@ -97,7 +97,7 @@ def test_set_animal_parameter_invalid_species(trial_simulation):
     Tests that wrong species cannot be set.
     """
 
-    with pytest.raises(KeyError):
+    with pytest.raises(ValueError):
         trial_simulation.set_animal_parameters("Human", {"eta": 0.1}), "Setting animal " \
                                                                        "parameters for invalid " \
                                                                        "species worked."
@@ -156,7 +156,7 @@ def test_set_wrong_landscape_parameter_keys(trial_simulation, landscape, param, 
         Tests that wrong parameter key cannot be set.
         """
 
-    with pytest.raises(KeyError):
+    with pytest.raises(ValueError):
         trial_simulation.set_landscape_parameters(landscape, {param: val}), "Setting wrong " \
                                                                             "parameter key worked."
 

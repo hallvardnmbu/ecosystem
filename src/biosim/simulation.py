@@ -130,10 +130,9 @@ class BioSim:
 
         Raises
         ------
-        KeyError
+        ValueError
             If invalid species is passed.
             If invalid parameter keys are passed.
-        ValueError
             If invalid parameter values are passed.
         """
 
@@ -141,15 +140,15 @@ class BioSim:
             self.island.species_map[species].set_parameters(params)
         except KeyError as e:
             if species not in self.island.species_map.keys():
-                raise KeyError(f"Invalid species: {species}. Valid species:"
+                raise ValueError(f"Invalid species: {species}. Valid species:"
                                f" {', '.join(list(self.island.species_map.keys()))}")
             # Here I googled how to retrieve the element in a set. I found that I could use
             # next(iter(...)):
             difference = next(iter(set(params.keys()) - set(self.island.species_map.keys())))
             if f"Invalid parameter: {difference}" not in str(e):
-                raise KeyError(f"Invalid parameter keys in {params}.")
+                raise ValueError(f"Invalid parameter keys in {params}.")
             else:
-                raise KeyError(f"Invalid key: {difference}.")
+                raise ValueError(f"Invalid key: {difference}.")
         except ValueError:
             raise ValueError("Invalid parameter value(s).")
 
@@ -166,15 +165,14 @@ class BioSim:
 
         Raises
         ------
-        KeyError
-            If invalid parameter keys are passed.
         ValueError
+            If invalid parameter keys are passed.
             If invalid landscape type is passed.
             If invalid parameter values are passed.
         """
 
         if "f_max" not in params:
-            raise KeyError(f"Invalid parameter key {params}. Valid keys are 'f_max'.")
+            raise ValueError(f"Invalid parameter key {params}. Valid keys are 'f_max'.")
         else:
             try:
                 if params["f_max"] < 0:

@@ -50,15 +50,14 @@ class Island:
 
         Raises
         ------
-        KeyError
-            If invalid parameter keys are passed.
         ValueError
+            If invalid parameter keys are passed.
             If invalid parameter values are passed.
         """
 
         for key, val in new_parameters.items():
             if key not in cls.default_fodder_parameters():
-                raise KeyError(f"Invalid parameter: {key}")
+                raise ValueError(f"Invalid parameter: {key}")
             try:
                 if val < 0:
                     raise ValueError(f"{key}'s value ({val}) can not be negative.")

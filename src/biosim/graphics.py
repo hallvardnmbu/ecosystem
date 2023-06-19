@@ -39,6 +39,9 @@ class Graphics:
         self.geography = geography
         if vis_years:
             self.vis_years = vis_years
+            if img_years:
+                if img_years % vis_years != 0:
+                    raise ValueError("Image interval must be a multiple of visualisation interval.")
         else:
             self.vis_years = 0
         self.step_size = step_size
