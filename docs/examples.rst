@@ -33,16 +33,20 @@ Some pros and cons of the GUI:
 
 * Able to continue on the previous simulation (as well as add animals), or reset it.
 
-* Unable to specify parameters for the simulation.
+* Possibility of specifying animal and landscape parameters.
+
+* Not able to specify visualisation parameters.
 
 * Able to navigate back and forth from drawing and simulating.
 
 * Super fun!
 
-.. image:: _static/images/example_gui.gif
-   :width: 700px
-   :align: center
-   :class: bordered-image
+.. raw:: html
+
+   <video controls style="width: 700px;">
+       <source src="_static/example.mp4" type="video/mp4">
+       Your browser does not support the video tag.
+   </video>
 
 To use the GUI, run the following code (and change :code:`map_size` to your liking):
 
@@ -53,7 +57,7 @@ Making a mp4 movie:
 -------------------
 
 Saves a movie in the specified directory (can be absolute or nonexisting). The movie is saved as
-the specified filename.
+the specified filename, and is created using the saved images of the simulation.
 
 .. literalinclude:: ../examples/example_save_movie.py
     :language: python

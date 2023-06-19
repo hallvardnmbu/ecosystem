@@ -2,8 +2,8 @@ GUI
 =======
 
 The GUI-module is a graphical user interface for the BioSim-package. It is based on the
-Tkinter-package, and allows the user to draw a custom map, place animals on the map, and then run
-a simulation for a given number of years.
+Tkinter-package, and allows the user to draw a custom map, place animals on the map, edit (some of)
+the parameters and then run a simulation for a given number of years.
 
 In order to achieve the wanted result, ChatGPT (mostly), Stackoverflow, google and relevant
 documentation was used in order to speed up the process of the steep learning curve.

@@ -2,8 +2,10 @@ I morgen:
 =========
 - hallvard
 * lage "film" som bruker GUI og simulerer
+* Oppdatere GUI-gif på nettside.
 * Lese gjennom oppgaveteksten og sjekke at alt er oppfylt.
 * Til eksamen: plots (se mappe)
+  * Sammenlikn vår sample_sim 1000. år med hans (så å si identisk!!! NICE.)
 
 - thyra
 * Er setup og det helt ferdig??? Viktigst.

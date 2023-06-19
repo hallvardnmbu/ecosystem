@@ -28,7 +28,8 @@ class BioSimGUI(tk.Tk):
         self.population = []
 
         self.pages = {"DrawMap": DrawMap(self),
-                      "AddAnimals": AddAnimals(self)}
+                      "AddAnimals": AddAnimals(self),
+                      "ChangeParams": ChangeParams(self)}
 
         self.pages.get("DrawMap").pack()
 
@@ -276,11 +277,16 @@ class AddAnimals(tk.Frame):
         add_button = tk.Button(self, text="Add", command=self.add_info)
         add_button.grid(row=1, column=10 + map_size, padx=5, pady=5)
 
-        button = tk.Button(self,
+        button_back = tk.Button(self,
                            text="Draw map",
                            width=5,
-                           command=lambda: self.navigate_page())
-        button.grid(row=0, column=10 + map_size, padx=5, pady=5)
+                           command=lambda: self.navigate_page_draw())
+        button_back.grid(row=0, column=9 + map_size, padx=5, pady=5)
+        button_next = tk.Button(self,
+                           text="Edit parameters",
+                           width=9,
+                           command=lambda: self.navigate_page_params())
+        button_next.grid(row=0, column=10 + map_size, padx=5, pady=5)
 
         text_label = tk.Label(self, text="# years:")
         text_label.place(anchor="se", relx=1.0, rely=1.0, x=-65, y=-45)
@@ -302,15 +308,23 @@ class AddAnimals(tk.Frame):
 
         geogr = ["".join(terrain) for terrain in zip(*self.master.grid_map)]
         geogr = "\n".join(geogr)
-        self.sim = BioSim(island_map=geogr, ini_pop=self.master.population)
+        self.master.sim = BioSim(island_map=geogr, ini_pop=self.master.population)
 
-    def navigate_page(self):
+    def navigate_page_draw(self):
         """
         Navigate back to the drawing page.
         """
 
         self.master.pages["AddAnimals"].pack_forget()
         self.master.pages["DrawMap"].pack()
+
+    def navigate_page_params(self):
+        """
+        Navigate back to the drawing page.
+        """
+
+        self.master.pages["AddAnimals"].pack_forget()
+        self.master.pages["ChangeParams"].pack()
 
     def add_info(self):
         """
@@ -401,7 +415,7 @@ class AddAnimals(tk.Frame):
         self.master.population = []
         geogr = ["".join(terrain) for terrain in zip(*self.master.grid_map)]
         geogr = "\n".join(geogr)
-        self.sim = BioSim(island_map=geogr, ini_pop=self.master.population)
+        self.master.sim = BioSim(island_map=geogr, ini_pop=self.master.population)
 
     def simulate(self):
         """
@@ -412,5 +426,151 @@ class AddAnimals(tk.Frame):
             raise ValueError("Number of years to simulate has not been specified.")
         else:
             years = int(self.year_entry.get())
-            self.sim.add_population(self.master.population)
-            self.sim.simulate(years)
+            self.master.sim.add_population(self.master.population)
+            self.master.sim.simulate(years)
+
+
+class ChangeParams(tk.Frame):
+
+    def __init__(self, master):
+        tk.Frame.__init__(self, master)
+        self.master = master
+
+        button_back = tk.Button(self,
+                                text="Simulate",
+                                width=5,
+                                command=lambda: self.navigate_page_draw())
+        button_back.grid(row=0, column=8, padx=5, pady=5)
+
+        self.validate_text_cmd = (self.register(self._validate_text), '%P')
+        self.validate_integer_cmd = (self.register(self._validate_integer), '%P')
+        self.validate_float_cmd = (self.register(self._validate_float), '%P')
+
+        self.species_var = tk.StringVar()
+        animal_params = tk.Label(self, text="Change animal parameter:")
+        animal_params.grid(row=1, column=1, padx=5, pady=5)
+        herbivore_button = tk.Radiobutton(self, text="Herbivore", variable=self.species_var,
+                                          value="Herbivore")
+        herbivore_button.grid(row=1, column=2, padx=5, pady=5)
+        carnivore_button = tk.Radiobutton(self, text="Carnivore", variable=self.species_var,
+                                          value="Carnivore")
+        carnivore_button.grid(row=2, column=2, padx=5, pady=5)
+
+        _animal_param = tk.Label(self, text="Parameter:")
+        _animal_param.grid(row=1, column=3, padx=5, pady=5)
+        self._animal_param_entry = tk.Entry(self, width=5)
+        self._animal_param_entry.grid(row=1, column=4, padx=5, pady=5)
+        self._animal_param_entry.config(validate="key", validatecommand=self.validate_text_cmd)
+
+        _animal_value = tk.Label(self, text="Value:")
+        _animal_value.grid(row=1, column=5, padx=5, pady=5)
+        self._animal_value_entry = tk.Entry(self, width=5)
+        self._animal_value_entry.grid(row=1, column=6, padx=5, pady=5)
+        self._animal_value_entry.config(validate="key", validatecommand=self.validate_float_cmd)
+
+        add_animal_param_button = tk.Button(self, text="Update", command=self.add_info)
+        add_animal_param_button.grid(row=1, column=7, padx=5, pady=5)
+
+        # I couldn't find a elegant solution, so I ended up doing the following:
+        separator1 = tk.Label(self, text=" -=- " * 8)
+        separator1.grid(row=3, column=1, padx=0, pady=5)
+        separator2 = tk.Label(self, text=" -=- " * 4)
+        separator2.grid(row=3, column=2, padx=0, pady=5)
+        separator3 = tk.Label(self, text=" -=- " * 4)
+        separator3.grid(row=3, column=3, padx=0, pady=5)
+        separator4 = tk.Label(self, text=" -=- " * 2)
+        separator4.grid(row=3, column=4, padx=0, pady=5)
+        separator5 = tk.Label(self, text=" -=- " * 4)
+        separator5.grid(row=3, column=5, padx=0, pady=5)
+        separator6 = tk.Label(self, text=" -=- " * 3)
+        separator6.grid(row=3, column=6, padx=0, pady=5)
+        separator7 = tk.Label(self, text=" -=- " * 4)
+        separator7.grid(row=3, column=7, padx=0, pady=5)
+
+        self.landscape_var = tk.StringVar()
+        landscape_params = tk.Label(self, text="Change landscape parameter:")
+        landscape_params.grid(row=4, column=1, padx=5, pady=5)
+        h_button = tk.Radiobutton(self, text="H", variable=self.landscape_var,
+                                          value="H")
+        h_button.grid(row=4, column=2, padx=5, pady=5)
+        l_button = tk.Radiobutton(self, text="L", variable=self.landscape_var,
+                                          value="L")
+        l_button.grid(row=5, column=2, padx=5, pady=5)
+        d_button = tk.Radiobutton(self, text="D", variable=self.landscape_var,
+                                  value="D")
+        d_button.grid(row=6, column=2, padx=5, pady=5)
+        w_button = tk.Radiobutton(self, text="W", variable=self.landscape_var,
+                                  value="W")
+        w_button.grid(row=7, column=2, padx=5, pady=5)
+
+        _land_param = tk.Label(self, text="Fodder:")
+        _land_param.grid(row=4, column=3, padx=5, pady=5)
+        self._land_param_entry = tk.Entry(self, width=5)
+        self._land_param_entry.grid(row=4, column=4, padx=5, pady=5)
+        self._land_param_entry.config(validate="key", validatecommand=self.validate_integer_cmd)
+
+        add_land_param_button = tk.Button(self, text="Update", command=self.add_info)
+        add_land_param_button.grid(row=4, column=5, padx=5, pady=5)
+
+    def add_info(self):
+        """
+        Saves the information about the parameters to be added to the simulation.
+        """
+
+        species = str(self.species_var.get())
+        if species:
+            param = self._animal_param_entry.get() if self._animal_param_entry.get() else None
+            val = float(self._animal_value_entry.get()) if self._is_float(
+                self._animal_value_entry.get()) else None
+            self.master.sim.set_animal_parameters(species, {param: val})
+
+        landscape = str(self.landscape_var.get())
+        if landscape:
+            val = float(self._land_param_entry.get()) if self._is_float(
+                self._land_param_entry.get()) else None
+            self.master.sim.set_landscape_parameters(landscape, {"f_max": val})
+
+    @staticmethod
+    def _validate_text(text):
+        """
+        Checks whether the input text is valid.
+        """
+
+        pattern = r'^[a-zA-Z_]+$'
+        return re.match(pattern, text) is not None
+
+    @staticmethod
+    def _validate_integer(value):
+        """
+        Checks whether the input value is an integer.
+        """
+
+        return re.match(r'^\d*$', value) is not None
+
+    @staticmethod
+    def _validate_float(value):
+        """
+        Checks whether the input value is float.
+        """
+
+        return re.match(r'^\d*\.?\d*$', value) is not None
+
+    @staticmethod
+    def _is_float(value):
+        """
+        Additional check for float values on input.
+        """
+
+        try:
+            float(value)
+            return True
+        except ValueError:
+            return False
+
+    def navigate_page_draw(self):
+        """
+        Navigate back to the drawing page.
+        """
+
+        self.master.pages["ChangeParams"].pack_forget()
+        self.master.pages["AddAnimals"].pack()
