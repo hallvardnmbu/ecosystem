@@ -31,7 +31,7 @@ def trial_animals():
     animals = [Herbivore(age, weight), Carnivore(age, weight)]
     for animal in animals:
         animal.set_parameters(animal.default_parameters())
-
+        animal.set_motion()
     yield animals
 
     # Cleanup:
@@ -190,7 +190,7 @@ def test_set_motion(trial_animals):
     """Tests that the motion is set correctly."""
 
     for animal in trial_animals:
-        animal.set_motion(new_stride=1)
+        animal.set_motion(new_movable={"W": True}, new_stride=1)
         assert animal.stride == 1, f"Motion for {animal.__class__.__name__} is wrongly set."
 
 
@@ -199,7 +199,7 @@ def test_set_motion_negative(trial_animals):
 
     for animal in trial_animals:
         with pytest.raises(ValueError):
-            animal.set_motion(new_stride=-1), f"Setting negative motion for" \
+            animal.set_motion(new_movable={"W": True}, new_stride=-1), f"Setting negative motion for" \
                                               f" {animal.__class__.__name__} " \
                                               f"worked."
 

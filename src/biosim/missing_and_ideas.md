@@ -8,6 +8,8 @@ I morgen:
   * Skrive hvordan installere pakken i dokumentasjonen (jeg kan gjøre det hvis du sier hva 
     "kommandoen" er).
   * Fikse setup.cfg
+  * FINNE NØDVENDIGE PAKKER SOM MÅ ISNTALLERES FOR Å KJØRE BIOSIM 
+         - skriv dissse i cetup og i how_to_install  
   * spørsmål om setup.cfg eksempelfiler se kommentar
   * også om pytest i project requirements
   * tox.ini
@@ -16,9 +18,7 @@ I morgen:
 * Finne ut hva som feiler gitlab-ci
 * legge alle tester in classer
 * mock fitness in death test? hunt
-* other flake8 tests
 * test_biosim_interface.py (vi skal IKKE teste visualisering)
-* test_make_movie (er nok ikke vits.)
 * Dele opp (sortere) testene i unittests, integraltests osv.
 * Integration tester:
   * integration test: checkerboard - statistical test
