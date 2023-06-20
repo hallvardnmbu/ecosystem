@@ -6,7 +6,7 @@ from src.biosim.animals import Herbivore, Carnivore
 from src.biosim.island import Island
 from src.biosim.simulation import BioSim
 import scipy.stats as stat
-from math import log
+import math
 import random
 import pytest
 seed = 123456
@@ -20,16 +20,18 @@ def test_migration_over_time():
     # Setup:
 
     pop_sizes = [random.randint(1000, 20000) for _ in range(100)] # different population sizes]
-    geo = "WWWWWW\n"
-          "WLLLLW\n"
-          "WLLLLW\n"
-          "WLLLLW\n"
-          "WWWWWW"
+    geo = """\
+             WWWWWWW
+             WLLLLLW
+             WLLLLLW
+             WLLLLLW
+             WLLLLLW
+             WWWWWWW"""
     migrated=[]        # list of relative migrated pop to desired location
 
     for n in pop_sizes:
         pop = [{"species": "Herbivore", "age": 0, "weight": 2000} for _ in range(n)]
-        ini_pops.append({"loc": (4, 4), "pop": pop})
+        ini_pop=[{"loc": (4, 4), "pop": pop}]
         island = Island(geography=geo, ini_pop=ini_pop)
 
         # Set the parameters so that the animals will migrate (and don't die).
@@ -42,12 +44,12 @@ def test_migration_over_time():
 
         a, b, n_animals_per_species_per_cell= island.animals()
 
-        migrated.append(island.n_animals_per_species_per_cell["Herbivore"][(2, 2)]/n)
+        migrated.append(n_animals_per_species_per_cell[(4, 6)]["Herbivore"]/n)
 
     limit= 0.05
-    wanted = 100*0.25**2
-    _, p_val = stat.shapiro(migrated)
+    wanted = 0.25**2
+    mean = sum(migrated)/len(migrated)
 
-    assert p_val > limit, "the migration is not close to normal distribution"
+    assert math.isclose(wanted, mean, rel_tol=limit), "the migration is not close to normal distribution"
 
 
