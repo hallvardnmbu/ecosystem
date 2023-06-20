@@ -232,7 +232,7 @@ def test_set_parameters_eta():
 def test_set_parameters_nonexistent_key(dict_key, dict_value):
     """Tests that the parameters are set correctly."""
 
-    with pytest.raises(ValueError):
+    with pytest.raises(KeyError):
         Herbivore.set_parameters({dict_key: dict_value}), "Setting nonexistent parameters worked."
 
 

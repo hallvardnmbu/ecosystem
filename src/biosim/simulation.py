@@ -143,13 +143,11 @@ class BioSim:
                                  f" {', '.join(list(self.island.species_map.keys()))}")
             # Here I googled how to retrieve the element in a set. I found that I could use
             # next(iter(...)):
-            #difference = next(iter(set(params.keys()) - set(self.island.species_map.keys())))
-            #if f"Invalid parameter: {difference}" not in str(e):
-            #    raise KeyError(f"Invalid parameter keys in {params}.")
+            difference = next(iter(set(params.keys()) - set(self.island.species_map.keys())))
+            if f"Invalid parameter: {difference}" not in str(e):
+                raise ValueError(f"Invalid parameter keys in {params}.")
             if f"Invalid parameter: {difference}" in str(e):
-                raise KeyError(f"Invalid key: {difference}.")
-            else:
-                raise ValueError("Invalid parameter value(s).")
+                raise ValueError(f"Invalid key: {difference}.")
 
     def set_landscape_parameters(self, landscape, params):
         """

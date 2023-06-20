@@ -176,7 +176,7 @@ class Animal:
 
         for key, val in new_parameters.items():
             if key not in cls.default_parameters():
-                raise ValueError(f"Invalid parameter: {key}")
+                raise KeyError(f"Invalid parameter: {key}")
             try:
                 if key == "DeltaPhiMax" and val <= 0:
                     raise ValueError(f"Value for: {key} ({val}) should be positive.")

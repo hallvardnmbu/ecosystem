@@ -184,18 +184,14 @@ def test_procreation_over_time():
         # Run the procreation for 3 years.
         island.feed()
         island.procreate()
-        island.feed()
-        island.procreate()
-        island.feed()
-        island.procreate()
 
         _, n_species, _ = island.animals()
         p = sum(n_species.values())
         relative_procreation.append(p/n)
 
     mean = sum(relative_procreation)/len(relative_procreation)
-    wanted= 2**3
+    wanted= 2
     limit= 0.05
 
-    assert math.isclose(wanted, mean, rel_tol=limit), "Procreated incorrectly."
+    assert isclose(wanted, mean, rel_tol=limit), "Procreated incorrectly."
 

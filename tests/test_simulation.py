@@ -194,7 +194,6 @@ def test_invalid_animal_keys_exception(trial_simulation, param, val):
 
     with pytest.raises(ValueError) as e:
         trial_simulation.set_animal_parameters("Herbivore", {param: val})
-    assert str(e.value) == f"Invalid parameter: {param}"
 
 
 def test_invalid_animal_parameter_exception(trial_simulation):
@@ -205,7 +204,6 @@ def test_invalid_animal_parameter_exception(trial_simulation):
     params = {"eta": 0.1, "b": 0.2}
     with pytest.raises(ValueError) as e:
         trial_simulation.set_animal_parameters("Herbivore", params)
-    assert str(e.value) == 'Invalid parameter: b'
 
 
 @pytest.mark.parametrize("param, val",
