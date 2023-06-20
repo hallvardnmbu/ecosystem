@@ -7,16 +7,11 @@ I morgen:
 * Er setup og det helt ferdig??? Viktigst.
   * Skrive hvordan installere pakken i dokumentasjonen (jeg kan gjøre det hvis du sier hva 
     "kommandoen" er).
-  * Fikse setup.cfg
-  * FINNE NØDVENDIGE PAKKER SOM MÅ ISNTALLERES FOR Å KJØRE BIOSIM 
-         - skriv dissse i cetup og i how_to_install  
-  * spørsmål om setup.cfg eksempelfiler se kommentar
-  * også om pytest i project requirements
+  
   * tox.ini
     * Når "tox" skrives i terminal failer så å si ALLE testene. Noe er feil.
-* Ordne opp i .gitignore (du fjerna den i commit 11:45 fredag)
-* Finne ut hva som feiler gitlab-ci
-* legge alle tester in classer
+
+
 * mock fitness in death test? hunt
 * test_biosim_interface.py (vi skal IKKE teste visualisering)
 * Dele opp (sortere) testene i unittests, integraltests osv.
