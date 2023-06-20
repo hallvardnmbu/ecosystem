@@ -11,7 +11,7 @@ Features of the BioSim package
 ------------------------------
 * Saving images whilst visualising is done a bit more elegantly than the example in the 
   assignment. When saving an image, an (existing or nonexist) absolute/relative directory can be
-  passed. This leads to the corresponding test of Hans Ekkehard Plesser's to fail.
+  passed. The images are stored within a subdirectory "images", to avoid clutter.
 
 * We have created a GUI which makes using the package more intuitive and simple to use. The GUI
   does however lack some of the features accessible through the command line interface, although 

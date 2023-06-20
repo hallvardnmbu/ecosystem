@@ -76,19 +76,22 @@ class Graphics:
         self._img_ctr = 0
         self._img_fmt = img_fmt
         if img_dir:
-            self._img_dir = str(img_dir)
+            self._img_dir = img_dir
             img_base = str(img_base)
-            if os.path.isabs(self._img_dir):
-                os.makedirs(self._img_dir, exist_ok=True)
-                images = os.path.join(self._img_dir, "images")
-                os.makedirs(images, exist_ok=True)
-                self._img_base = os.path.join(images, img_base)
+            if img_dir.startswith("."):
+                self._img_base = os.path.join(self._img_dir, img_base)
             else:
-                self._img_dir = os.path.join(_DEFAULT_GRAPHICS_DIR, self._img_dir)
-                os.makedirs(self._img_dir, exist_ok=True)
-                self._img_base = os.path.join(self._img_dir, "images")
-                os.makedirs(self._img_base, exist_ok=True)
-                self._img_base = os.path.join(self._img_base, img_base)
+                if os.path.isabs(self._img_dir):
+                    os.makedirs(self._img_dir, exist_ok=True)
+                    images = os.path.join(self._img_dir, "images")
+                    os.makedirs(images, exist_ok=True)
+                    self._img_base = os.path.join(images, img_base)
+                else:
+                    self._img_dir = os.path.join(_DEFAULT_GRAPHICS_DIR, self._img_dir)
+                    os.makedirs(self._img_dir, exist_ok=True)
+                    self._img_base = os.path.join(self._img_dir, "images")
+                    os.makedirs(self._img_base, exist_ok=True)
+                    self._img_base = os.path.join(self._img_base, img_base)
         else:
             self._img_dir = None
             self._img_base = None

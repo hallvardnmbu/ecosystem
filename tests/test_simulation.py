@@ -13,7 +13,6 @@ import pytest
 def trial_simulation():
     """
     Creates a simulations to be used in the tests.
-    After the test is done, the simulation is reset to its default values.
     """
 
     # Setup:

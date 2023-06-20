@@ -1,15 +1,11 @@
 I morgen:
 =========
 - hallvard
-* Rydde i gui.py
+* 
 
 - thyra
-* mock fitness in death test? hunt
-* Dele opp (sortere) testene i unittests, integraltests osv.
 * Integration tester:
-  * integration test: checkerboard - statistical test
   * integration test: yearly cycle
-  * integration test: birth, ca. antall prosent som forventa osv.?
   * osv. osv. osv.
   * Lag en del av disse, Thyra.
 
@@ -30,7 +26,7 @@ Exam evaluation:
 
 Code 70%
 
-* More powerful tests (e.g. statistical tests)
+* 
 
 Delivery 20%
 ------------
@@ -42,9 +38,7 @@ Quality 20%
 
 Tests 15%
 ---------
-* Do you have unit tests for all methods in classes for animals and landscape types?
-* Are your tests meaningful and sufficiently comprehensive?
-* Are the tests well written?
+* 
 
 Documentation 10%
 -----------------
