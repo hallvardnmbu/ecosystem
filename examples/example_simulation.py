@@ -2,7 +2,7 @@
 This is a small demo script running a BioSim simulation.
 """
 
-from src.biosim.simulation import BioSim
+from biosim.simulation import BioSim
 
 nmbu = """\
           WWWWWWWWWWWWWWWWWWWWWWWWWWW

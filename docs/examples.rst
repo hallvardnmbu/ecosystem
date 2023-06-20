@@ -17,7 +17,7 @@ Example simulation (without GUI):
 Example simulation (with GUI):
 ------------------------------
 
-To use the GUI, import :mod:`src.biosim.gui` and create an instance of the GUI class, specifying the
+To use the GUI, import :mod:`biosim.gui` and create an instance of the GUI class, specifying the
 desired map size (:code:`instance = BioSimGUI(map_size)`). The GUI will then open in a new window
 when :code:`instance.mainloop()` is called.
 
