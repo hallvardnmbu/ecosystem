@@ -241,7 +241,7 @@ class Island:
             for animal in list(itertools.chain(*cell.animals.values())).copy():
 
                 # Procreation may only take place if the following is satisfied:
-                if animal.w >= animal.p_procreate:
+                if animal.w >= animal.w_procreate:
 
                     if random.random() < min(1, animal.fitness * p_baby[animal.__class__.__name__]):
                         baby_weight = animal.lognormv()

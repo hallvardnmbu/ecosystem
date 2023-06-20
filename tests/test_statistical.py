@@ -150,3 +150,52 @@ def test_death_rate(trial_island_1000):
     expected = (1-0.5*(1-fitness))**num_years * 1000 + 10  # +10 to add a little bit of wiggle room.
 
     assert trial_island_1000.animals()[1]["Herbivore"] <= expected, "The death rate is incorrect."
+
+
+
+def test_procreation_over_time():
+    """
+    Tests that the procreation works as intended over time.
+    """
+
+    # Big population for high probability of procreation.
+    pop_sizes = [random.randint(1000, 2000) for _ in range(20)] # different population sizes]
+    geo = """\
+             WWWWWWW
+             WLLLLLW
+             WLLLLLW
+             WLLLLLW
+             WLLLLLW
+             WWWWWWW"""
+
+    relative_procreation=[]        # list of new population
+
+    for n in pop_sizes:
+        pop = [{"species": "Herbivore", "age": 1, "weight": 2000} for _ in range(n)]
+        ini_pop=[{"loc": (4, 4), "pop": pop}]
+        island = Island(geography=geo, ini_pop=ini_pop)
+
+        # In order to make 100 percent of animals to procreate.
+        #mocker.patch("_update_p_procreate", return_value=1)
+        island.species_map["Herbivore"].set_parameters({'gamma': 10000})
+        # Let the fodder be enough for the animals.
+        island.set_fodder_parameters({"L": 80000})
+
+        # Run the procreation for 3 years.
+        island.feed()
+        island.procreate()
+        island.feed()
+        island.procreate()
+        island.feed()
+        island.procreate()
+
+        _, n_species, _ = island.animals()
+        p = sum(n_species.values())
+        relative_procreation.append(p/n)
+
+    mean = sum(relative_procreation)/len(relative_procreation)
+    wanted= 2**3
+    limit= 0.05
+
+    assert math.isclose(wanted, mean, rel_tol=limit), "Procreated incorrectly."
+

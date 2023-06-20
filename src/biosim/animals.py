@@ -194,15 +194,15 @@ class Animal:
 
             setattr(cls, key, val)
 
-        cls._update_p_procreate()
+        cls._update_w_procreate()
 
     @classmethod
-    def _update_p_procreate(cls):
+    def _update_w_procreate(cls):
         """
-        Updates the probability of procreation for the species.
+        Updates the weight condition of procreation for the species.
         """
 
-        cls.p_procreate = cls.zeta * (cls.w_birth + cls.sigma_birth)
+        cls.w_procreate = cls.zeta * (cls.w_birth + cls.sigma_birth)
 
     def __init__(self, weight, age):
         try:
