@@ -192,7 +192,7 @@ def test_invalid_animal_keys_exception(trial_simulation, param, val):
     Tests that wrong parameter key cannot be set, and we get wanted exception.
     """
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         trial_simulation.set_animal_parameters("Herbivore", {param: val})
 
 
@@ -202,7 +202,7 @@ def test_invalid_animal_parameter_exception(trial_simulation):
     """
 
     params = {"eta": 0.1, "b": 0.2}
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         trial_simulation.set_animal_parameters("Herbivore", params)
 
 
