@@ -1,7 +1,9 @@
 I morgen:
 =========
 - hallvard
-* 
+* Fjerne denne filen! 
+* Fjerne andre unødvendige filer.
+* Fjern reference_* mappene fra git.
 
 - thyra
 * Integration tester:

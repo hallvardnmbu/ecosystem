@@ -37,21 +37,6 @@ def trial_animals():
         animal.set_parameters(animal.default_parameters())
 
 
-# @pytest.fixture
-# def trial_island_10():
-#     """
-#     Creates an island with animals.
-#     """
-#
-#     # Setup:
-#     geography = "WWWWW\nWWDWW\nWDDDW\nWWDWW\nWWWWW"
-#     ini_pop = [{"loc": (3, 3), "pop": [{"species": "Herbivore", "age": 5, "weight": 20} for _ in
-#                                        range(10)]}]
-#     island = Island(geography, ini_pop)
-#
-#     yield island
-
-
 @pytest.fixture
 def trial_island_1000():
     """
@@ -133,6 +118,29 @@ def test_migration_over_time():
     assert isclose(0.25**2, mean, rel_tol=0.09), "Migration is wrongly distributed."
 
 
+def test_procreation_over_time(trial_island_1000, mocker):
+    """
+    Tests that the procreation works as intended over time.
+    """
+
+    trial_island_1000.species_map["Herbivore"].set_parameters({'gamma': 100000,
+                                                               'zeta': 0})
+    # All baby-weights are 0:
+    mocker.patch("random.lognormvariate", return_value=0)
+
+    num_years = 5
+    for _ in range(num_years):
+        trial_island_1000.procreate()
+        # Sets the new (and old) generation's weight to 20.
+        for animal in trial_island_1000.animals()[0]["Herbivore"]:
+            animal.w = 20
+
+    n_species = trial_island_1000.animals()[1]["Herbivore"]
+    expected = (2)**num_years * 1000
+
+    assert n_species == expected, "Procreated incorrectly."
+
+
 def test_death_rate(trial_island_1000):
     """
     Tests that the animals dying rate is correct.
@@ -150,52 +158,3 @@ def test_death_rate(trial_island_1000):
     expected = (1-0.5*(1-fitness))**num_years * 1000 + 10  # +10 to add a little bit of wiggle room.
 
     assert trial_island_1000.animals()[1]["Herbivore"] <= expected, "The death rate is incorrect."
-
-
-
-def test_procreation_over_time():
-    """
-    Tests that the procreation works as intended over time.
-    """
-
-    # Big population for high probability of procreation.
-    pop_sizes = [random.randint(1000, 2000) for _ in range(20)] # different population sizes]
-    geo = """\
-             WWWWWWW
-             WLLLLLW
-             WLLLLLW
-             WLLLLLW
-             WLLLLLW
-             WWWWWWW"""
-
-    relative_procreation=[]        # list of new population
-
-    for n in pop_sizes:
-        pop = [{"species": "Herbivore", "age": 1, "weight": 2000} for _ in range(n)]
-        ini_pop=[{"loc": (4, 4), "pop": pop}]
-        island = Island(geography=geo, ini_pop=ini_pop)
-
-        # In order to make 100 percent of animals to procreate.
-        #mocker.patch("_update_p_procreate", return_value=1)
-        island.species_map["Herbivore"].set_parameters({'gamma': 10000})
-        # Let the fodder be enough for the animals.
-        island.set_fodder_parameters({"L": 80000})
-
-        # Run the procreation for 3 years.
-        island.feed()
-        island.procreate()
-        island.feed()
-        island.procreate()
-        island.feed()
-        island.procreate()
-
-        _, n_species, _ = island.animals()
-        p = sum(n_species.values())
-        relative_procreation.append(p/n)
-
-    mean = sum(relative_procreation)/len(relative_procreation)
-    wanted= 2**3
-    limit= 0.05
-
-    assert math.isclose(wanted, mean, rel_tol=limit), "Procreated incorrectly."
-
