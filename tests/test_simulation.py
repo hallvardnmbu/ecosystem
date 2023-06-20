@@ -3,7 +3,7 @@ Tests for the simulation module.
 """
 
 
-from src.biosim.simulation import BioSim
+from biosim.simulation import BioSim
 import pytest
 
 
@@ -33,7 +33,7 @@ def trial_simulation_empty():
     """
 
     # Setup:
-    sim = BioSim(island_map="WWWWW\nWLHDW\nWWWWW", ini_pop=[], seed=1)
+    sim = BioSim(island_map="WWWWW\nWLHDW\nWWWWW", ini_pop=[], seed=1, vis_years=0)
 
     yield sim
 

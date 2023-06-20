@@ -10,6 +10,12 @@ Welcome to BioSim's documentation!
       customisable, and easy to use.
    </div>
 
+The package can be installed in terminal using the following command:
+
+.. code-block:: bash
+
+   pip install git+https://gitlab.com/nmbu.no/emner/inf200/h2022/june-block-teams/u13_hallvard_thyra/biosim-d13-hallvard-thyra
+
 .. image:: _static/images/abstract_island.png
    :width: 700px
    :align: center

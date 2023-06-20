@@ -3,7 +3,7 @@ Tests for the animals module.
 """
 
 
-from src.biosim.animals import Herbivore, Carnivore
+from biosim.animals import Herbivore, Carnivore
 import scipy.stats as stat
 from math import log
 import pytest

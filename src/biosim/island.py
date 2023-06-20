@@ -217,8 +217,7 @@ class Island:
                         weight = None
                     else:
                         weight = animal["weight"]
-                    cell.animals[species].append(self.species_map[species](age=age,
-                                                                           weight=weight))
+                    cell.animals[species].append(self.species_map[species](age=age, weight=weight))
 
     def procreate(self):
         r"""

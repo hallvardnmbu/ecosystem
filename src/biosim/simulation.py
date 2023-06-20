@@ -96,7 +96,6 @@ class BioSim:
             self.vis_years = False
         else:
             self.vis_years = vis_years
-
         self.island = Island(geography=island_map, ini_pop=ini_pop)
 
         self.graphics = Graphics(geography=self.island.geography,
@@ -224,7 +223,6 @@ class BioSim:
                 if self.log_file:
                     _, self.n_species, _ = self.island.animals()
                     self.graphics._save_to_file(self.year, self.n_species)
-
         if self.vis_years:
             plt.draw()
 

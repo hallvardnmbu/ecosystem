@@ -1,7 +1,7 @@
 I morgen:
 =========
 - hallvard
-* Skrive "how_to_install" i docs
+* Rydde i gui.py
 
 - thyra
 * Er setup og det helt ferdig??? Viktigst.
@@ -46,9 +46,6 @@ Exam evaluation:
 
 Code 70%
 
-* setup.cfg, setup.py, tox.ini, pyproject.toml in place, based on BioLab example
-* Running tox runs your tests (even if some fail)
-* All flake8 tests pass
 * "Dead code" removed
 * More powerful tests (e.g. statistical tests)
 

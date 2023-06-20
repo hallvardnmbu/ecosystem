@@ -1,0 +1,13 @@
+Generalised code.
+Fast.
+Only necessary code.
+- Exception: motion (to make it easier for further expansion).
+GUI.
+- Only valid values are allowed to be inserted.
+- Throws error if for instance position and species is not selected when adding population.
+Can save to file without visualisation.
+Great test coverage.
+Modified documentation page.
+- Notes on expansion, future ideas and examples.
+Tox
+- Ignores gui.py and graphics.py

@@ -59,7 +59,6 @@ class DrawMap(tk.Frame):
         self.terrain_frame.pack(side=tk.RIGHT, padx=10)
 
         self.create_terrain_buttons()
-
         self.draw_grid()
 
         self.canvas.bind("<Button-1>", self.handle_canvas_click)
@@ -94,7 +93,7 @@ class DrawMap(tk.Frame):
 
     def draw_grid(self):
         """
-        Draw the initial map with the specified colors.
+        Draw the initial map to be drawn on.
         """
 
         for x, row in enumerate(self.master.grid_map):
@@ -164,6 +163,8 @@ class DrawMap(tk.Frame):
 
             if 1 <= x < self.grid_width-1 and 1 <= y < self.grid_height-1:
                 terrain = self.selected_terrain
+
+                # Inserts the new letter into the string at the position it is drawn:
                 new = self.master.grid_map[x][:y] + terrain + self.master.grid_map[x][y+1:]
                 self.master.grid_map[x] = new
 
@@ -190,13 +191,18 @@ class DrawMap(tk.Frame):
         """
 
         self.master.pages["DrawMap"].pack_forget()
+        # When navigating to "AddAnimals" from drawing, a fresh simulation is initiated. This is
+        # done in case you for instance draw water where animals currently are residing. This is
+        # not strictly necessary, seeing as animals in 'W' can't move and will die due to lack of
+        # food, but is done to clean up the visualisation window, without the user having to
+        # click the reset button manually.
         self.master.pages["AddAnimals"].__init__(self.master)
         self.master.pages["AddAnimals"].pack()
 
 
 class AddAnimals(tk.Frame):
     """
-    Class for adding a population of animals to the map.
+    Page in the GUI for adding a population of animals to the map.
     """
 
     def __init__(self, master):
@@ -241,35 +247,29 @@ class AddAnimals(tk.Frame):
         self.validate_float_cmd = (self.register(self._validate_float), '%P')
 
         self.species_var = tk.StringVar()
-
         species_label = tk.Label(self, text="Species:")
         species_label.grid(row=1, column=1 + map_size, padx=5, pady=5)
-
         herbivore_button = tk.Radiobutton(self, text="Herbivore", variable=self.species_var,
                                           value="Herbivore")
         herbivore_button.grid(row=1, column=2 + map_size, padx=5, pady=5)
-
         carnivore_button = tk.Radiobutton(self, text="Carnivore", variable=self.species_var,
                                           value="Carnivore")
         carnivore_button.grid(row=1, column=3 + map_size, padx=5, pady=5)
 
         age_label = tk.Label(self, text="Age:")
         age_label.grid(row=1, column=4 + map_size, padx=5, pady=5)
-
         self.age_entry = tk.Entry(self, width=5)
         self.age_entry.grid(row=1, column=5 + map_size, padx=5, pady=5)
         self.age_entry.config(validate="key", validatecommand=self.validate_integer_cmd)
 
         weight_label = tk.Label(self, text="Weight:")
         weight_label.grid(row=1, column=6 + map_size, padx=5, pady=5)
-
         self.weight_entry = tk.Entry(self, width=5)
         self.weight_entry.grid(row=1, column=7 + map_size, padx=5, pady=5)
         self.weight_entry.config(validate="key", validatecommand=self.validate_float_cmd)
 
         n_animals_label = tk.Label(self, text="# animals:")
         n_animals_label.grid(row=1, column=8 + map_size, padx=5, pady=5)
-
         self.n_animals_entry = tk.Entry(self, width=5)
         self.n_animals_entry.grid(row=1, column=9 + map_size, padx=5, pady=5)
         self.n_animals_entry.config(validate="key", validatecommand=self.validate_integer_cmd)
@@ -420,6 +420,11 @@ class AddAnimals(tk.Frame):
     def simulate(self):
         """
         Simulates the population on the map for the given number of years.
+
+        Raises
+        ------
+        ValueError
+            If number of years to simulate has not been specified.
         """
 
         if not self.year_entry.get().isdigit():
@@ -431,6 +436,9 @@ class AddAnimals(tk.Frame):
 
 
 class ChangeParams(tk.Frame):
+    """
+    Page in the GUI to change the parameters of the animals and island.
+    """
 
     def __init__(self, master):
         tk.Frame.__init__(self, master)
@@ -471,7 +479,8 @@ class ChangeParams(tk.Frame):
         add_animal_param_button = tk.Button(self, text="Update", command=self.add_info)
         add_animal_param_button.grid(row=1, column=7, padx=5, pady=5)
 
-        # I couldn't find a elegant solution, so I ended up doing the following:
+        # I couldn't find an elegant solution to separate the animal and landscape parameters,
+        # so I ended up doing the following:
         separator1 = tk.Label(self, text=" -=- " * 8)
         separator1.grid(row=3, column=1, padx=0, pady=5)
         separator2 = tk.Label(self, text=" -=- " * 4)

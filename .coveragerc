@@ -1,4 +1,4 @@
 [run]
 omit =
-    src/biosim/gui.py
-    src/biosim/graphics.py
+    gui.py
+    graphics.py

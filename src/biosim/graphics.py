@@ -94,22 +94,47 @@ class Graphics:
             self._img_base = None
 
         # The following will be initialized by setup
+        self.gs = None
+        self._speed = None
         self.final_year = None
         self._fig = None
         self._map_plot = None
         self._year_ax = None
         self._line_ax = None
         self._animals_plot = None
+
+        self.herbs = None
+        self.carns = None
+        self.n_herbs = None
+        self.n_carns = None
         self._herb_ax = None
         self._herb_plot = None
         self._carn_ax = None
         self._carn_plot = None
+
         self._fitness_ax = None
         self._fitness_plot = None
+        self.fitness_bins = None
+        self._fitness_herb = None
+        self._fitness_herb_ax = None
+        self._fitness_carn = None
+        self._fitness_carn_ax = None
+
         self._age_ax = None
         self._age_plot = None
+        self.age_bins = None
+        self._age_herb = None
+        self._age_herb_ax = None
+        self._age_carn = None
+        self._age_carn_ax = None
+
         self._weight_ax = None
         self._weight_plot = None
+        self.weight_bins = None
+        self._weight_herb = None
+        self._weight_herb_ax = None
+        self._weight_carn = None
+        self._weight_carn_ax = None
 
     def setup(self, final_year, n_species_cells, speed):
         """
@@ -300,9 +325,9 @@ class Graphics:
         """
 
         if not os.path.exists(self._log_file):
-            dir = os.path.dirname(self._log_file)
-            if not os.path.exists(dir):
-                os.makedirs(dir, exist_ok=True)
+            directory = os.path.dirname(self._log_file)
+            if not os.path.exists(directory):
+                os.makedirs(directory, exist_ok=True)
             if not os.path.isabs(self._log_file):
                 if self._img_dir is not None:
                     if self._img_dir[-1] == ".":
