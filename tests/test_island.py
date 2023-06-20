@@ -8,6 +8,8 @@ from biosim.island import Island
 import pytest
 
 
+# %% Fixtures:
+
 @pytest.fixture
 def trial_islands():
     """
@@ -38,6 +40,8 @@ def reset_animal_params():
     Herbivore.set_parameters(Herbivore.default_parameters())
     Carnivore.set_parameters(Carnivore.default_parameters())
 
+
+# %% Unit tests:
 
 def test_default_parameters(trial_islands):
     """Tests that the default parameters are set correctly."""
@@ -133,31 +137,6 @@ def test_island_map_invalid():
         Island(geography=geography), "Island map with invalid characters was accepted."
 
 
-def test_add_population(trial_islands):
-    """Tests that the population is added correctly."""
-
-    for island in trial_islands:
-        animal = [{"loc": (2, 2), "pop": [{"species": "Herbivore"}]}]
-        island.add_population(animal)
-
-        _, n_species, _ = island.animals()
-
-        herbivores = n_species["Herbivore"]
-        assert sum(n_species.values()) == 1, "The population was not added correctly."
-        assert herbivores == 1, "The population was not added correctly."
-
-
-def test_n_animals_in_cell(trial_islands):
-    """Tests that the population is added correctly."""
-
-    for island in trial_islands:
-        animal = [{"loc": (2, 2), "pop": [{"species": "Herbivore"}]}]
-        island.add_population(animal)
-        animals_in_cell = island.cells[(2, 2)].animals
-        assert len(animals_in_cell["Herbivore"]) == 1, "The population was not added correctly."
-        assert len(animals_in_cell["Carnivore"]) == 0, "The population was not added correctly."
-
-
 def test_add_population_in_water(trial_islands):
     """Tests that error is raised when the population is added to an invalid location."""
 
@@ -185,6 +164,65 @@ def test_add_population_wrong_species(trial_islands):
             island.add_population(animal), "Population was added with an invalid animal."
 
 
+@pytest.mark.parametrize("pos, f",
+                         [[(2, 1), Island.default_fodder_parameters()["W"]],
+                          [(2, 2), Island.default_fodder_parameters()["L"]],
+                          [(2, 3), Island.default_fodder_parameters()["H"]],
+                          [(2, 4), Island.default_fodder_parameters()["D"]]])
+def test_island_cells_fodder(pos, f):
+    """Tests that the island cells are created correctly."""
+
+    island = Island(geography="WWWWW\nWLHDW\nWWWWW")
+    assert island.cells[pos].fodder == f, "The island cells were not constructed correctly."
+
+
+def test_population():
+    """Tests that the population list is created correctly."""
+
+    geogr = "WWWWW\nWWLWW\nWLLLW\nWWLWW\nWWWWW"
+    pop = [{"loc": (3, 3), "pop": [{"species": "Herbivore", "age": 5,
+                                   "weight": 20} for _ in range(10)]},
+           {"loc": (3, 4), "pop": [{"species": "Carnivore", "age": 5,
+                                    "weight": 20} for _ in range(5)]}]
+
+    island = Island(geogr, pop)
+
+    population, _, _ = island.animals()
+
+    pop = 0
+    for species in population.values():
+        pop += len(species)
+
+    assert pop == 15, "The population list was not created correctly."
+
+
+# %% Integration tests:
+
+def test_add_population(trial_islands):
+    """Tests that the population is added correctly."""
+
+    for island in trial_islands:
+        animal = [{"loc": (2, 2), "pop": [{"species": "Herbivore"}]}]
+        island.add_population(animal)
+
+        _, n_species, _ = island.animals()
+
+        herbivores = n_species["Herbivore"]
+        assert sum(n_species.values()) == 1, "The population was not added correctly."
+        assert herbivores == 1, "The population was not added correctly."
+
+
+def test_n_animals_in_cell(trial_islands):
+    """Tests that the population is added correctly."""
+
+    for island in trial_islands:
+        animal = [{"loc": (2, 2), "pop": [{"species": "Herbivore"}]}]
+        island.add_population(animal)
+        animals_in_cell = island.cells[(2, 2)].animals
+        assert len(animals_in_cell["Herbivore"]) == 1, "The population was not added correctly."
+        assert len(animals_in_cell["Carnivore"]) == 0, "The population was not added correctly."
+
+
 @pytest.mark.parametrize("key, val",
                          [["age", -2],
                           ["weight", -2],
@@ -197,18 +235,6 @@ def test_add_population_wrong_pop_values(trial_islands, key, val):
         animal = [{"loc": (2, 2), "pop": [{"species": "Herbivore", key: val}]}]
         with pytest.raises(ValueError):
             island.add_population(animal), "Population was added with an invalid parameter."
-
-
-@pytest.mark.parametrize("pos, f",
-                         [[(2, 1), Island.default_fodder_parameters()["W"]],
-                          [(2, 2), Island.default_fodder_parameters()["L"]],
-                          [(2, 3), Island.default_fodder_parameters()["H"]],
-                          [(2, 4), Island.default_fodder_parameters()["D"]]])
-def test_island_cells_fodder(pos, f):
-    """Tests that the island cells are created correctly."""
-
-    island = Island(geography="WWWWW\nWLHDW\nWWWWW")
-    assert island.cells[pos].fodder == f, "The island cells were not constructed correctly."
 
 
 def test_procreate(trial_islands):
@@ -271,26 +297,6 @@ def test_feed(trial_islands):
             "The herbivore did not feed correctly."
         assert len(cell.animals["Herbivore"]) == 0, \
             "The carnivore did not feed correctly."
-
-
-def test_population():
-    """Tests that the population list is created correctly."""
-
-    geogr = "WWWWW\nWWLWW\nWLLLW\nWWLWW\nWWWWW"
-    pop = [{"loc": (3, 3), "pop": [{"species": "Herbivore", "age": 5,
-                                   "weight": 20} for _ in range(10)]},
-           {"loc": (3, 4), "pop": [{"species": "Carnivore", "age": 5,
-                                    "weight": 20} for _ in range(5)]}]
-
-    island = Island(geogr, pop)
-
-    population, _, _ = island.animals()
-
-    pop = 0
-    for species in population.values():
-        pop += len(species)
-
-    assert pop == 15, "The population list was not created correctly."
 
 
 def test_migrate(reset_animal_params):

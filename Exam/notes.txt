@@ -10,4 +10,6 @@ Great test coverage.
 Modified documentation page.
 - Notes on expansion, future ideas and examples.
 Tox
-- Ignores gui.py and graphics.py
+- Ignores gui.py and graphics.py in coverage score.
+Tests
+- Thorough unit and integration tests

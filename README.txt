@@ -33,3 +33,6 @@ Features of the BioSim package
 
 * In addition to the dockstrings, there are additional sections addressing how to extend the
   package, how to use the package and future ideas for the project.
+
+* Tests are organised by unit- and integration tests within "test_*". We have also created a
+  separate test-file for the statistical tests.

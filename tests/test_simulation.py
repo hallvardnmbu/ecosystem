@@ -2,12 +2,12 @@
 Tests for the simulation module.
 """
 
-# Import the module containing the function you want to test
 
 from biosim.simulation import BioSim
 import pytest
-from unittest.mock import patch
 
+
+# %% Fixtures:
 
 @pytest.fixture
 def trial_simulation():
@@ -40,85 +40,7 @@ def trial_simulation_empty():
     yield sim
 
 
-@pytest.mark.parametrize("param, val",
-                         [["eta", 0.1],
-                          ["a_half", 40],
-                          ["phi_age", 0.6],
-                          ["w_half", 10]])
-def test_set_animal_parameters(trial_simulation, param, val):
-    """
-    Tests that the parameters are set correctly.
-    """
-
-    trial_simulation.set_animal_parameters("Herbivore", {param: val})
-
-    assert trial_simulation.island.species_map["Herbivore"].get_parameters()[param] == val, \
-        "Setting parameters didn't work."
-
-
-@pytest.mark.parametrize("param, val",
-                         [["a", 0.1],
-                          ["etta", 0.1]])
-def test_set_invalid_animal_parameter_key(trial_simulation, param, val):
-    """
-    Tests that wrong parameter key cannot be set.
-    """
-
-    with pytest.raises(ValueError):
-        trial_simulation.set_animal_parameters("Herbivore", {param: val}), "Setting invalid " \
-                                                                           "animal parameter " \
-                                                                           "key worked."
-
-@pytest.mark.parametrize("param, val",
-                         [["a", 0.1],
-                          ["etta", 0.1]])
-def test_invalid_animal_keys_exception(trial_simulation , param, val):
-    """
-    Tests that wrong parameter key cannot be set, and we get wanted exception.
-    """
-
-    with pytest.raises(ValueError) as e:
-        trial_simulation.set_animal_parameters("Herbivore", {param: val})
-    assert str(e.value) == f"Invalid parameter: {param}"
-
-
-def test_invalid_animal_parameter_exception(trial_simulation):
-    """
-    Tests that wrong parameter key cannot be set, and we get wanted exception.
-    """
-    params={"eta": 0.1, "b": 0.2}
-    with pytest.raises(ValueError) as e:
-        trial_simulation.set_animal_parameters("Herbivore", params)
-    assert str(e.value) == 'Invalid parameter: b'
-
-
-@pytest.mark.parametrize("param, val",
-                         [["eta", -1],
-                          ["eta", "a"],
-                          ["eta", [1]],
-                          ["eta", ["a"]],
-                          ["eta", {"a": 1}]])
-def test_set_invalid_animal_parameter_value_type(trial_simulation, param, val):
-    """
-    Tests that wrong parameter value types cannot be set.
-    """
-
-    with pytest.raises(ValueError):
-        trial_simulation.set_animal_parameters("Herbivore", {param: val}), "Setting invalid " \
-                                                                           "animal parameter " \
-                                                                           "values worked."
-
-
-def test_set_animal_parameter_invalid_species(trial_simulation):
-    """
-    Tests that wrong species cannot be set.
-    """
-
-    with pytest.raises(ValueError):
-        trial_simulation.set_animal_parameters("Human", {"eta": 0.1}), "Setting animal " \
-                                                                       "parameters for invalid " \
-                                                                       "species worked."
-
+# %% Unit tests:
 
 def test_year_construction(trial_simulation):
     """
@@ -231,39 +153,85 @@ def test_make_movie_wrong_format(trial_simulation):
         trial_simulation.make_movie("mp3")
 
 
-# def test_update_graphics(trial_simulation):
-#     """ Tests that the movie is created correctly. """
-#
-#     trial_simulation.vis_years = 1
-#     trial_simulation.graphics.my_colours = {"W": [0, 0, 0]}
-#     trial_simulation.graphics.terrain_patches = True
-#     trial_simulation.simulate(1)
-#     trial_simulation.simulate(1)
+# %% Integration tests:
 
-# def test_simulate_graphics_setup(trial_simulation):
-#     """ tests graphics get setup if correct vis_years """
-#
-#     trial_simulation.vis_years = 1
-#     with patch("graphics.setup") as mock_function:
-#         trial_simulation.simulate(2)
-#         mock_function.assert_called()
+@pytest.mark.parametrize("param, val",
+                         [["eta", 0.1],
+                          ["a_half", 40],
+                          ["phi_age", 0.6],
+                          ["w_half", 10]])
+def test_set_animal_parameters(trial_simulation, param, val):
+    """
+    Tests that the parameters are set correctly.
+    """
 
+    trial_simulation.set_animal_parameters("Herbivore", {param: val})
 
-# def test_simulate_graphics_update(trial_simulation, mocker):
-#     """ tests graphics get not updated if vis_years=0 """
-#
-#     trial_simulation.vis_years = 0
-#     with mocker.patch("update_graphics") as mock_function:
-#         trial_simulation.simulate(2)
-#         mock_function.assert_not_called()
+    assert trial_simulation.island.species_map["Herbivore"].get_parameters()[param] == val, \
+        "Setting parameters didn't work."
 
 
-# def test_simulate_graphics_update(trial_simulation):
-#     """ tests graphics get updated if if self.year % self.vis_years == 0"""
-#
-#     trial_simulation.vis_years = 0
-#     trial_simulation.simulate(2)
-#     with patch("update_graphics") as mock_function:
-#         graphics.update_graphics()
-#         mock_function.assert_called()
+@pytest.mark.parametrize("param, val",
+                         [["a", 0.1],
+                          ["etta", 0.1]])
+def test_set_invalid_animal_parameter_key(trial_simulation, param, val):
+    """
+    Tests that wrong parameter key cannot be set.
+    """
 
+    with pytest.raises(ValueError):
+        trial_simulation.set_animal_parameters("Herbivore", {param: val}), "Setting invalid " \
+                                                                           "animal parameter " \
+                                                                           "key worked."
+
+
+@pytest.mark.parametrize("param, val",
+                         [["a", 0.1],
+                          ["etta", 0.1]])
+def test_invalid_animal_keys_exception(trial_simulation, param, val):
+    """
+    Tests that wrong parameter key cannot be set, and we get wanted exception.
+    """
+
+    with pytest.raises(ValueError) as e:
+        trial_simulation.set_animal_parameters("Herbivore", {param: val})
+    assert str(e.value) == f"Invalid parameter: {param}"
+
+
+def test_invalid_animal_parameter_exception(trial_simulation):
+    """
+    Tests that wrong parameter key cannot be set, and we get wanted exception.
+    """
+
+    params = {"eta": 0.1, "b": 0.2}
+    with pytest.raises(ValueError) as e:
+        trial_simulation.set_animal_parameters("Herbivore", params)
+    assert str(e.value) == 'Invalid parameter: b'
+
+
+@pytest.mark.parametrize("param, val",
+                         [["eta", -1],
+                          ["eta", "a"],
+                          ["eta", [1]],
+                          ["eta", ["a"]],
+                          ["eta", {"a": 1}]])
+def test_set_invalid_animal_parameter_value_type(trial_simulation, param, val):
+    """
+    Tests that wrong parameter value types cannot be set.
+    """
+
+    with pytest.raises(ValueError):
+        trial_simulation.set_animal_parameters("Herbivore", {param: val}), "Setting invalid " \
+                                                                           "animal parameter " \
+                                                                           "values worked."
+
+
+def test_set_animal_parameter_invalid_species(trial_simulation):
+    """
+    Tests that wrong species cannot be set.
+    """
+
+    with pytest.raises(ValueError):
+        trial_simulation.set_animal_parameters("Human", {"eta": 0.1}), "Setting animal " \
+                                                                       "parameters for invalid " \
+                                                                       "species worked."
