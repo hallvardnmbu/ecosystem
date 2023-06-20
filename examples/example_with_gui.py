@@ -4,6 +4,8 @@ This is a small demo script running BioSim with the Graphical User Interface (GU
 
 from biosim.gui import BioSimGUI
 
-_MAP_SIZE = 20
+if __name__ == "__main__":
 
-BioSimGUI(map_size=_MAP_SIZE).mainloop()
+    _MAP_SIZE = 20
+
+    BioSimGUI(map_size=_MAP_SIZE).mainloop()

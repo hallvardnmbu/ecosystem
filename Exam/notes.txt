@@ -7,12 +7,14 @@ GUI.
 - Throws error if for instance position and species is not selected when adding population.
 Can save to file without visualisation.
 Great test coverage.
+- 100% coverage on all "code". The deviation from 100% is due to visualisation, which has not been
+  tested through pytest.
 Modified documentation page.
 - Notes on expansion, future ideas and examples.
 Tox
-- Ignores gui.py and graphics.py in coverage score.
+- Ignores (omits) gui.py and graphics.py in coverage score.
 Tests
-- Thorough unit and integration tests
+- Thorough unit, integration and statistical tests
 
 
 * Se mappe "eksamen_bilder" sammenlikn med hans plots.
@@ -26,9 +28,11 @@ Presentation 10%
 -----------------
 * Ability to present and explain your code
   - Overall structure
-  - What solutions you chose and why
-  - Why your code is trustworthy
-  - Whether you can substantiate your claims about your code
+  - What solutions you chose and why (snakk om generaliseringen og hva vi gjorde for å få det til å
+    gå raskt)
+  - Why your code is trustworthy (sammenlikne "eksamen_bilder" med hans plots, test coverage,
+    profiling)
+  - Whether you can substantiate your claims about your code ^
 
 Discussion 20%
 --------------

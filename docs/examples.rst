@@ -50,6 +50,20 @@ To use the GUI, run the following code (and change :code:`map_size` to your liki
 .. literalinclude:: ../examples/example_with_gui.py
     :language: python
 
+Example changing species' parameters:
+-------------------------------------
+
+Changing the species' parameters yield a different result. Here is an example changing a few of
+the parameters.
+
+.. image:: _static/images/example_different_parameters.png
+   :width: 700px
+   :align: center
+   :class: bordered-image
+
+.. literalinclude:: ../examples/example_different_parameters.py
+    :language: python
+
 Making a mp4 movie:
 -------------------
 
