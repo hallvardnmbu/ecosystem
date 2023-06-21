@@ -25,6 +25,11 @@ Features of the BioSim package
   makes it easy to extend and modify if needed. Without having to change much of the code. (See
   documentation "On further expansion" for examples on what needs to be done to extend the package.)
 
+* We have added an additional feature called "motion". This can be seen species-specific parameters,
+  and determines which terrain-types an animal can move to, and how big the step size is. This
+  feature does however throw an error if an animal tries to move outside the map (which we did not
+  "fix" as to keep the code as simple as possible).
+
 * Relevant examples using the package can be found in the 'examples' directory or in the 
   documentation (where additional explanatory text/visuals is included).
 

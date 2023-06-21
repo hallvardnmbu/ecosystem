@@ -1,7 +1,8 @@
 Generalised code.
 Fast.
 Only necessary code.
-- Exception: motion (to make it easier for further expansion).
+- Exception: motion (to make it easier for further expansion - does however throw error if moving
+  beyond the map).
 GUI.
 - Only valid values are allowed to be inserted.
 - Throws error if for instance position and species is not selected when adding population.
