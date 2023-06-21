@@ -144,7 +144,7 @@ class Island:
         # Habitable cell types:
         habitable_types = []
         for cls in Animal.__subclasses__():
-            habitable_types.extend(k for k, v in cls.motion()[0].items() if v is True)
+            habitable_types.extend(k for k, v in cls.movable.items() if v is True)
         habitable_types = list(dict.fromkeys(habitable_types))  # Removes duplicates.
 
         cells = {}
@@ -301,10 +301,15 @@ class Island:
                                           (0, -stride)])
                     i, j = pos
 
-                    if movable[self.geography[i + x - 1][j + y - 1]]:  # Geography is 0-indexed.
-                        new_cell = self.cells[(i + x, j + y)]
-                        movement = (animal, cell, new_cell)
-                        migrating_animals.append(movement)
+                    try:
+                        if movable[self.geography[i + x - 1][j + y - 1]]:  # Geography is 0-indexed.
+                            new_cell = self.cells[(i + x, j + y)]
+                            movement = (animal, cell, new_cell)
+                            migrating_animals.append(movement)
+                    except IndexError:
+                        pass
+                    except KeyError:
+                        pass
 
         # In order to prevent animals from moving multiple times (say an animal moves from (1,
         # 1) -> (1, 2), we don't want the animal to be able to move again), the movements are
