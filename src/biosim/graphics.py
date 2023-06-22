@@ -44,7 +44,6 @@ class Graphics:
                     raise ValueError("Image interval must be a multiple of visualisation interval.")
         else:
             self.vis_years = 0
-        self.step_size = step_size
         self.ymax_animals = ymax_animals
         cmax = cmax_animals if cmax_animals is not None else {"Herbivore": 90,
                                                               "Carnivore": 90}
@@ -173,13 +172,13 @@ class Graphics:
             self._line_ax.set_title('Number of animals')
             self._line_ax.set_ylim(0, self.ymax_animals)
             self._line_ax.set_xlim(0, final_year)
-            self.herbs = np.arange(0, final_year+1, self.step_size)
+            self.herbs = np.arange(0, final_year+1, self.vis_years)
             self.n_herbs = self._line_ax.plot(self.herbs,
                                               np.full_like(self.herbs, np.nan, dtype=float),
                                               linestyle="-",
                                               color=(0.71764, 0.749, 0.63137),
                                               label="Herbivore")[0]
-            self.carns = np.arange(0, final_year+1, self.step_size)
+            self.carns = np.arange(0, final_year+1, self.vis_years)
             self.n_carns = self._line_ax.plot(self.carns,
                                               np.full_like(self.carns, np.nan, dtype=float),
                                               linestyle="-",
@@ -476,7 +475,7 @@ class Graphics:
         n_animals : dict
         """
 
-        index = year // self.step_size
+        index = year // self.vis_years
         y_herbs = self.n_herbs.get_ydata()
         y_herbs[index] = n_animals["Herbivore"]
         self.n_herbs.set_ydata(y_herbs)

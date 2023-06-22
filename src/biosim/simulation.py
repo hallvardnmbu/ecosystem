@@ -81,7 +81,7 @@ class BioSim:
                  ymax_animals=None,
                  cmax_animals=None,
                  hist_specs=None,
-                 img_years=1,
+                 img_years=None,
                  img_dir=None,
                  img_base="U13",
                  img_fmt='png',
