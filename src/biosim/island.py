@@ -8,7 +8,7 @@ import itertools
 import textwrap
 import random
 
-from .animals import Animal
+from animals import Animal
 
 
 class Island:
@@ -22,7 +22,6 @@ class Island:
     ini_pop : list, optional
         A list of dictionaries specifying the initial population of animals.
     """
-
     @classmethod
     def default_fodder_parameters(cls):
         """
@@ -32,7 +31,6 @@ class Island:
         -------
         dict
         """
-
         return {"H": 300, "L": 800, "D": 0, "W": 0}
 
     @classmethod
@@ -54,7 +52,6 @@ class Island:
             If invalid parameter keys are passed.
             If invalid parameter values are passed.
         """
-
         for key, val in new_parameters.items():
             if key not in cls.default_fodder_parameters():
                 raise ValueError(f"Invalid parameter: {key}")
@@ -80,7 +77,6 @@ class Island:
         float
             The fodder parameter for the given terrain type.
         """
-
         return {"H": cls.H,
                 "L": cls.L,
                 "D": cls.D,
@@ -122,7 +118,6 @@ class Island:
         The reason for retrieving the habitable cells is to make it computationally faster when
         going through the annual cycle.
         """
-
         x = len(self.geography)
         y = len(self.geography[0])
 
@@ -186,7 +181,6 @@ class Island:
         significantly faster to go through the annual cycle (by only iterating through the
         habitated cells).
         """
-
         for location_animals in population:
             location = location_animals["loc"]
             if location[0] > len(self.geography) or location[1] > len(self.geography[0]):
@@ -233,7 +227,6 @@ class Island:
             :math:`\Phi`: the parents' fitness.
             N: number of animals of the same species in the cell.
         """
-
         for cell in self.habitated_cells.keys():
             p_baby = {cls.__name__: cls.gamma * len(cell.animals[cls.__name__])
                       for cls in Animal.__subclasses__()}
@@ -244,7 +237,7 @@ class Island:
                 if animal.w >= animal.w_procreate:
 
                     if random.random() < min(1, animal.fitness * p_baby[animal.__class__.__name__]):
-                        baby_weight = animal.lognormv()
+                        baby_weight = animal.birthweight()
 
                         # If the parents' weight is greater than the baby's weight * xi, the
                         # baby is born, and the parents' weight decreases accordingly ^:
@@ -259,7 +252,6 @@ class Island:
         Carnivores eat herbivores. They hunt in random order and prey on the weakest herbivores
         first.
         """
-
         for cell in self.habitated_cells.keys():
             if cell.animals["Herbivore"]:
 
@@ -286,7 +278,6 @@ class Island:
         random directly neighbouring cell. If the neighbouring cell is immovable for the animal,
         it refrains from moving.
         """
-
         migrating_animals = []
         for cell, pos in self.habitated_cells.items():
             for animal in itertools.chain(*cell.animals.values()):
@@ -325,7 +316,6 @@ class Island:
         """
         Updates the list of habitated cells.
         """
-
         self.habitated_cells = {}
         for cell, pos in self.habitable_cells.items():
             if cell.animals["Herbivore"] or cell.animals["Carnivore"]:
@@ -335,7 +325,6 @@ class Island:
         """
         Iterates through all the animals on the island and ages them accordingly.
         """
-
         for cell in self.habitated_cells.keys():
             for animal in itertools.chain(*cell.animals.values()):
                 animal.aging()
@@ -344,7 +333,6 @@ class Island:
         """
         Iterates through all the animals on the island and decrements their weight accordingly.
         """
-
         for cell in self.habitated_cells.keys():
             for animal in itertools.chain(*cell.animals.values()):
                 animal.lose_weight_year()
@@ -357,7 +345,6 @@ class Island:
         -----
         An animal dies with a probability of :math:`\omega` * (1 - :math:`\Phi`).
         """
-
         for cell in self.habitated_cells.keys():
             dying_animals = []
             for animal in list(itertools.chain(*cell.animals.values())).copy():
@@ -379,7 +366,6 @@ class Island:
 
         All animals undergo the same steps simultaneously.
         """
-
         self.procreate()
         self.feed()
         self.migrate()
@@ -411,7 +397,6 @@ class Island:
 
                 {(1, 1): {"Herbivore": n, ...}, ...}
         """
-
         population = {cls.__name__: [] for cls in Animal.__subclasses__()}
         n_animals_per_species = {cls.__name__: 0 for cls in Animal.__subclasses__()}
         n_animals_per_species_per_cell = {pos: {cls.__name__: 0
@@ -436,7 +421,6 @@ class Cell:
     cell_type : str
         The terrain-type of the cell. Determines if animals can move through the cell or not.
     """
-
     def __init__(self, cell_type):
         self.cell_type = cell_type
         self.fodder = Island.get_fodder_parameter(cell_type)
@@ -446,5 +430,4 @@ class Cell:
         """
         Grows fodder in the cell.
         """
-
         self.fodder = Island.get_fodder_parameter(self.cell_type)

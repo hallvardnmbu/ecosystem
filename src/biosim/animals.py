@@ -21,9 +21,8 @@ class Animal:
     ValueError
         If age or weight are invalid values.
     """
-
     @classmethod
-    def lognormv(cls):
+    def birthweight(cls):
         r"""
         A continuous probability distribution of a random variable whose logarithm is normally
         distributed, which is used to draw birth weights
@@ -48,7 +47,6 @@ class Animal:
 
         (Retrieved from: https://en.wikipedia.org/wiki/Log-normal_distribution).
         """
-
         mu = log((cls.w_birth**2)/sqrt(cls.w_birth**2 + cls.sigma_birth**2))
         sigma = sqrt(log(1 + ((cls.sigma_birth**2)/(cls.w_birth**2))))
 
@@ -71,7 +69,6 @@ class Animal:
         stride : int
             Step size (how far (many cells) the species' animals move per year).
         """
-
         return cls.movable, cls.stride
 
     @classmethod
@@ -95,7 +92,6 @@ class Animal:
         KeyError
             If invalid terrain types are passed to new_movable.
         """
-
         if new_stride is not None:
             try:
                 if new_stride < 0:
@@ -126,7 +122,6 @@ class Animal:
         -------
         dict
         """
-
         return {"w_birth": cls.w_birth,
                 "sigma_birth": cls.sigma_birth,
                 "beta": cls.beta,
@@ -173,7 +168,6 @@ class Animal:
                 Subclass.set_parameters()
                 Object.set_parameters()
         """
-
         for key, val in new_parameters.items():
             if key not in cls.default_parameters():
                 raise KeyError(f"Invalid parameter: {key}")
@@ -201,7 +195,6 @@ class Animal:
         """
         Updates the weight condition of procreation for the species.
         """
-
         cls.w_procreate = cls.zeta * (cls.w_birth + cls.sigma_birth)
 
     def __init__(self, weight, age):
@@ -213,7 +206,7 @@ class Animal:
             else:
                 self.a = age
             if not weight:
-                self.w = self.lognormv()
+                self.w = self.birthweight()
             elif float(weight) <= 0:
                 raise ValueError("Weight should be positive.")
             else:
@@ -241,7 +234,6 @@ class Animal:
         If :math:`\xi` * baby_weight is greater than the weight of the parent, the parent
         will neither lose weight nor give birth.
         """
-
         if self.w > self.xi * baby_weight:
             self.w -= self.xi * baby_weight
             self.calculate_fitness()
@@ -259,7 +251,6 @@ class Animal:
         food : float
             The amount of food eaten.
         """
-
         self.w += self.beta * food
         self.calculate_fitness()
 
@@ -267,14 +258,12 @@ class Animal:
         """
         Increments the age of the animal by one year.
         """
-
         self.a += 1
 
     def lose_weight_year(self):
         r"""
         Decrements the weight of the animal by the factor :math:`\eta`.
         """
-
         self.w -= self.eta * self.w
 
     def calculate_fitness(self):
@@ -294,7 +283,6 @@ class Animal:
 
             q^\pm (x, x_{\frac{1}{2}}, \phi) = \frac{1}{1 + e^{\pm \phi(x-x_{\frac{1}{2}})}}.
         """
-
         if self.w <= 0:
             self._fitness = 0
         else:
@@ -312,7 +300,6 @@ class Animal:
         -------
         fitness : float
         """
-
         if self._fitness is None:
             self.calculate_fitness()
 
@@ -330,7 +317,6 @@ class Herbivore(Animal):
     weight : float, optional
         Weight of the animal.
     """
-
     @classmethod
     def default_motion(cls):
         """
@@ -343,7 +329,6 @@ class Herbivore(Animal):
         movable : dict
             Movable terrain.
         """
-
         return 1, {"H": True, "L": True, "D": True, "W": False}
 
     @classmethod
@@ -355,7 +340,6 @@ class Herbivore(Animal):
         -------
         dict
         """
-
         return {"w_birth": 8.0,
                 "sigma_birth": 1.5,
                 "beta": 0.9,
@@ -389,7 +373,6 @@ class Herbivore(Animal):
         grazed : float
             The amount of fodder grazed.
         """
-
         if available_fodder >= self.F:
             self.gain_weight(self.F)
             grazed = self.F
@@ -424,7 +407,6 @@ class Carnivore(Animal):
         movable : dict
             Movable terrain.
         """
-
         return 1, {"H": True, "L": True, "D": True, "W": False}
 
     @classmethod
@@ -436,7 +418,6 @@ class Carnivore(Animal):
         -------
         dict
         """
-
         return {"w_birth": 6.0,
                 "sigma_birth": 1.0,
                 "beta": 0.75,
@@ -480,7 +461,6 @@ class Carnivore(Animal):
                     1 & \text{otherwise}
                 \end{cases}.
         """
-
         eaten = 0
         delta_phi_max = self.DeltaPhiMax
 
