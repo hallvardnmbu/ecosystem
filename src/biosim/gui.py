@@ -8,9 +8,10 @@ Provides a Graphical User Interface (GUI) for the simulation of an ecosystem.
 
 
 import tkinter as tk
+import tkinter.messagebox as messagebox
 import re
 
-from .simulation import BioSim
+from simulation import BioSim
 
 
 class BioSimGUI(tk.Tk):
@@ -19,154 +20,162 @@ class BioSimGUI(tk.Tk):
 
     Contains information about the map and the population of animals to be simulated.
     """
+    def __init__(self, map_size=15):
+        super().__init__()
+        self.title("Model herbivores and carnivores on an island")
 
-    def __init__(self, map_size=20):
-        tk.Tk.__init__(self)
-        self.title("Feeling creative? Draw and populate your own island!")
-
-        self.grid_map = ["W" * map_size for _ in range(map_size)]
+        self.island = ["W" * map_size for _ in range(map_size)]
         self.population = []
+        self.colours = {"W": "#95CBCC",
+                        "H": "#E8EC9E",
+                        "L": "#B9D687",
+                        "D": "#FFEEBA"}
 
-        self.pages = {"DrawMap": DrawMap(self),
-                      "AddAnimals": AddAnimals(self),
-                      "ChangeParams": ChangeParams(self)}
+        self.pages = {"Draw": Draw(self),
+                      "Populate": Populate(self),
+                      "Parameters": Parameters(self)}
+        self.pages["Draw"].pack()
 
-        self.pages.get("DrawMap").pack()
 
-
-class DrawMap(tk.Frame):
+class Draw(tk.Frame):
     """
     Page in the GUI for drawing the map.
     """
-
     def __init__(self, master):
         tk.Frame.__init__(self, master)
         self.master = master
 
-        self.cell_size = 30
-        self.grid_width = len(self.master.grid_map[0])
-        self.grid_height = len(self.master.grid_map)
-        self.canvas_width = self.grid_width * self.cell_size
-        self.canvas_height = self.grid_height * self.cell_size
+        self._size = 30
 
-        self.selected_terrain = None
-        self.is_drawing = False
+        self.selected = tk.StringVar()
+        self.drawing = False
 
-        self.canvas = tk.Canvas(self, width=self.canvas_width, height=self.canvas_height)
-        self.canvas.pack(side=tk.LEFT)
+        self.canvas = tk.Canvas(self)
 
-        self.terrain_frame = tk.Frame(self)
-        self.terrain_frame.pack(side=tk.RIGHT, padx=10)
+        self.terrain = tk.Frame(self)
+        self.terrain.pack(side=tk.RIGHT, padx=10)
 
-        self.create_terrain_buttons()
-        self.draw_grid()
+        self.buttons()
+        self.draw()
 
-        self.canvas.bind("<Button-1>", self.handle_canvas_click)
+        self.canvas.bind("<Button-1>", self.click)
         self.canvas.bind("<Button-1>", self.start_drawing)
         self.canvas.bind("<B1-Motion>", self.continue_drawing)
         self.canvas.bind("<ButtonRelease-1>", self.stop_drawing)
 
-    def create_terrain_buttons(self):
+    def buttons(self):
         """
         Create buttons for selecting terrain types to draw.
         """
-
-        terrain_types = ["Water", "Highland", "Lowland", "Desert"]
-        for terrain in terrain_types:
-            button = tk.Button(self.terrain_frame,
-                               text=terrain,
-                               width=9,
-                               command=lambda t=terrain: self._select_terrain(t))
-            button.pack(pady=5)
         finished_button = tk.Button(self,
-                                    text="Finished Drawing",
-                                    width=9,
+                                    text="Continue",
+                                    width=7,
                                     command=self.finished_drawing)
         finished_button.place(anchor="ne", relx=1, rely=0, x=-10, y=10)
 
-    def _select_terrain(self, terrain):
-        """
-        Set the selected terrain type.
-        """
+        terrain_label = tk.Label(self.terrain,
+                                 text="Draw with:")
+        terrain_label.pack(pady=5)
+        terrain_types = ["Water",
+                         "Highland",
+                         "Lowland",
+                         "Desert"]
+        for terrain in terrain_types:
+            button = tk.Radiobutton(self.terrain,
+                                    text=terrain,
+                                    variable=self.selected,
+                                    value=terrain[0])
+            button.pack(pady=5, anchor="w")
 
-        self.selected_terrain = terrain[0]
+        increase_button = tk.Button(self,
+                                    text="Increase",
+                                    width=7,
+                                    command=self.increase_map_size)
+        increase_button.place(anchor="se", relx=1.0, rely=1.0, x=-10, y=-50)
 
-    def draw_grid(self):
+        decrease_button = tk.Button(self,
+                                    text="Decrease",
+                                    width=7,
+                                    command=self.decrease_map_size)
+        decrease_button.place(anchor="se", relx=1.0, rely=1.0, x=-10, y=-15)
+
+    def draw(self):
         """
         Draw the initial map to be drawn on.
         """
+        self.canvas.delete("all")
+        self._canvas()
 
-        for x, row in enumerate(self.master.grid_map):
+        for x, row in enumerate(self.master.island):
             for y, terrain in enumerate(row):
-                color = ""
-                if terrain == "W":
-                    color = "#95CBCC"
-                elif terrain == "H":
-                    color = "#E8EC9E"
-                elif terrain == "L":
-                    color = "#B9D687"
-                elif terrain == "D":
-                    color = "#FFEEBA"
+                color = self.master.colours[terrain]
 
-                self.canvas.create_rectangle(x * self.cell_size,
-                                             y * self.cell_size,
-                                             (x + 1) * self.cell_size,
-                                             (y + 1) * self.cell_size,
+                self.canvas.create_rectangle(x * self._size,
+                                             y * self._size,
+                                             (x + 1) * self._size,
+                                             (y + 1) * self._size,
                                              fill=color,
                                              tags=f"cell_{x}_{y}")
 
-    def handle_canvas_click(self, event):
+    def _canvas(self):
+        """
+        Configure the canvas.
+        """
+        self._width = len(self.master.island[0])
+        self._height = len(self.master.island)
+        self.width = self._width * self._size
+        self.height = self._height * self._size
+
+        self.canvas.config(width=self.width, height=self.height)
+        self.canvas.pack(side=tk.LEFT, padx=10)
+
+    def click(self, event):
         """
         Handle clicks on the map.
         """
+        x = event.x // self._size
+        y = event.y // self._size
 
-        x = event.x // self.cell_size
-        y = event.y // self.cell_size
-
-        if x < 0 or x >= self.grid_width or y < 0 or y >= self.grid_height:
+        if x < 0 or x >= self._width or y < 0 or y >= self._height:
             return
 
-        if self.selected_terrain:
-            self.update_cell_terrain(x, y, self.selected_terrain)
+        if self.selected:
+            self.update_cell_terrain(x, y, self.selected)
 
     def start_drawing(self, event):
         """
         Start drawing when the left mouse button is pressed.
         """
-
-        self.is_drawing = True
+        self.drawing = True
         self.update_cell_terrain(event)
 
     def continue_drawing(self, event):
         """
         Continue drawing when the left mouse button is pressed and is dragged.
         """
-
-        if self.is_drawing:
+        if self.drawing:
             self.update_cell_terrain(event)
 
     def stop_drawing(self, _):
         """
         Stop drawing when the left mouse button is released.
         """
-
-        self.is_drawing = False
+        self.drawing = False
 
     def update_cell_terrain(self, event):
         """
         Update the terrain of the cell based on the drawn terrain type.
         """
+        if self.selected:
+            x = event.x // self._size
+            y = event.y // self._size
 
-        if self.selected_terrain:
-            x = event.x // self.cell_size
-            y = event.y // self.cell_size
-
-            if 1 <= x < self.grid_width-1 and 1 <= y < self.grid_height-1:
-                terrain = self.selected_terrain
+            if 1 <= x < self._width-1 and 1 <= y < self._height-1:
+                terrain = self.selected.get()
 
                 # Inserts the new letter into the string at the position it is drawn:
-                new = self.master.grid_map[x][:y] + terrain + self.master.grid_map[x][y+1:]
-                self.master.grid_map[x] = new
+                new = self.master.island[x][:y] + terrain + self.master.island[x][y+1:]
+                self.master.island[x] = new
 
                 color = ""
                 if terrain == "W":
@@ -179,66 +188,90 @@ class DrawMap(tk.Frame):
                     color = "#FFEEBA"
 
                 self.canvas.create_rectangle(
-                    x * self.cell_size,
-                    y * self.cell_size,
-                    (x + 1) * self.cell_size,
-                    (y + 1) * self.cell_size,
+                    x * self._size,
+                    y * self._size,
+                    (x + 1) * self._size,
+                    (y + 1) * self._size,
                     fill=color)
 
     def finished_drawing(self):
         """
         Switch to the AddAnimals page.
         """
-
-        self.master.pages["DrawMap"].pack_forget()
-        # When navigating to "AddAnimals" from drawing, a fresh simulation is initiated. This is
+        self.master.pages["Draw"].pack_forget()
+        # When navigating to "Populate" from drawing, a fresh simulation is initiated. This is
         # done in case you for instance draw water where animals currently are residing. This is
         # not strictly necessary, seeing as animals in 'W' can't move and will die due to lack of
         # food, but is done to clean up the visualisation window, without the user having to
         # click the reset button manually.
-        self.master.pages["AddAnimals"].__init__(self.master)
-        self.master.pages["AddAnimals"].pack()
+        self.master.pages["Populate"].__init__(self.master)
+        self.master.pages["Populate"].pack()
+
+    def increase_map_size(self):
+        """
+        Increase the size of the map.
+        """
+        if len(self.master.island[0]) + 2 < 35:
+            new = ["W" * (len(self.master.island[0]) + 2)]
+            for row in self.master.island:
+                _row = "W" + row + "W"
+                new.append(_row)
+            new.append("W" * (len(self.master.island[0]) + 2))
+
+            self.master.island = new
+
+            self.draw()
+        else:
+            messagebox.showinfo("Error", "A bigger map is being prevented.")
+
+    def decrease_map_size(self):
+        """
+        Decrease the size of the map.
+        """
+        if len(self.master.island[0]) - 2 > 12:
+            new = ["W" * (len(self.master.island[0]) - 2)]
+            for row in self.master.island[2:-2]:
+                _row = "W" + row[2:-2] + "W"
+                new.append(_row)
+            new.append("W" * (len(self.master.island[0]) - 2))
+
+            self.master.island = new
+
+            self.draw()
+        else:
+            messagebox.showinfo("Error", "A smaller map is being prevented.")
 
 
-class AddAnimals(tk.Frame):
+class Populate(tk.Frame):
     """
     Page in the GUI for adding a population of animals to the map.
     """
-
     def __init__(self, master):
         tk.Frame.__init__(self, master)
         self.master = master
 
         self.selected_cell = tk.Variable(value=None)
 
-        self.cell_size = 30
-        self.grid_width = len(self.master.grid_map[0])
-        self.grid_height = len(self.master.grid_map)
+        self._size = 30
+        self.grid_width = len(self.master.island[0])
+        self.grid_height = len(self.master.island)
         map_size = self.grid_width + 1
 
-        canvas_width = self.grid_width * self.cell_size
-        canvas_height = self.grid_height * self.cell_size
+        canvas_width = self.grid_width * self._size
+        canvas_height = self.grid_height * self._size
 
         canvas = tk.Canvas(self, width=canvas_width, height=canvas_height)
         canvas.grid(row=1, column=0, columnspan=map_size, padx=5, pady=5, sticky="w")
 
         # Visualise the map:
-        for x, row in enumerate(self.master.grid_map):
+        for x, row in enumerate(self.master.island):
             for y, terrain in enumerate(row):
-                color = ""
-                if terrain == "W":
-                    color = "#95CBCC"
-                elif terrain == "H":
-                    color = "#E8EC9E"
-                elif terrain == "L":
-                    color = "#B9D687"
-                elif terrain == "D":
-                    color = "#FFEEBA"
+                color = self.master.colours[terrain]
 
-                canvas.create_rectangle(x * self.cell_size,
-                                        y * self.cell_size,
-                                        (x + 1) * self.cell_size,
-                                        (y + 1) * self.cell_size,
+                canvas.create_rectangle(x * self._size,
+                                        y * self._size,
+                                        (x + 1) * self._size,
+                                        (y + 1) * self._size,
                                         fill=color,
                                         tags=f"cell_{x}_{y}")
                 canvas.tag_bind(f"cell_{x}_{y}", "<Button-1>", self._handle_click)
@@ -278,13 +311,13 @@ class AddAnimals(tk.Frame):
         add_button.grid(row=1, column=10 + map_size, padx=5, pady=5)
 
         button_back = tk.Button(self,
-                                text="Draw map",
-                                width=5,
+                                text="Draw",
+                                width=7,
                                 command=lambda: self.navigate_page_draw())
         button_back.grid(row=0, column=9 + map_size, padx=5, pady=5)
         button_next = tk.Button(self,
-                                text="Edit parameters",
-                                width=9,
+                                text="Parameters",
+                                width=7,
                                 command=lambda: self.navigate_page_params())
         button_next.grid(row=0, column=10 + map_size, padx=5, pady=5)
 
@@ -306,7 +339,7 @@ class AddAnimals(tk.Frame):
                                  command=self.restart)
         clear_button.place(anchor="se", relx=1.0, rely=1.0, x=-120, y=-5)
 
-        geogr = ["".join(terrain) for terrain in zip(*self.master.grid_map)]
+        geogr = ["".join(terrain) for terrain in zip(*self.master.island)]
         geogr = "\n".join(geogr)
         self.master.sim = BioSim(island_map=geogr, ini_pop=self.master.population)
 
@@ -314,17 +347,15 @@ class AddAnimals(tk.Frame):
         """
         Navigate back to the drawing page.
         """
-
-        self.master.pages["AddAnimals"].pack_forget()
-        self.master.pages["DrawMap"].pack()
+        self.master.pages["Populate"].pack_forget()
+        self.master.pages["Draw"].pack()
 
     def navigate_page_params(self):
         """
         Navigate back to the drawing page.
         """
-
-        self.master.pages["AddAnimals"].pack_forget()
-        self.master.pages["ChangeParams"].pack()
+        self.master.pages["Populate"].pack_forget()
+        self.master.pages["Parameters"].pack()
 
     def add_info(self):
         """
@@ -336,15 +367,14 @@ class AddAnimals(tk.Frame):
             If no cell is selected.
             If no species is selected.
         """
-
         try:
             x, y = self.selected_cell.get()
         except ValueError:
-            raise ValueError("No cell selected.")
+            messagebox.showinfo("Error", "No cell selected.")
 
         species = str(self.species_var.get())
         if not species:
-            raise ValueError("No species selected.")
+            messagebox.showinfo("Error", "No species selected.")
 
         age = int(self.age_entry.get()) if self.age_entry.get().isdigit() else None
         weight = float(self.weight_entry.get()) if self._is_float(self.weight_entry.get()) else None
@@ -362,7 +392,6 @@ class AddAnimals(tk.Frame):
         """
         Additional check for float values on input.
         """
-
         try:
             float(value)
             return True
@@ -374,7 +403,6 @@ class AddAnimals(tk.Frame):
         """
         Checks whether the input value is an integer.
         """
-
         return re.match(r'^\d*$', value) is not None
 
     @staticmethod
@@ -382,38 +410,35 @@ class AddAnimals(tk.Frame):
         """
         Checks whether the input value is float.
         """
-
         return re.match(r'^\d*\.?\d*$', value) is not None
 
     def _handle_click(self, event):
         """
         Handle clicks on the map, to select the desired cell.
         """
-
         canvas = event.widget
-        x = event.x // self.cell_size
-        y = event.y // self.cell_size
+        x = event.x // self._size
+        y = event.y // self._size
 
         if x < 0 or x >= self.grid_width or y < 0 or y >= self.grid_height:
             return
 
-        if self.master.grid_map[x][y] == "W":
+        if self.master.island[x][y] == "W":
             return
 
         self.selected_cell.set((y, x))
         canvas.delete("selection")
-        canvas.create_rectangle(x * self.cell_size, y * self.cell_size, (x + 1) *
-                                self.cell_size,
+        canvas.create_rectangle(x * self._size, y * self._size, (x + 1) *
+                                self._size,
                                 (y + 1) *
-                                self.cell_size, outline="black", fill="black", tags="selection")
+                                self._size, outline="black", fill="black", tags="selection")
 
     def restart(self):
         """
         Clears the population list.
         """
-
         self.master.population = []
-        geogr = ["".join(terrain) for terrain in zip(*self.master.grid_map)]
+        geogr = ["".join(terrain) for terrain in zip(*self.master.island)]
         geogr = "\n".join(geogr)
         self.master.sim = BioSim(island_map=geogr, ini_pop=self.master.population)
 
@@ -426,29 +451,33 @@ class AddAnimals(tk.Frame):
         ValueError
             If number of years to simulate has not been specified.
         """
-
         if not self.year_entry.get().isdigit():
-            raise ValueError("Number of years to simulate has not been specified.")
+            messagebox.showinfo("Error", "Number of years to simulate has not been specified.")
         else:
             years = int(self.year_entry.get())
             self.master.sim.add_population(self.master.population)
             self.master.sim.simulate(years)
 
 
-class ChangeParams(tk.Frame):
+class Parameters(tk.Frame):
     """
     Page in the GUI to change the parameters of the animals and island.
     """
-
     def __init__(self, master):
         tk.Frame.__init__(self, master)
         self.master = master
 
-        button_back = tk.Button(self,
-                                text="Simulate",
-                                width=5,
+        button_draw = tk.Button(self,
+                                text="Draw",
+                                width=7,
                                 command=lambda: self.navigate_page_draw())
-        button_back.grid(row=0, column=8, padx=5, pady=5)
+        button_draw.grid(row=0, column=8, padx=5, pady=5)
+        button_simu = tk.Button(self,
+                                text="Simulate",
+                                width=7,
+                                command=lambda: self.navigate_page_simulate())
+        button_simu.grid(row=0, column=9, padx=5, pady=5)
+
 
         self.validate_text_cmd = (self.register(self._validate_text), '%P')
         self.validate_integer_cmd = (self.register(self._validate_integer), '%P')
@@ -521,7 +550,6 @@ class ChangeParams(tk.Frame):
         """
         Saves the information about the parameters to be added to the simulation.
         """
-
         species = str(self.species_var.get())
         if species:
             param = self._animal_param_entry.get() if self._animal_param_entry.get() else None
@@ -540,7 +568,6 @@ class ChangeParams(tk.Frame):
         """
         Checks whether the input text is valid.
         """
-
         pattern = r'^[a-zA-Z_]+$'
         return re.match(pattern, text) is not None
 
@@ -549,7 +576,6 @@ class ChangeParams(tk.Frame):
         """
         Checks whether the input value is an integer.
         """
-
         return re.match(r'^\d*$', value) is not None
 
     @staticmethod
@@ -557,7 +583,6 @@ class ChangeParams(tk.Frame):
         """
         Checks whether the input value is float.
         """
-
         return re.match(r'^\d*\.?\d*$', value) is not None
 
     @staticmethod
@@ -565,17 +590,27 @@ class ChangeParams(tk.Frame):
         """
         Additional check for float values on input.
         """
-
         try:
             float(value)
             return True
         except ValueError:
             return False
 
+    def navigate_page_simulate(self):
+        """
+        Navigate back to the simulations page.
+        """
+        self.master.pages["Parameters"].pack_forget()
+        self.master.pages["Populate"].pack()
+
     def navigate_page_draw(self):
         """
-        Navigate back to the drawing page.
+        Navigate to the drawing page.
         """
+        self.master.pages["Parameters"].pack_forget()
+        self.master.pages["Draw"].pack()
 
-        self.master.pages["ChangeParams"].pack_forget()
-        self.master.pages["AddAnimals"].pack()
+
+if __name__ == "__main__":
+
+    BioSimGUI().mainloop()
