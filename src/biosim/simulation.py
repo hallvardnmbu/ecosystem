@@ -6,8 +6,8 @@ Contains simulation.
 import matplotlib.pyplot as plt
 import random
 
-from .graphics import Graphics
-from .island import Island
+from graphics import Graphics
+from island import Island
 
 
 class BioSim:
@@ -72,7 +72,6 @@ class BioSim:
 
     - `img_dir` and `img_base` must either be both None or both strings.
     """
-
     def __init__(self,
                  island_map,
                  ini_pop,
@@ -134,7 +133,6 @@ class BioSim:
             If invalid parameter keys are passed.
             If invalid parameter values are passed.
         """
-
         try:
             self.island.species_map[species].set_parameters(params)
         except KeyError as e:
@@ -167,7 +165,6 @@ class BioSim:
             If invalid landscape type is passed.
             If invalid parameter values are passed.
         """
-
         if "f_max" not in params:
             raise ValueError(f"Invalid parameter key {params}. Valid keys are 'f_max'.")
         else:
@@ -193,7 +190,6 @@ class BioSim:
         speed : float, optional
             The interval between plot data-updates.
         """
-
         simulate_years = num_years + self.year
 
         if self.vis_years:
@@ -233,14 +229,12 @@ class BioSim:
         population : list of dictionaries
             Adds a population to the island.
         """
-
         self.island.add_population(population)
 
     def make_movie(self, movie_fmt="mp4"):
         """
         Create MPEG4 movie from visualization images saved.
         """
-
         if movie_fmt not in ["mp4", "gif"]:
             raise ValueError(f"Invalid movie format {movie_fmt} (valid: mp4 or gif).")
         else:
@@ -255,7 +249,6 @@ class BioSim:
         -------
         int
         """
-
         return self.island.year
 
     @property
@@ -267,7 +260,6 @@ class BioSim:
         -------
         int
         """
-
         if self.n_species is None:
             _, self.n_species, _ = self.island.animals()
 
@@ -282,7 +274,6 @@ class BioSim:
         -------
         dict
         """
-
         if self.n_species is None:
             _, self.n_species, _ = self.island.animals()
 

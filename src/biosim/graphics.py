@@ -20,7 +20,6 @@ class Graphics:
     """
     Provides graphical support for BioSim.
     """
-
     def __init__(self,
                  geography,
                  vis_years,
@@ -154,7 +153,6 @@ class Graphics:
         speed : float
             Pause between visualisation updates (seconds).
         """
-
         self.final_year = final_year
 
         if self._fig is None:
@@ -325,7 +323,6 @@ class Graphics:
         """
         Sets up the log file for the simulation if specified.
         """
-
         if not os.path.exists(self._log_file):
             directory = os.path.dirname(self._log_file)
             if not os.path.exists(directory):
@@ -369,7 +366,6 @@ class Graphics:
 
                 {"Herbivore": [Herbivore(), Herbivore(), ...], ...}
         """
-
         self._update_year_counter(year)
         self._update_line_plot(year, n_species)
         self._update_heatmap(n_species_cells)
@@ -394,7 +390,6 @@ class Graphics:
             Requires ffmpeg for MP4 and magick for GIF.
             The movie is stored as img_base + movie_fmt.
         """
-
         if not self._img_base:
             raise RuntimeError("No filename defined.")
 
@@ -436,7 +431,6 @@ class Graphics:
         step : int
             Current step of simulation.
         """
-
         if self._img_base is None or step % self._img_years != 0:
             return
 
@@ -452,7 +446,6 @@ class Graphics:
         ----------
         year : int
         """
-
         text = "Year: {}"
         if hasattr(self, "txt"):
             self.txt.remove()
@@ -474,7 +467,6 @@ class Graphics:
         year : int
         n_animals : dict
         """
-
         index = year // self.vis_years
         y_herbs = self.n_herbs.get_ydata()
         y_herbs[index] = n_animals["Herbivore"]
@@ -496,7 +488,6 @@ class Graphics:
         my_colours : dict, optional
         terrain_patches : bool, optional
         """
-
         colours = {"L": [colour / 255 for colour in [185, 214, 135]],
                    "H": [colour / 255 for colour in [232, 236, 158]],
                    "D": [colour / 255 for colour in [255, 238, 186]],
@@ -542,7 +533,6 @@ class Graphics:
         herb, carn : list
             Lists of lists with the amount of each species in each cell.
         """
-
         herbs = []
         carns = []
         for i in range(1, len(self.geography)+1):
@@ -570,7 +560,6 @@ class Graphics:
             A dictionary with cell coordinates as keys and dictionaries with the amount of each
             species in that cell as values.
         """
-
         herb, carn = self._animal_data(n_species_cells)
 
         self._herb_plot.set_data(herb[::-1])
@@ -589,7 +578,6 @@ class Graphics:
         animals : dict
             A dictionary with species as keys and lists of animal objects as values.
         """
-
         herbs = animals["Herbivore"]
         carns = animals["Carnivore"]
 
@@ -634,7 +622,6 @@ class Graphics:
         data : dict
             Animal counts the given year.
         """
-
         with open(self._log_file, "a", newline="") as file:
             write = csv.writer(file)
             write.writerow([year] + list(data.values()))
