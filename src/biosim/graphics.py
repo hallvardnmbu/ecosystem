@@ -31,7 +31,6 @@ class Graphics:
                  img_base,
                  img_fmt,
                  log_file,
-                 step_size,
                  my_colours,
                  terrain_patches):
 

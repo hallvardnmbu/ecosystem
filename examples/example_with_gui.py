@@ -2,7 +2,7 @@
 This is a small demo script running BioSim with the Graphical User Interface (GUI).
 """
 
-from biosim.gui import BioSimGUI
+from src.biosim.gui import BioSimGUI
 
 if __name__ == "__main__":
 

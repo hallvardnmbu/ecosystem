@@ -52,8 +52,8 @@ class Draw(tk.Frame):
 
         self.canvas = tk.Canvas(self)
 
-        self.terrain = tk.Frame(self)
-        self.terrain.pack(side=tk.RIGHT, padx=10)
+        self.brushes = tk.Frame(self)
+        self.brushes.pack(side=tk.RIGHT, padx=10)
 
         self.buttons()
         self.draw()
@@ -73,7 +73,7 @@ class Draw(tk.Frame):
                                     command=self.finished_drawing)
         finished_button.place(anchor="ne", relx=1, rely=0, x=-10, y=10)
 
-        terrain_label = tk.Label(self.terrain,
+        terrain_label = tk.Label(self.brushes,
                                  text="Draw with:")
         terrain_label.pack(pady=5)
         terrain_types = ["Water",
@@ -81,7 +81,7 @@ class Draw(tk.Frame):
                          "Lowland",
                          "Desert"]
         for terrain in terrain_types:
-            button = tk.Radiobutton(self.terrain,
+            button = tk.Radiobutton(self.brushes,
                                     text=terrain,
                                     variable=self.selected,
                                     value=terrain[0])

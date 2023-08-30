@@ -6,8 +6,8 @@ Contains simulation.
 import matplotlib.pyplot as plt
 import random
 
-from graphics import Graphics
-from island import Island
+from .graphics import Graphics
+from .island import Island
 
 
 class BioSim:
