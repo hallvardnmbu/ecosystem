@@ -3,7 +3,7 @@ Tests for the animals module.
 """
 
 
-from biosim.animals import Herbivore, Carnivore
+from src.biosim.animals import Herbivore, Carnivore
 import pytest
 
 
@@ -248,21 +248,21 @@ def test_set_parameters_nonexistent_value(dict_key, dict_value):
         Herbivore.set_parameters({dict_key: dict_value}), "Setting nonexistent parameters worked."
 
 
-def test_lognormv_with_animals(trial_animals, mocker):
-    """Tests that the lognormv function works correctly."""
+def test_birthweight_with_animals(trial_animals, mocker):
+    """Tests that the birthweight function works correctly."""
 
     mocker.patch("random.lognormvariate", return_value=1)
     for animal in trial_animals:
-        assert animal.lognormv() == 1, "Calling lognormv with an animal didn't work."
+        assert animal.birthweight() == 1, "Calling birthweight with an animal didn't work."
 
 
-def test_lognormv_without_animals(mocker):
-    """Tests that the lognormv function works correctly."""
+def test_birthweight_without_animals(mocker):
+    """Tests that the birthweight function works correctly."""
 
     Carnivore.set_parameters(Carnivore.default_parameters())
 
     mocker.patch("random.lognormvariate", return_value=1)
-    assert Carnivore.lognormv() == 1, "Calling lognormv using the class didn't work."
+    assert Carnivore.birthweight() == 1, "Calling birthweight using the class didn't work."
 
 
 def test_set_motion(trial_animals):

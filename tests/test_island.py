@@ -3,8 +3,8 @@ Tests for the island module.
 """
 
 
-from biosim.animals import Herbivore, Carnivore
-from biosim.island import Island
+from src.biosim.animals import Herbivore, Carnivore
+from src.biosim.island import Island
 import pytest
 
 

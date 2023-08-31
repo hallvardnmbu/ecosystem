@@ -3,7 +3,7 @@ Tests for the simulation module.
 """
 
 
-from biosim.simulation import BioSim
+from src.biosim.simulation import BioSim
 import pytest
 
 

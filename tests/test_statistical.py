@@ -3,8 +3,8 @@ Tests the interfaces between the units/modules of Biosim.
 """
 
 
-from biosim.animals import Herbivore, Carnivore
-from biosim.island import Island
+from src.biosim.animals import Herbivore, Carnivore
+from src.biosim.island import Island
 import scipy.stats as stat
 from math import isclose
 from math import log
@@ -54,13 +54,13 @@ def trial_island_1000():
 
 # %% animals.py:
 
-def test_lognormv(trial_animals):
-    """Tests that the lognormv function works correctly."""
+def test_birthweight(trial_animals):
+    """Tests that the birthweight function works correctly."""
 
     for animal in trial_animals:
 
         sample_size = 1000
-        weights = [animal.lognormv() for _ in range(sample_size)]
+        weights = [animal.birthweight() for _ in range(sample_size)]
         log_weights = [log(weight) for weight in weights]
 
         # Shapiro-Wilk test. A low p-value indicates that we are uncertain of uniformity.
