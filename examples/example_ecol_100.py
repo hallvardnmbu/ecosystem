@@ -1,7 +1,7 @@
 """Run the ECOL100 program."""
 
-from src.main import run
+from src.biosim.okologi import ecol_100
 
 if __name__ == "__main__":
 
-    run()
+    ecol_100()
