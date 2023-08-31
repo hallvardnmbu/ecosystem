@@ -1,4 +1,10 @@
-"""Graphical user interface for ECOL100."""
+"""
+Improved graphical user interface for BioSim.
+
+Copyright (c) 2023 Hallvard Høyland Lavik / NMBU
+This file is part of the BioSim-package, adding a more intuitive GUI.
+Released under the MIT License, see included LICENSE file.
+"""
 
 
 from PyQt5.QtWidgets import (
