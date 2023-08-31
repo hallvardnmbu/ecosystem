@@ -1,10 +1,8 @@
-"""
-Contains simulation.
-"""
+"""Contains simulation."""
 
 
-import matplotlib.pyplot as plt
 import random
+import matplotlib.pyplot as plt
 
 from .graphics import Graphics
 from .island import Island
@@ -18,7 +16,7 @@ class BioSim:
     ----------
     island_map : str
         Multi-line string specifying island geography
-    ini_pop : list
+    ini_pop : list of dict
         List of dictionaries specifying initial population
     seed : int
         Integer used as random number seed
@@ -40,6 +38,14 @@ class BioSim:
         File type for figures, e.g. 'png' or 'pdf'
     log_file : str
         If given, write animal counts to this file
+    my_colours : dict
+        Specify custom colours for the terrain-types.
+    terrain_patches : bool
+        Whether to show the patch (which colour corresponds to which terrain-type)
+    figure : plt.Figure
+        For 'okologi'-GUI
+    canvas : FigureCanvas
+        For 'okologi'-GUI
 
     Notes
     -----
@@ -74,7 +80,7 @@ class BioSim:
     """
     def __init__(self,
                  island_map,
-                 ini_pop,
+                 ini_pop=None,
                  seed=1,
                  vis_years=1,
                  ymax_animals=None,
@@ -85,10 +91,9 @@ class BioSim:
                  img_base="U13",
                  img_fmt='png',
                  log_file=None,
-                 step_size=1,
                  my_colours=None,
-                 terrain_patches=True):
-
+                 terrain_patches=True,
+                 figure=None, canvas=None):
         random.seed(seed)
 
         if vis_years == 0 or vis_years is None:
@@ -107,13 +112,15 @@ class BioSim:
                                  img_base=img_base,
                                  img_fmt=img_fmt,
                                  log_file=log_file,
-                                 step_size=step_size,
                                  my_colours=my_colours,
-                                 terrain_patches=terrain_patches)
+                                 terrain_patches=terrain_patches,
+                                 figure=figure,
+                                 canvas=canvas)
 
         self.log_file = log_file
         self.n_species = None
         self.n_species_cell = None
+        self.should_stop = False
 
     def set_animal_parameters(self, species, params):
         """
@@ -135,17 +142,17 @@ class BioSim:
         """
         try:
             self.island.species_map[species].set_parameters(params)
-        except KeyError as e:
-            if species not in self.island.species_map.keys():
+        except KeyError as err:
+            if species not in self.island.species_map:
                 raise ValueError(f"Invalid species: {species}. Valid species:"
-                                 f" {', '.join(list(self.island.species_map.keys()))}")
+                                 f" {', '.join(list(self.island.species_map.keys()))}") from err
             # Here I googled how to retrieve the element in a set. I found that I could use
             # next(iter(...)):
             difference = next(iter(set(params.keys()) - set(self.island.species_map.keys())))
-            if f"Invalid parameter: {difference}" not in str(e):
-                raise ValueError(f"Invalid parameter keys in {params}.")
-            if f"Invalid parameter: {difference}" in str(e):
-                raise ValueError(f"Invalid key: {difference}.")
+            if f"Invalid parameter: {difference}" not in str(err):
+                raise ValueError(f"Invalid parameter keys in {params}.") from err
+            if f"Invalid parameter: {difference}" in str(err):
+                raise ValueError(f"Invalid key: {difference}.") from err
 
     def set_landscape_parameters(self, landscape, params):
         """
@@ -167,19 +174,20 @@ class BioSim:
         """
         if "f_max" not in params:
             raise ValueError(f"Invalid parameter key {params}. Valid keys are 'f_max'.")
-        else:
-            try:
-                if params["f_max"] < 0:
-                    raise ValueError(f"Parameter value {params['f_max']} must be positive.")
-            except TypeError:
-                raise ValueError(f"Parameter value {params['f_max']} must be a number.")
+
+        try:
+            if params["f_max"] < 0:
+                raise ValueError(f"Parameter value {params['f_max']} must be positive.")
+        except TypeError as err:
+            raise ValueError(f"Parameter value {params['f_max']} must be a number.") from err
+
         if landscape not in self.island.default_fodder_parameters():
             raise ValueError(f"Invalid landscape type {landscape}.")
 
         new_parameters = {landscape: params["f_max"]}
         self.island.set_fodder_parameters(new_parameters)
 
-    def simulate(self, num_years, speed=1e-6):
+    def simulate(self, num_years, speed=1e-6, figure=None, canvas=None):
         """
         Run simulation for a given number of years.
 
@@ -189,20 +197,25 @@ class BioSim:
             Number of years to simulate.
         speed : float, optional
             The interval between plot data-updates.
+        figure : plt.Figure
+            For 'okologi'-GUI
+        canvas : FigureCanvas
+            For 'okologi'-GUI
         """
         simulate_years = num_years + self.year
 
         if self.vis_years:
             animals, self.n_species, self.n_species_cell = self.island.animals()
-            self.graphics.setup(simulate_years, self.n_species_cell, speed)
+            self.graphics.setup(simulate_years, self.n_species_cell, speed, figure)
             self.graphics.update_graphics(self.year,
                                           self.n_species,
                                           self.n_species_cell,
-                                          animals)
+                                          animals,
+                                          canvas=canvas)
         else:
             self.graphics.setup_log_file() if self.log_file is not None else None
 
-        while self.year < simulate_years:
+        while self.year < simulate_years and not self.should_stop:
 
             self.island.yearly_cycle()
 
@@ -212,12 +225,13 @@ class BioSim:
                     self.graphics.update_graphics(self.year,
                                                   self.n_species,
                                                   self.n_species_cell,
-                                                  animals)
+                                                  animals,
+                                                  canvas=canvas)
             else:
                 if self.log_file:
                     _, self.n_species, _ = self.island.animals()
-                    self.graphics._save_to_file(self.year, self.n_species)
-        if self.vis_years:
+                    self.graphics.save_to_file(self.year, self.n_species)
+        if self.vis_years and not canvas:
             plt.draw()
 
     def add_population(self, population):
@@ -237,8 +251,8 @@ class BioSim:
         """
         if movie_fmt not in ["mp4", "gif"]:
             raise ValueError(f"Invalid movie format {movie_fmt} (valid: mp4 or gif).")
-        else:
-            self.graphics.make_movie(movie_fmt)
+
+        self.graphics.make_movie(movie_fmt)
 
     @property
     def year(self):

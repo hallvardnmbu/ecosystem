@@ -1,14 +1,14 @@
-"""
-Contains visualisation of the simulation.
-"""
+"""Contains visualisation of the simulation."""
 
 
-import matplotlib.patches as patches
-import matplotlib.pyplot as plt
-import numpy as np
-import subprocess
-import csv
 import os
+import csv
+import subprocess
+import numpy as np
+from matplotlib import patches
+import matplotlib.pyplot as plt
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import QTimer, QEventLoop
 
 
 _DEFAULT_GRAPHICS_DIR = os.path.join('../..', 'data')
@@ -19,6 +19,37 @@ _MAGICK_BINARY = "magick"
 class Graphics:
     """
     Provides graphical support for BioSim.
+
+    Parameters
+    ----------
+    geography : str
+        Multi-line string specifying island geography
+    vis_years : int
+        Years between visualization updates (if 0, disable graphics)
+    ymax_animals : int
+        Number specifying y-axis limit for graph showing animal numbers
+    cmax_animals : dict
+        Color-scale limits for animal densities, see below
+    hist_specs : dict
+        Specifications for histograms, see below
+    img_years : int
+        Years between visualizations saved to files (default: vis_years)
+    img_dir : str
+        Path to directory for figures
+    img_base : str
+        Beginning of file name for figures
+    img_fmt : str
+        File type for figures, e.g. 'png' or 'pdf'
+    log_file : str
+        If given, write animal counts to this file
+    my_colours : dict
+        Specify custom colours for the terrain-types.
+    terrain_patches : bool
+        Whether to show the patch (which colour corresponds to which terrain-type)
+    figure : plt.Figure
+        For 'okologi'-GUI
+    canvas : FigureCanvas
+        For 'okologi'-GUI
     """
     def __init__(self,
                  geography,
@@ -32,8 +63,8 @@ class Graphics:
                  img_fmt,
                  log_file,
                  my_colours,
-                 terrain_patches):
-
+                 terrain_patches,
+                 figure, canvas):
         self.geography = geography
         if vis_years:
             self.vis_years = vis_years
@@ -57,8 +88,8 @@ class Graphics:
                     if "max" not in keys and "delta" not in keys:
                         raise ValueError("Invalid histogram specification.")
                     self.hist_specs = hist_specs
-            except TypeError:
-                raise TypeError("Invalid histogram specification.")
+            except TypeError as err:
+                raise TypeError("Invalid histogram specification.") from err
         else:
             self.hist_specs = None
         self._img_years = img_years
@@ -94,10 +125,11 @@ class Graphics:
             self._img_base = None
 
         # The following will be initialized by setup
-        self.gs = None
+        self.gridspec = None
         self._speed = None
         self.final_year = None
-        self._fig = None
+        self._fig = figure
+        self.canvas = canvas
         self._map_plot = None
         self._year_ax = None
         self._line_ax = None
@@ -136,7 +168,7 @@ class Graphics:
         self._weight_carn = None
         self._weight_carn_ax = None
 
-    def setup(self, final_year, n_species_cells, speed):
+    def setup(self, final_year, n_species_cells, speed, figure):
         """
         Prepare graphics, with the format:
 
@@ -151,21 +183,25 @@ class Graphics:
             Initial animal population (per cell).
         speed : float
             Pause between visualisation updates (seconds).
+        figure : plt.Figure
+            For 'okologi'-GUI
         """
         self.final_year = final_year
 
-        if self._fig is None:
+        if self._fig is None and not figure:
             self._fig = plt.figure(figsize=(15, 10))
-            self.gs = self._fig.add_gridspec(11, 27)
-            self._fig.tight_layout()
+            self.gridspec = self._fig.add_gridspec(11, 27)
+        elif self._fig is None and figure:
+            self._fig = figure
+            self.gridspec = self._fig.add_gridspec(11, 27)
 
         if self._year_ax is None:
-            self._year_ax = self._fig.add_subplot(self.gs[1:2, :1])
+            self._year_ax = self._fig.add_subplot(self.gridspec[1:2, :1])
             self._year_ax.set_xlabel("Year count")
             self._year_ax.axis("off")
 
         if self._line_ax is None:
-            self._line_ax = self._fig.add_subplot(self.gs[:3, 4:])
+            self._line_ax = self._fig.add_subplot(self.gridspec[:3, 4:])
             self._line_ax.set_title('Number of animals')
             self._line_ax.set_ylim(0, self.ymax_animals)
             self._line_ax.set_xlim(0, final_year)
@@ -196,7 +232,7 @@ class Graphics:
                 self._line_ax.set_xlim(0, final_year)
 
         if self._map_plot is None:
-            self._map_plot = self._fig.add_subplot(self.gs[4:7, :9])
+            self._map_plot = self._fig.add_subplot(self.gridspec[4:7, :9])
             self._island_map(self.my_colours, self.terrain_patches)
             self._map_plot.set_title("Map of Rossumøya (Pylandia)")
 
@@ -205,7 +241,7 @@ class Graphics:
         carnivore_colour = (0.949, 0.7647, 0.56078)
 
         if self._herb_ax is None:
-            self._herb_ax = self._fig.add_subplot(self.gs[4:7, 9:18])
+            self._herb_ax = self._fig.add_subplot(self.gridspec[4:7, 9:18])
             self._herb_ax.set_title("Herbivore density")
             self._herb_ax.axis("off")
             self._herb_ax.set_xlim(-0.75, len(self.geography[0]))
@@ -228,7 +264,7 @@ class Graphics:
                                fraction=0.046, pad=0.04)
 
         if self._carn_ax is None:
-            self._carn_ax = self._fig.add_subplot(self.gs[4:7, 18:27])
+            self._carn_ax = self._fig.add_subplot(self.gridspec[4:7, 18:27])
             self._carn_ax.set_title("Carnivore density")
             self._carn_ax.axis("off")
             self._carn_ax.set_xlim(-0.75, len(self.geography[0]))
@@ -271,7 +307,7 @@ class Graphics:
 
         if self._age_ax is None:
             age_counts = np.zeros_like(self.age_bins[:-1], dtype=float)
-            self._age_ax = self._fig.add_subplot(self.gs[8:11, 0:9])
+            self._age_ax = self._fig.add_subplot(self.gridspec[8:11, 0:9])
             self._age_herb = self._age_ax.stairs(age_counts,
                                                  self.age_bins,
                                                  color=herbivore_colour,
@@ -286,7 +322,7 @@ class Graphics:
 
         if self._weight_ax is None:
             weight_counts = np.zeros_like(self.weight_bins[:-1], dtype=float)
-            self._weight_ax = self._fig.add_subplot(self.gs[8:11, 9:18])
+            self._weight_ax = self._fig.add_subplot(self.gridspec[8:11, 9:18])
             self._weight_herb = self._weight_ax.stairs(weight_counts,
                                                        self.weight_bins,
                                                        color=herbivore_colour,
@@ -301,7 +337,7 @@ class Graphics:
 
         if self._fitness_ax is None:
             fitness_counts = np.zeros_like(self.fitness_bins[:-1], dtype=float)
-            self._fitness_ax = self._fig.add_subplot(self.gs[8:11, 18:27])
+            self._fitness_ax = self._fig.add_subplot(self.gridspec[8:11, 18:27])
             self._fitness_herb = self._fitness_ax.stairs(fitness_counts,
                                                          self.fitness_bins,
                                                          color=herbivore_colour,
@@ -319,9 +355,7 @@ class Graphics:
         self._speed = speed
 
     def setup_log_file(self):
-        """
-        Sets up the log file for the simulation if specified.
-        """
+        """Sets up the log file for the simulation if specified."""
         if not os.path.exists(self._log_file):
             directory = os.path.dirname(self._log_file)
             if not os.path.exists(directory):
@@ -340,7 +374,7 @@ class Graphics:
                 write = csv.writer(file)
                 write.writerow(["Year", "Herbivores", "Carnivores"])
 
-    def update_graphics(self, year, n_species, n_species_cells, animals):
+    def update_graphics(self, year, n_species, n_species_cells, animals, canvas=None):
         r"""
         Updates the graphics with new data for the given year.
 
@@ -364,16 +398,29 @@ class Graphics:
             .. code:: python
 
                 {"Herbivore": [Herbivore(), Herbivore(), ...], ...}
+
+        canvas : FigureCanvas
+            For 'okologi'-GUI
         """
         self._update_year_counter(year)
         self._update_line_plot(year, n_species)
         self._update_heatmap(n_species_cells)
         self._update_animal_features(animals, year)
-        self._fig.canvas.flush_events()
-        plt.pause(self._speed)
 
-        self._save_image(year)
-        self._save_to_file(year, n_species) if self._log_file is not None else None
+        if not canvas:
+            self._fig.canvas.flush_events()
+            plt.pause(self._speed)
+
+            self._save_image(year)
+            self.save_to_file(year, n_species) if self._log_file is not None else None
+        else:
+            canvas.draw()
+            QApplication.processEvents()
+
+            # Pauses the simulation for more visible animation.
+            loop = QEventLoop()
+            QTimer.singleShot(100, loop.quit)
+            loop.exec_()
 
     def make_movie(self, movie_fmt="mp4"):
         """
@@ -399,27 +446,30 @@ class Graphics:
                 # Parameters chosen according to http://trac.ffmpeg.org/wiki/Encode/H.264,
                 # section "Compatibility"
                 subprocess.check_call([_FFMPEG_BINARY,
-                                       '-i', '{base}_%05d.{fmt}'.format(base=self._img_base,
-                                                                        fmt=self._img_fmt),
+                                       '-i', f'{self._img_base}_%05d.{self._img_fmt}',
                                        '-y',
                                        '-profile:v', 'baseline',
                                        '-level', '3.0',
                                        '-pix_fmt', 'yuv420p',
-                                       '{}.{}'.format(_movie_base, movie_fmt)])
+                                       f'{_movie_base}.{movie_fmt}'])
             except subprocess.CalledProcessError as err:
-                raise RuntimeError('ERROR: ffmpeg failed with: {}'.format(err))
+                raise RuntimeError(f'ERROR: convert failed with: {err}')
         elif movie_fmt == 'gif':
             try:
                 subprocess.check_call([_MAGICK_BINARY,
                                        '-delay', '1',
                                        '-loop', '0',
-                                       '{base}_*.{fmt}'.format(base=self._img_base,
-                                                               fmt=self._img_fmt),
-                                       '{}.{}'.format(_movie_base, movie_fmt)])
+                                       f'{self._img_base}_*.{self._img_fmt}',
+                                       f'{_movie_base}.{movie_fmt}'])
             except subprocess.CalledProcessError as err:
-                raise RuntimeError('ERROR: convert failed with: {}'.format(err))
+                raise RuntimeError(f'ERROR: convert failed with: {err}')
         else:
-            raise ValueError('Unknown movie format: ' + movie_fmt)
+            raise ValueError(f'Unknown movie format: {movie_fmt}')
+
+    def reset_counts(self):
+        """Resets the animal count plot."""
+        self._line_ax.remove()
+        self._line_ax = None
 
     def _save_image(self, step):
         """
@@ -603,15 +653,15 @@ class Graphics:
 
         if year % 15 == 0:
 
-            _age_ylim = max(max(herbs_age), max(carns_age)) * 1.5
-            _weight_ylim = max(max(herbs_weight), max(carns_weight)) * 1.5
-            _fitness_ylim = max(max(herbs_fitness), max(carns_fitness)) * 1.5
+            _age_ylim = max(max(max(herbs_age), max(carns_age)) * 1.5, 0.1)
+            _weight_ylim = max(max(max(herbs_weight), max(carns_weight)) * 1.5, 0.1)
+            _fitness_ylim = max(max(max(herbs_fitness), max(carns_fitness)) * 1.5, 0.1)
 
             self._age_ax.set_ylim([0, _age_ylim])
             self._weight_ax.set_ylim([0, _weight_ylim])
             self._fitness_ax.set_ylim([0, _fitness_ylim])
 
-    def _save_to_file(self, year, data):
+    def save_to_file(self, year, data):
         """
         Saves the yearly animal counts to file.
 

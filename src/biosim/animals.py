@@ -1,6 +1,4 @@
-"""
-Contains the different animal species.
-"""
+"""Contains the different animal species."""
 
 
 from math import exp, sqrt, log
@@ -97,8 +95,8 @@ class Animal:
                 if new_stride < 0:
                     raise ValueError("Stride should be nonzero or positive.")
                 cls.stride = round(new_stride)
-            except TypeError:
-                raise TypeError("Stride should be a number.")
+            except TypeError as err:
+                raise TypeError("Stride should be a number.") from err
         else:
             stride, _ = cls.default_motion()
             cls.stride = stride
@@ -174,17 +172,18 @@ class Animal:
             try:
                 if key == "DeltaPhiMax" and val <= 0:
                     raise ValueError(f"Value for: {key} ({val}) should be positive.")
-                elif key == "eta" and val > 1:
+
+                if key == "eta" and val > 1:
                     raise ValueError(f"Value for: {key} ({val}) should be less than or equal to 1.")
-                else:
-                    try:
-                        if val < 0:
-                            raise ValueError(f"Value for: {key} should be nonzero or positive.")
-                    except TypeError:
-                        raise ValueError(f"Value for: {key} should be a number.")
+
+                try:
+                    if val < 0:
+                        raise ValueError(f"Value for: {key} should be nonzero or positive.")
+                except TypeError as err:
+                    raise ValueError(f"Value for: {key} should be a number.") from err
             # This extra "except" is needed in case "DeltaPhiMax" or "eta" is not a number.
-            except TypeError:
-                raise ValueError(f"Value for: {key} should be a number.")
+            except TypeError as err:
+                raise ValueError(f"Value for: {key} should be a number.") from err
 
             setattr(cls, key, val)
 
@@ -211,8 +210,8 @@ class Animal:
                 raise ValueError("Weight should be positive.")
             else:
                 self.w = weight
-        except ValueError:
-            raise ValueError(f"Age: {age} and weight: {weight} must both be numbers.")
+        except ValueError as err:
+            raise ValueError(f"Age: {age} and weight: {weight} must both be numbers.") from err
         self._fitness = None
 
     def lose_weight_birth(self, baby_weight):
@@ -238,8 +237,7 @@ class Animal:
             self.w -= self.xi * baby_weight
             self.calculate_fitness()
             return True
-        else:
-            return False
+        return False
 
     def gain_weight(self, food):
         r"""
@@ -255,15 +253,11 @@ class Animal:
         self.calculate_fitness()
 
     def aging(self):
-        """
-        Increments the age of the animal by one year.
-        """
+        """Increments the age of the animal by one year."""
         self.a += 1
 
     def lose_weight_year(self):
-        r"""
-        Decrements the weight of the animal by the factor :math:`\eta`.
-        """
+        r"""Decrements the weight of the animal by the factor :math:`\eta`."""
         self.w -= self.eta * self.w
 
     def calculate_fitness(self):
@@ -471,13 +465,13 @@ class Carnivore(Animal):
             difference = carnivore_fitness - herbivore_fitness
 
             if carnivore_fitness <= herbivore_fitness:
-                p = 0
+                prob = 0
             elif 0 < difference < delta_phi_max:
-                p = difference / delta_phi_max
+                prob = difference / delta_phi_max
             else:
-                p = 1
+                prob = 1
 
-            if random.random() < p:
+            if random.random() < prob:
 
                 herbivores.remove(herbivore)
                 rest = self.F - eaten

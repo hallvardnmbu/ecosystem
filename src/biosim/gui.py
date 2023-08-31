@@ -1,17 +1,15 @@
-"""
-Provides a Graphical User Interface (GUI) for the simulation of an ecosystem.
-"""
+"""Provides a Graphical User Interface (GUI) for the simulation of an ecosystem."""
 
 
 # Here ChatGPT (mostly), Stackoverflow, google and relevant documentation was used in order to
 # create the GUI. I could not have done this without these tools.
 
 
-import tkinter as tk
-import tkinter.messagebox as messagebox
 import re
+import tkinter as tk
+from tkinter import messagebox
 
-from simulation import BioSim
+from .simulation import BioSim
 
 
 class BioSimGUI(tk.Tk):
@@ -36,11 +34,12 @@ class BioSimGUI(tk.Tk):
                       "Parameters": Parameters(self)}
         self.pages["Draw"].pack()
 
+        messagebox.showinfo("Alert",
+                            "OUTDATED. Use ECOL100() from 'biosim.okologi' instead.")
+
 
 class Draw(tk.Frame):
-    """
-    Page in the GUI for drawing the map.
-    """
+    """Page in the GUI for drawing the map."""
     def __init__(self, master):
         tk.Frame.__init__(self, master)
         self.master = master
@@ -64,9 +63,7 @@ class Draw(tk.Frame):
         self.canvas.bind("<ButtonRelease-1>", self.stop_drawing)
 
     def buttons(self):
-        """
-        Create buttons for selecting terrain types to draw.
-        """
+        """Create buttons for selecting terrain types to draw."""
         finished_button = tk.Button(self,
                                     text="Continue",
                                     width=7,
@@ -100,27 +97,23 @@ class Draw(tk.Frame):
         decrease_button.place(anchor="se", relx=1.0, rely=1.0, x=-10, y=-15)
 
     def draw(self):
-        """
-        Draw the initial map to be drawn on.
-        """
+        """Draw the initial map to be drawn on."""
         self.canvas.delete("all")
         self._canvas()
 
-        for x, row in enumerate(self.master.island):
-            for y, terrain in enumerate(row):
+        for i, row in enumerate(self.master.island):
+            for j, terrain in enumerate(row):
                 color = self.master.colours[terrain]
 
-                self.canvas.create_rectangle(x * self._size,
-                                             y * self._size,
-                                             (x + 1) * self._size,
-                                             (y + 1) * self._size,
+                self.canvas.create_rectangle(i * self._size,
+                                             j * self._size,
+                                             (i + 1) * self._size,
+                                             (j + 1) * self._size,
                                              fill=color,
-                                             tags=f"cell_{x}_{y}")
+                                             tags=f"cell_{i}_{j}")
 
     def _canvas(self):
-        """
-        Configure the canvas.
-        """
+        """Configure the canvas."""
         self._width = len(self.master.island[0])
         self._height = len(self.master.island)
         self.width = self._width * self._size
@@ -130,9 +123,7 @@ class Draw(tk.Frame):
         self.canvas.pack(side=tk.LEFT, padx=10)
 
     def click(self, event):
-        """
-        Handle clicks on the map.
-        """
+        """Handle clicks on the map."""
         x = event.x // self._size
         y = event.y // self._size
 
@@ -140,42 +131,34 @@ class Draw(tk.Frame):
             return
 
         if self.selected:
-            self.update_cell_terrain(x, y, self.selected)
+            self.update_cell_terrain(event)
 
     def start_drawing(self, event):
-        """
-        Start drawing when the left mouse button is pressed.
-        """
+        """Start drawing when the left mouse button is pressed."""
         self.drawing = True
         self.update_cell_terrain(event)
 
     def continue_drawing(self, event):
-        """
-        Continue drawing when the left mouse button is pressed and is dragged.
-        """
+        """Continue drawing when the left mouse button is pressed and is dragged."""
         if self.drawing:
             self.update_cell_terrain(event)
 
     def stop_drawing(self, _):
-        """
-        Stop drawing when the left mouse button is released.
-        """
+        """Stop drawing when the left mouse button is released."""
         self.drawing = False
 
     def update_cell_terrain(self, event):
-        """
-        Update the terrain of the cell based on the drawn terrain type.
-        """
+        """Update the terrain of the cell based on the drawn terrain type."""
         if self.selected:
-            x = event.x // self._size
-            y = event.y // self._size
+            i = event.x // self._size
+            j = event.y // self._size
 
-            if 1 <= x < self._width-1 and 1 <= y < self._height-1:
+            if 1 <= i < self._width-1 and 1 <= j < self._height-1:
                 terrain = self.selected.get()
 
                 # Inserts the new letter into the string at the position it is drawn:
-                new = self.master.island[x][:y] + terrain + self.master.island[x][y+1:]
-                self.master.island[x] = new
+                new = self.master.island[i][:j] + terrain + self.master.island[i][j+1:]
+                self.master.island[i] = new
 
                 color = ""
                 if terrain == "W":
@@ -188,16 +171,14 @@ class Draw(tk.Frame):
                     color = "#FFEEBA"
 
                 self.canvas.create_rectangle(
-                    x * self._size,
-                    y * self._size,
-                    (x + 1) * self._size,
-                    (y + 1) * self._size,
+                    i * self._size,
+                    j * self._size,
+                    (i + 1) * self._size,
+                    (j + 1) * self._size,
                     fill=color)
 
     def finished_drawing(self):
-        """
-        Switch to the AddAnimals page.
-        """
+        """Switch to the AddAnimals page."""
         self.master.pages["Draw"].pack_forget()
         # When navigating to "Populate" from drawing, a fresh simulation is initiated. This is
         # done in case you for instance draw water where animals currently are residing. This is
@@ -208,9 +189,7 @@ class Draw(tk.Frame):
         self.master.pages["Populate"].pack()
 
     def increase_map_size(self):
-        """
-        Increase the size of the map.
-        """
+        """Increase the size of the map."""
         if len(self.master.island[0]) + 2 < 35:
             new = ["W" * (len(self.master.island[0]) + 2)]
             for row in self.master.island:
@@ -225,9 +204,7 @@ class Draw(tk.Frame):
             messagebox.showinfo("Error", "A bigger map is being prevented.")
 
     def decrease_map_size(self):
-        """
-        Decrease the size of the map.
-        """
+        """Decrease the size of the map."""
         if len(self.master.island[0]) - 2 > 12:
             new = ["W" * (len(self.master.island[0]) - 2)]
             for row in self.master.island[2:-2]:
@@ -243,9 +220,7 @@ class Draw(tk.Frame):
 
 
 class Populate(tk.Frame):
-    """
-    Page in the GUI for adding a population of animals to the map.
-    """
+    """Page in the GUI for adding a population of animals to the map."""
     def __init__(self, master):
         tk.Frame.__init__(self, master)
         self.master = master
@@ -344,16 +319,12 @@ class Populate(tk.Frame):
         self.master.sim = BioSim(island_map=geogr, ini_pop=self.master.population)
 
     def navigate_page_draw(self):
-        """
-        Navigate back to the drawing page.
-        """
+        """Navigate back to the drawing page."""
         self.master.pages["Populate"].pack_forget()
         self.master.pages["Draw"].pack()
 
     def navigate_page_params(self):
-        """
-        Navigate back to the drawing page.
-        """
+        """Navigate back to the drawing page."""
         self.master.pages["Populate"].pack_forget()
         self.master.pages["Parameters"].pack()
 
@@ -389,9 +360,7 @@ class Populate(tk.Frame):
 
     @staticmethod
     def _is_float(value):
-        """
-        Additional check for float values on input.
-        """
+        """Additional check for float values on input."""
         try:
             float(value)
             return True
@@ -400,22 +369,16 @@ class Populate(tk.Frame):
 
     @staticmethod
     def _validate_integer(value):
-        """
-        Checks whether the input value is an integer.
-        """
+        """Checks whether the input value is an integer."""
         return re.match(r'^\d*$', value) is not None
 
     @staticmethod
     def _validate_float(value):
-        """
-        Checks whether the input value is float.
-        """
+        """Checks whether the input value is float."""
         return re.match(r'^\d*\.?\d*$', value) is not None
 
     def _handle_click(self, event):
-        """
-        Handle clicks on the map, to select the desired cell.
-        """
+        """Handle clicks on the map, to select the desired cell."""
         canvas = event.widget
         x = event.x // self._size
         y = event.y // self._size
@@ -434,9 +397,7 @@ class Populate(tk.Frame):
                                 self._size, outline="black", fill="black", tags="selection")
 
     def restart(self):
-        """
-        Clears the population list.
-        """
+        """Clears the population list."""
         self.master.population = []
         geogr = ["".join(terrain) for terrain in zip(*self.master.island)]
         geogr = "\n".join(geogr)
@@ -460,9 +421,7 @@ class Populate(tk.Frame):
 
 
 class Parameters(tk.Frame):
-    """
-    Page in the GUI to change the parameters of the animals and island.
-    """
+    """Page in the GUI to change the parameters of the animals and island."""
     def __init__(self, master):
         tk.Frame.__init__(self, master)
         self.master = master
@@ -477,7 +436,6 @@ class Parameters(tk.Frame):
                                 width=7,
                                 command=lambda: self.navigate_page_simulate())
         button_simu.grid(row=0, column=9, padx=5, pady=5)
-
 
         self.validate_text_cmd = (self.register(self._validate_text), '%P')
         self.validate_integer_cmd = (self.register(self._validate_integer), '%P')
@@ -547,9 +505,7 @@ class Parameters(tk.Frame):
         add_land_param_button.grid(row=4, column=5, padx=5, pady=5)
 
     def add_info(self):
-        """
-        Saves the information about the parameters to be added to the simulation.
-        """
+        """Saves the information about the parameters to be added to the simulation."""
         species = str(self.species_var.get())
         if species:
             param = self._animal_param_entry.get() if self._animal_param_entry.get() else None
@@ -565,31 +521,23 @@ class Parameters(tk.Frame):
 
     @staticmethod
     def _validate_text(text):
-        """
-        Checks whether the input text is valid.
-        """
+        """Checks whether the input text is valid."""
         pattern = r'^[a-zA-Z_]+$'
         return re.match(pattern, text) is not None
 
     @staticmethod
     def _validate_integer(value):
-        """
-        Checks whether the input value is an integer.
-        """
+        """Checks whether the input value is an integer."""
         return re.match(r'^\d*$', value) is not None
 
     @staticmethod
     def _validate_float(value):
-        """
-        Checks whether the input value is float.
-        """
+        """Checks whether the input value is float."""
         return re.match(r'^\d*\.?\d*$', value) is not None
 
     @staticmethod
     def _is_float(value):
-        """
-        Additional check for float values on input.
-        """
+        """Additional check for float values on input."""
         try:
             float(value)
             return True
@@ -597,20 +545,11 @@ class Parameters(tk.Frame):
             return False
 
     def navigate_page_simulate(self):
-        """
-        Navigate back to the simulations page.
-        """
+        """Navigate back to the simulations page."""
         self.master.pages["Parameters"].pack_forget()
         self.master.pages["Populate"].pack()
 
     def navigate_page_draw(self):
-        """
-        Navigate to the drawing page.
-        """
+        """Navigate to the drawing page."""
         self.master.pages["Parameters"].pack_forget()
         self.master.pages["Draw"].pack()
-
-
-if __name__ == "__main__":
-
-    BioSimGUI().mainloop()

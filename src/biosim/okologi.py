@@ -98,13 +98,6 @@ class Main(QMainWindow):
 class Draw(QWidget):
     """Class for drawing the island."""
     def __init__(self):
-        """
-        Initialises the window.
-
-        Parameters
-        ----------
-        island : list of str, optional
-        """
         super().__init__()
 
         self.colours = {
@@ -209,6 +202,7 @@ class Draw(QWidget):
 
 
 class Map(QGraphicsView):
+    """Class for visualising the island."""
     def __init__(self, terrain="W", can_draw=True, size=800):
         super().__init__()
 
@@ -229,6 +223,7 @@ class Map(QGraphicsView):
         self.setFixedSize(size, size)
 
     def update(self):
+        """Update the scene."""
         self.scene.clear()
         pen = QPen(Qt.black)
         pen.setWidthF(0.2)
@@ -243,9 +238,11 @@ class Map(QGraphicsView):
             self.fitInView(self.scene.sceneRect(), Qt.IgnoreAspectRatio)
 
     def resizeEvent(self, event):
+        """Resize the scene."""
         self.fitInView(self.scene.sceneRect(), Qt.KeepAspectRatio)
 
     def mousePressEvent(self, event):
+        """Executed when the mouse is pressed."""
         if self.can_draw:
             self.mouseMoveEvent(event)
 
@@ -271,6 +268,7 @@ class Map(QGraphicsView):
                 VARIABLE["selected"] = (i, j)
 
     def mouseMoveEvent(self, event):
+        """Executed when the mouse is pressed-moved."""
         if event.buttons() == Qt.LeftButton and self.can_draw:
             position = self.mapToScene(event.pos())
             i = int(position.x() // self.size)
@@ -294,15 +292,8 @@ class Map(QGraphicsView):
 
 
 class Populate(QWidget):
+    """Class for populating the island."""
     def __init__(self):
-        """
-        Initialises the window.
-
-        Parameters
-        ----------
-        island : list of str
-        population : list of dict, optional
-        """
         super().__init__()
 
         self.plot = None
@@ -320,6 +311,7 @@ class Populate(QWidget):
         self.initialise()
 
     def initialise(self):
+        """Initialise the window."""
         self.plot = Map(can_draw=False, terrain="SELECT")
         self.plot.setGeometry(QRect(0, 0, 800, 800))
 
@@ -390,6 +382,7 @@ class Populate(QWidget):
         self.setLayout(self.layout)
 
     def populate(self):
+        """Populate the island with animals."""
         j, i = VARIABLE["selected"]
 
         if i is None or j is None:
@@ -413,30 +406,32 @@ class Populate(QWidget):
 
 
 class Simulate(QWidget):
+    """Class for simulating the population on the island."""
     def __init__(self):
-        """
-        Initialises the window.
-
-        Parameters
-        ----------
-        island : list of str
-        population : list of dict, optional
-        """
         super().__init__()
 
         self.setGeometry(400, 200, 1000, 800)
         self.setLayout(QVBoxLayout())
 
         self.fig = None
+        self.canvas = None
+
+        self.species_dropdown = None
+        self.parameter_dropdown = None
+        self.value_dropdown = None
+        self.add_button = None
+        self.years = None
 
         self.buttons()
         self.plot()
 
     def buttons(self):
+        """Add buttons to the window."""
         self.parameter_selection()
         self.simulate_selection()
 
     def parameter_selection(self):
+        """Add parameter selection to the window."""
         self.species_dropdown = QComboBox()
         self.species_dropdown.addItems(["Modify parameters:", "Herbivore", "Carnivore", "Fodder"])
         self.species_dropdown.currentIndexChanged.connect(self.species_changed)
@@ -462,6 +457,7 @@ class Simulate(QWidget):
         self.parameter_changed()
 
     def simulate_selection(self):
+        """Add simulation selection to the window."""
         box_layout = QHBoxLayout()
 
         box_layout.addStretch(10)
@@ -524,6 +520,7 @@ class Simulate(QWidget):
 
     @property
     def valid_values(self):
+        """Returns a dictionary of valid values for each parameter."""
         return {
             "w_birth": np.arange(0, 20.1, 0.1),
             "sigma_birth": np.arange(0, 5.1, 0.1),
@@ -547,6 +544,7 @@ class Simulate(QWidget):
         }
 
     def set_parameter(self):
+        """Set the parameter for the selected species."""
         species = self.species_dropdown.currentText()
 
         if species == "Modify parameters:":
@@ -563,16 +561,15 @@ class Simulate(QWidget):
             Island.set_fodder_parameters({parameter: value})
 
     def plot(self):
-
+        """Plot the population on the island."""
         self.fig = plt.Figure(figsize=(15, 10))
 
         self.canvas = FigureCanvas(self.fig)
         self.layout().addWidget(self.canvas)
 
-    def restart_years(self):
-        """
-        Clears the population list.
-        """
+    @staticmethod
+    def restart_years():
+        """Clears the population list."""
         VARIABLE["biosim"].island.year = 0
         VARIABLE["biosim"].graphics.reset_counts()
 
@@ -589,6 +586,7 @@ class Simulate(QWidget):
         VARIABLE["biosim"].should_stop = False
         VARIABLE["biosim"].simulate(years, figure=self.fig, canvas=self.canvas)
 
-    def stop(self):
+    @staticmethod
+    def stop():
         """Stops the simulation."""
         VARIABLE["biosim"].should_stop = True

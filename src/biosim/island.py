@@ -1,6 +1,4 @@
-"""
-Contains the island and its cells.
-"""
+"""Contains the island and its cells."""
 
 
 from operator import attrgetter
@@ -59,8 +57,8 @@ class Island:
                 if val < 0:
                     raise ValueError(f"{key}'s value ({val}) can not be negative.")
                 setattr(cls, key, val)
-            except TypeError:
-                raise ValueError(f"Invalid value for: {key} ({val}).")
+            except TypeError as err:
+                raise ValueError(f"Invalid value for: {key} ({val}).") from err
 
     @classmethod
     def get_fodder_parameter(cls, terrain_type):
@@ -118,18 +116,18 @@ class Island:
         The reason for retrieving the habitable cells is to make it computationally faster when
         going through the annual cycle.
         """
-        x = len(self.geography)
-        y = len(self.geography[0])
+        cols = len(self.geography)
+        rows = len(self.geography[0])
 
-        for i in range(x):
-            if len(self.geography[i]) != y:
+        for i in range(cols):
+            if len(self.geography[i]) != rows:
                 raise ValueError("The map must be rectangular.")
 
-        for i in range(x):
-            if self.geography[i][0] != "W" or self.geography[i][y-1] != "W":
+        for i in range(cols):
+            if self.geography[i][0] != "W" or self.geography[i][rows-1] != "W":
                 raise ValueError("The edges of the map must be 'W' (Water).")
-        for j in range(y):
-            if self.geography[0][j] != "W" or self.geography[x-1][j] != "W":
+        for j in range(rows):
+            if self.geography[0][j] != "W" or self.geography[cols-1][j] != "W":
                 raise ValueError("The edges of the map must be 'W' (Water).")
 
         allowed = Island.default_fodder_parameters().keys()
@@ -144,9 +142,8 @@ class Island:
 
         cells = {}
         habitable_cells = {}
-        for i in range(x):
-            # row = []
-            for j in range(y):
+        for i in range(cols):
+            for j in range(rows):
                 # Creates the cell-objects in the grid with the index corresponding to the terrain:
                 cells[(i+1, j+1)] = Cell(cell_type=self.geography[i][j])
 
@@ -201,17 +198,17 @@ class Island:
                 movable, _ = self.species_map[species].motion()
                 if not movable[self.geography[i][j]]:
                     raise ValueError(f"Invalid terrain: {location}.")
+
+                cell = self.cells[(i+1, j+1)]
+                if "age" not in animal:
+                    age = None
                 else:
-                    cell = self.cells[(i+1, j+1)]
-                    if "age" not in animal:
-                        age = None
-                    else:
-                        age = animal["age"]
-                    if "weight" not in animal:
-                        weight = None
-                    else:
-                        weight = animal["weight"]
-                    cell.animals[species].append(self.species_map[species](age=age, weight=weight))
+                    age = animal["age"]
+                if "weight" not in animal:
+                    weight = None
+                else:
+                    weight = animal["weight"]
+                cell.animals[species].append(self.species_map[species](age=age, weight=weight))
 
     def procreate(self):
         r"""
@@ -227,7 +224,7 @@ class Island:
             :math:`\Phi`: the parents' fitness.
             N: number of animals of the same species in the cell.
         """
-        for cell in self.habitated_cells.keys():
+        for cell in self.habitated_cells:
             p_baby = {cls.__name__: cls.gamma * len(cell.animals[cls.__name__])
                       for cls in Animal.__subclasses__()}
 
@@ -252,7 +249,7 @@ class Island:
         Carnivores eat herbivores. They hunt in random order and prey on the weakest herbivores
         first.
         """
-        for cell in self.habitated_cells.keys():
+        for cell in self.habitated_cells:
             if cell.animals["Herbivore"]:
 
                 cell.grow_fodder()
@@ -286,15 +283,18 @@ class Island:
                 if random.random() < animal.mu * animal.fitness:
 
                     movable, stride = animal.motion()
-                    x, y = random.choice([(stride, 0),
-                                          (-stride, 0),
-                                          (0, stride),
-                                          (0, -stride)])
+
+                    move_i, move_j = random.choice(
+                        [(stride, 0),
+                         (-stride, 0),
+                         (0, stride),
+                         (0, -stride)]
+                    )
                     i, j = pos
 
                     try:
-                        if movable[self.geography[i + x - 1][j + y - 1]]:  # Geography is 0-indexed.
-                            new_cell = self.cells[(i + x, j + y)]
+                        if movable[self.geography[i + move_i - 1][j + move_j - 1]]:
+                            new_cell = self.cells[(i + move_i, j + move_j)]
                             movement = (animal, cell, new_cell)
                             migrating_animals.append(movement)
                     except IndexError:
@@ -313,19 +313,15 @@ class Island:
         self._update_habitated_cells()
 
     def _update_habitated_cells(self):
-        """
-        Updates the list of habitated cells.
-        """
+        """Updates the list of habitated cells."""
         self.habitated_cells = {}
         for cell, pos in self.habitable_cells.items():
             if cell.animals["Herbivore"] or cell.animals["Carnivore"]:
                 self.habitated_cells[cell] = pos
 
     def ageing(self):
-        """
-        Iterates through all the animals on the island and ages them accordingly.
-        """
-        for cell in self.habitated_cells.keys():
+        """Iterates through all the animals on the island and ages them accordingly."""
+        for cell in self.habitated_cells:
             for animal in itertools.chain(*cell.animals.values()):
                 animal.aging()
 
@@ -333,7 +329,7 @@ class Island:
         """
         Iterates through all the animals on the island and decrements their weight accordingly.
         """
-        for cell in self.habitated_cells.keys():
+        for cell in self.habitated_cells:
             for animal in itertools.chain(*cell.animals.values()):
                 animal.lose_weight_year()
 
@@ -345,7 +341,7 @@ class Island:
         -----
         An animal dies with a probability of :math:`\omega` * (1 - :math:`\Phi`).
         """
-        for cell in self.habitated_cells.keys():
+        for cell in self.habitated_cells:
             dying_animals = []
             for animal in list(itertools.chain(*cell.animals.values())).copy():
                 animal.calculate_fitness()
@@ -427,7 +423,5 @@ class Cell:
         self.animals = {cls.__name__: [] for cls in Animal.__subclasses__()}
 
     def grow_fodder(self):
-        """
-        Grows fodder in the cell.
-        """
+        """Grows fodder in the cell."""
         self.fodder = Island.get_fodder_parameter(self.cell_type)
