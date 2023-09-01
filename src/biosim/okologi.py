@@ -94,8 +94,12 @@ class Main(QMainWindow):
             self.populate.plot.update()
 
         # Resetting the island when switching to draw page:
-        if self.previous == 2 and index == 0:
+        if index == 0:
             self.plot.reset()
+
+            msg = QMessageBox()
+            msg.setText("Population has been reset.")
+            msg.exec_()
 
         # Updating the island when switching from draw page:
         if self.previous == 0 and index != 0:
