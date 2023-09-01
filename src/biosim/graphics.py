@@ -561,11 +561,11 @@ class Graphics:
         self._map_plot.set_yticklabels(y_ticks_labels)
 
         if terrain_patches:
-            handler_map = {"Patch": patches.Rectangle}
-            patch = [patches.Patch(color=val,
-                                   label="{0}".format(key)) for key, val in colours.items()]
-            plt.legend(handles=patch, bbox_to_anchor=(1, 1), loc=2, borderaxespad=0.2,
-                       handler_map=handler_map, handlelength=1.5, handleheight=1.5)
+            patch_list = [patches.Rectangle((0, 0), 1, 1, color=val, label=key)
+                          for key, val in colours.items()]
+            self._map_plot.legend(handles=patch_list, frameon=False,
+                                  bbox_to_anchor=(1, 1), loc=2,
+                                  borderaxespad=0.2, handlelength=1.5, handleheight=1.5)
 
     def _animal_data(self, density):
         """
