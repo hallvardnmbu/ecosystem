@@ -337,9 +337,6 @@ class Populate(QWidget):
         # Create the input boxes layout
         self.input_layout = QVBoxLayout()
 
-        txt = QLabel("Click on a cell to add animal(s).")
-        txt.setFixedSize(200, 40)
-
         # Create the species group
         self.species_group = QGroupBox()
         self.species_layout = QVBoxLayout()
@@ -391,7 +388,6 @@ class Populate(QWidget):
         self.amount.setValidator(QIntValidator())
 
         # Add the input boxes to the input layout
-        self.input_layout.addWidget(txt)
         self.input_layout.addWidget(self.species_group)
         self.input_layout.addLayout(age_layout)
         self.input_layout.addLayout(weight_layout)
@@ -414,7 +410,7 @@ class Populate(QWidget):
 
         if i is None or j is None:
             msg = QMessageBox()
-            msg.setText("Please select a cell.")
+            msg.setText("Please select a cell by clicking on the map.")
             msg.exec_()
             return
 
