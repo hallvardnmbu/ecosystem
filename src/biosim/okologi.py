@@ -93,6 +93,7 @@ class Main(QMainWindow):
         if index == 1:  # Switching to populate page
             self.populate.plot.update()
 
+        # Resetting the island when switching to draw page:
         if self.previous == 2 and index == 0:
             self.plot.reset()
 
