@@ -448,7 +448,6 @@ class Simulate(QWidget):
         self.species_dropdown = None
         self.parameter_dropdown = None
         self.value_dropdown = None
-        self.add_button = None
         self.years = None
 
         self.buttons()
@@ -473,14 +472,24 @@ class Simulate(QWidget):
         self.value_dropdown = QComboBox()
 
         # Create the add button
-        self.add_button = QPushButton("Set parameter")
-        self.add_button.clicked.connect(self.set_parameter)
+        add_button = QPushButton("Set parameter")
+        add_button.clicked.connect(self.set_parameter)
+
+        reset_parameter = QPushButton("Reset parameter")
+        reset_parameter.clicked.connect(self.reset_parameter)
+
+        reset_all_parameters = QPushButton("Reset all parameters")
+        reset_all_parameters.clicked.connect(self.reset_all_parameters)
+        reset_all_parameters.setFixedWidth(200)
 
         top_layout = QHBoxLayout()
         top_layout.addWidget(self.species_dropdown)
         top_layout.addWidget(self.parameter_dropdown)
         top_layout.addWidget(self.value_dropdown)
-        top_layout.addWidget(self.add_button)
+        top_layout.addWidget(add_button)
+        top_layout.addWidget(reset_parameter)
+        top_layout.addSpacing(100)
+        top_layout.addWidget(reset_all_parameters)
         self.layout().addLayout(top_layout)
 
         self.parameter_changed()
@@ -505,14 +514,15 @@ class Simulate(QWidget):
         simulate_button.clicked.connect(self.simulate)
         box_layout.addWidget(simulate_button)
 
-        stop_button = QPushButton("Stop simulation")
+        stop_button = QPushButton("Pause simulation")
         stop_button.clicked.connect(self.stop)
         box_layout.addWidget(stop_button)
 
-        box_layout.addStretch(10)
+        box_layout.addStretch(5)
 
         reset_button = QPushButton("Reset years")
         reset_button.clicked.connect(self.restart_years)
+        reset_button.setFixedWidth(200)
         box_layout.addWidget(reset_button)
 
         self.layout().addLayout(box_layout)
@@ -587,6 +597,30 @@ class Simulate(QWidget):
             Carnivore.set_parameters({parameter: value})
         elif species == "Fodder":
             Island.set_fodder_parameters({parameter[0]: value})
+
+    def reset_parameter(self):
+        """Reset the parameter for the species."""
+        species = self.species_dropdown.currentText()
+
+        if species == "Modify parameters:":
+            return
+
+        parameter = self.parameter_dropdown.currentText()
+
+        if species == "Herbivore":
+            Herbivore.set_parameters({parameter: Herbivore.default_parameters()[parameter]})
+        elif species == "Carnivore":
+            Carnivore.set_parameters({parameter: Carnivore.default_parameters()[parameter]})
+        elif species == "Fodder":
+            Island.set_fodder_parameters(
+                {parameter[0]: Island.default_fodder_parameters()[parameter[0]]}
+            )
+
+    def reset_all_parameters(self):
+        """Reset all parameters to their default values."""
+        Herbivore.set_parameters(Herbivore.default_parameters())
+        Carnivore.set_parameters(Carnivore.default_parameters())
+        Island.set_fodder_parameters(Island.default_fodder_parameters())
 
     def plot(self):
         """Plot the population on the island."""

@@ -473,6 +473,8 @@ class Graphics:
 
     def reset_graphics(self):
         """Resets the graphics."""
+        self._line_ax.remove()
+        self._line_ax = None
         self._year_ax.remove()
         self._year_ax = None
         self._map_plot.remove()
