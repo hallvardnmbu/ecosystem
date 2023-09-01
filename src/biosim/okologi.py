@@ -93,6 +93,9 @@ class Main(QMainWindow):
         if index == 1:  # Switching to populate page
             self.populate.plot.update()
 
+        if self.previous == 2 and index == 0:
+            self.plot.reset()
+
         # Updating the island when switching from draw page:
         if self.previous == 0 and index != 0:
             geogr = "\n".join(VARIABLE["island"])
@@ -374,7 +377,7 @@ class Populate(QWidget):
         add.clicked.connect(self.populate)
 
         # Create the reset button
-        reset = QPushButton("Reset")
+        reset = QPushButton("Reset population")
         reset.setFixedSize(200, 100)
         reset.clicked.connect(self.reset)
 
@@ -614,3 +617,9 @@ class Simulate(QWidget):
     def stop():
         """Stops the simulation."""
         VARIABLE["biosim"].should_stop = True
+
+    @staticmethod
+    def reset():
+        """Reset the simulation."""
+        VARIABLE["biosim"].island.year = 0
+        VARIABLE["biosim"].graphics.reset_graphics()

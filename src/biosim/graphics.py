@@ -471,6 +471,23 @@ class Graphics:
         self._line_ax.remove()
         self._line_ax = None
 
+    def reset_graphics(self):
+        """Resets the graphics."""
+        self._year_ax.remove()
+        self._year_ax = None
+        self._map_plot.remove()
+        self._map_plot = None
+        self._herb_ax.remove()
+        self._herb_ax = None
+        self._carn_ax.remove()
+        self._carn_ax = None
+        self._fitness_ax.remove()
+        self._fitness_ax = None
+        self._age_ax.remove()
+        self._age_ax = None
+        self._weight_ax.remove()
+        self._weight_ax = None
+
     def _save_image(self, step):
         """
         Saves graphics to file if file name given.
