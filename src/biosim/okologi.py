@@ -97,6 +97,7 @@ class Main(QMainWindow):
         if self.previous == 0 and index != 0:
             geogr = "\n".join(VARIABLE["island"])
             VARIABLE["biosim"] = BioSim(island_map=geogr)
+            VARIABLE["selected"] = (None, None)
 
         self.previous = index
 
@@ -107,10 +108,10 @@ class Draw(QWidget):
         super().__init__()
 
         self.colours = {
-            "W": "#95CBCC",
-            "H": "#E8EC9E",
-            "L": "#B9D687",
-            "D": "#FFEEBA"
+            "Water": "#95CBCC",
+            "Highland": "#E8EC9E",
+            "Lowland": "#B9D687",
+            "Desert": "#FFEEBA"
         }
 
         self.setGeometry(400, 200, 1000, 800)
@@ -167,7 +168,7 @@ class Draw(QWidget):
         ----------
         name : str
         """
-        self.plot.terrain = name
+        self.plot.terrain = name[0]
         for button in self.color_widget.findChildren(QPushButton):
             if button.text() == name:
                 button.setStyleSheet(
@@ -251,6 +252,7 @@ class Map(QGraphicsView):
         """Executed when the mouse is pressed."""
         if self.can_draw:
             self.mouseMoveEvent(event)
+            return
 
         if event.buttons() == Qt.LeftButton and self.terrain == "SELECT":
             position = self.mapToScene(event.pos())
@@ -272,6 +274,10 @@ class Map(QGraphicsView):
                 )
 
                 VARIABLE["selected"] = (i, j)
+            else:
+                msg = QMessageBox()
+                msg.setText("Cannot place animals in water.")
+                msg.exec_()
 
     def mouseMoveEvent(self, event):
         """Executed when the mouse is pressed-moved."""
@@ -311,7 +317,6 @@ class Populate(QWidget):
         self.age = None
         self.weight = None
         self.amount = None
-        self.add = None
         self.layout = None
 
         self.initialise()
@@ -364,9 +369,14 @@ class Populate(QWidget):
         amount_layout.addWidget(self.amount)
 
         # Create the add button
-        self.add = QPushButton("Add")
-        self.add.setFixedSize(200, 200)
-        self.add.clicked.connect(self.populate)
+        add = QPushButton("Add")
+        add.setFixedSize(200, 200)
+        add.clicked.connect(self.populate)
+
+        # Create the reset button
+        reset = QPushButton("Reset")
+        reset.setFixedSize(200, 100)
+        reset.clicked.connect(self.reset)
 
         self.age.setValidator(QIntValidator())
         self.weight.setValidator(QDoubleValidator())
@@ -378,7 +388,10 @@ class Populate(QWidget):
         self.input_layout.addLayout(age_layout)
         self.input_layout.addLayout(weight_layout)
         self.input_layout.addLayout(amount_layout)
-        self.input_layout.addWidget(self.add)
+        self.input_layout.addStretch(5)
+        self.input_layout.addWidget(add)
+        self.input_layout.addStretch(20)
+        self.input_layout.addWidget(reset)
 
         # Create the plot and input boxes layout
         self.layout = QHBoxLayout()
@@ -409,6 +422,12 @@ class Populate(QWidget):
                      "weight": weight} for _ in range(amount)]}]
 
         VARIABLE["biosim"].add_population(animals)
+
+    @staticmethod
+    def reset():
+        """Reset the population on the island."""
+        geogr = "\n".join(VARIABLE["island"])
+        VARIABLE["biosim"] = BioSim(island_map=geogr)
 
 
 class Simulate(QWidget):
@@ -505,7 +524,7 @@ class Simulate(QWidget):
         elif species == "Carnivore":
             self.parameter_dropdown.addItems(Carnivore.default_parameters().keys())
         elif species == "Fodder":
-            self.parameter_dropdown.addItems(Island.default_fodder_parameters().keys())
+            self.parameter_dropdown.addItems(["Highland", "Lowland", "Desert"])
 
         # Update the value dropdown based on the selected parameter
         self.parameter_changed()
@@ -543,10 +562,9 @@ class Simulate(QWidget):
             "omega": np.arange(0, 8.1, 0.1),
             "F": np.arange(0, 105, 5),
             "DeltaPhiMax": np.arange(0.5, 50.5, 0.5),
-            "H": np.arange(0, 1010, 10),
-            "L": np.arange(0, 1010, 10),
-            "D": np.arange(0, 1010, 10),
-            "W": np.arange(0, 1010, 10),
+            "Highland": np.arange(0, 1010, 10),
+            "Lowland": np.arange(0, 1010, 10),
+            "Desert": np.arange(0, 1010, 10),
         }
 
     def set_parameter(self):
@@ -564,7 +582,7 @@ class Simulate(QWidget):
         elif species == "Carnivore":
             Carnivore.set_parameters({parameter: value})
         elif species == "Fodder":
-            Island.set_fodder_parameters({parameter: value})
+            Island.set_fodder_parameters({parameter[0]: value})
 
     def plot(self):
         """Plot the population on the island."""
