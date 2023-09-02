@@ -5,6 +5,7 @@ from operator import attrgetter
 import itertools
 import textwrap
 import random
+import math
 
 from .animals import Animal
 
@@ -297,9 +298,12 @@ class Island:
 
                     try:
                         if movable[self.geography[i + move_i - 1][j + move_j - 1]]:
-                            new_cell = self.cells[(i + move_i, j + move_j)]
-                            movement = (animal, cell, new_cell)
-                            migrating_animals.append(movement)
+                            probability = self._neighouring_cells(pos, (i + move_i, j + move_j),
+                                                                  animal.__class__.__name__)
+                            if random.random() < probability:
+                                new_cell = self.cells[(i + move_i, j + move_j)]
+                                movement = (animal, cell, new_cell)
+                                migrating_animals.append(movement)
                     except IndexError:
                         pass
                     except KeyError:
@@ -314,6 +318,41 @@ class Island:
             to_cell.animals[animal.__class__.__name__].append(animal)
 
         self._update_habitated_cells()
+
+    def _neighouring_cells(self, position, new, species):
+        r"""
+        Returns the neighbouring cells of the given cell.
+
+        Parameters
+        ----------
+        position : tuple
+            The cell to retrieve the neighbouring cells of.
+        new : tuple
+            The cell to move to.
+        species : str
+            The species of the animal.
+
+        Returns
+        -------
+        float
+            Probability of moving to the new cell.
+        """
+        i, j = position
+
+        neighbors = {}
+        for move_i, move_j in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+            try:
+                cell = self.cells[(i + move_i, j + move_j)]
+                fodder = Island.get_fodder_parameter(cell.cell_type)
+                try:
+                    abundance = cell.fodder / (len(cell.animals[species]) * fodder)
+                except ZeroDivisionError:
+                    abundance = 100  # 100% chance of moving to an empty cell.
+                neighbors[(i + move_i, j + move_j)] = math.exp(abundance)
+            except KeyError:
+                pass
+
+        return neighbors[new] / sum(neighbors.values())
 
     def _update_habitated_cells(self):
         """Updates the list of habitated cells."""
@@ -438,9 +477,13 @@ class Cell:
             f_{new} = min(f_{old} + \delta * (1 - \alpha * (f_{max} - f_{old}) / f_{max}), f_{max})
         """
         f_max = Island.get_fodder_parameter(self.cell_type)
+
         alpha = Island.get_fodder_parameter("alpha")
         delta = Island.get_fodder_parameter("delta")
 
-        growth = delta * (1 - alpha * (f_max - self.fodder) / f_max) + self.fodder
+        try:
+            growth = delta * (1 - alpha * (f_max - self.fodder) / f_max) + self.fodder
+        except ZeroDivisionError:
+            growth = 0
 
         self.fodder = min(growth, f_max)
