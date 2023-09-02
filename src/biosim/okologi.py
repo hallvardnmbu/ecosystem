@@ -548,7 +548,7 @@ class Simulate(QWidget):
             self.parameter_dropdown.addItems(Carnivore.default_parameters().keys())
         elif species == "Fodder":
             self.parameter_dropdown.addItems(["Highland", "Lowland", "Desert",
-                                              "Growth reduction", "Growth factor"])
+                                              "Growth reduction (alpha)", "Growth factor (delta)"])
 
         # Update the value dropdown based on the selected parameter
         self.parameter_changed()
@@ -562,10 +562,10 @@ class Simulate(QWidget):
 
         if species in ["Highland", "Lowland", "Desert"]:
             species = species[0]
-        elif species == "Growth reduction":
-            species = "growth_reduction"
-        elif species == "Growth factor":
-            species = "growth_factor"
+        elif species == "Growth reduction (alpha)":
+            species = "alpha"
+        elif species == "Growth factor (delta)":
+            species = "delta"
 
         start, stop, self.interval = self.valid_values[species]
         default = DEFAULT_PARAMETERS[self.species_dropdown.currentText()][species] / self.interval
@@ -605,8 +605,8 @@ class Simulate(QWidget):
             "H": (0, 1000, 10),
             "L": (0, 1000, 10),
             "D": (0, 1000, 10),
-            "growth_reduction": (0, 1, 0.01),
-            "growth_factor": (0, fodder, 10)
+            "alpha": (0, 1, 0.01),
+            "delta": (0, fodder, 10)
         }
 
     def set_parameter(self):
@@ -626,12 +626,14 @@ class Simulate(QWidget):
         elif species == "Fodder":
             if parameter in ["Highland", "Lowland", "Desert"]:
                 parameter = parameter[0]
-            elif parameter == "Growth reduction":
-                parameter = "growth_reduction"
-            elif parameter == "Growth factor":
-                parameter = "growth_factor"
+            elif parameter == "Growth reduction (alpha)":
+                parameter = "alpha"
+            elif parameter == "Growth factor (delta)":
+                parameter = "delta"
 
             Island.set_fodder_parameters({parameter: value})
+
+            # TODO: Legge til loggefunksjoner som dokumenterer når hvilke parameter ble endret.
 
     def reset_parameter(self):
         """Reset the parameter for the species."""
@@ -649,10 +651,10 @@ class Simulate(QWidget):
         elif species == "Fodder":
             if parameter in ["Highland", "Lowland", "Desert"]:
                 parameter = parameter[0]
-            elif parameter == "Growth reduction":
-                parameter = "growth_reduction"
-            elif parameter == "Growth factor":
-                parameter = "growth_factor"
+            elif parameter == "Growth reduction (alpha)":
+                parameter = "alpha"
+            elif parameter == "Growth factor (delta)":
+                parameter = "delta"
 
             Island.set_fodder_parameters(
                 {parameter: Island.default_fodder_parameters()[parameter]}

@@ -30,7 +30,7 @@ class Island:
         dict
         """
         return {"H": 300, "L": 800, "D": 0, "W": 0,
-                "growth_reduction": 0.8, "growth_factor": 150}
+                "alpha": 0.8, "delta": 150}
 
     @classmethod
     def set_fodder_parameters(cls, new_parameters):
@@ -80,8 +80,8 @@ class Island:
                 "L": cls.L,
                 "D": cls.D,
                 "W": cls.W,
-                "growth_reduction": cls.growth_reduction,
-                "growth_factor": cls.growth_factor}[terrain_type]
+                "alpha": cls.alpha,
+                "delta": cls.delta}[terrain_type]
 
     def __init__(self, geography, ini_pop=None):
         self.year = 0
@@ -426,11 +426,21 @@ class Cell:
         self.animals = {cls.__name__: [] for cls in Animal.__subclasses__()}
 
     def grow_fodder(self):
-        """Grows fodder in the cell."""
-        f_max = Island.get_fodder_parameter(self.cell_type)
-        growth_reduction = Island.get_fodder_parameter("growth_reduction")
-        growth_factor = Island.get_fodder_parameter("growth_factor")
+        """
+        Grows fodder in the cell.
 
-        growth = growth_factor * (1 - growth_reduction * (f_max - self.fodder) / f_max + self.fodder)
+        Notes
+        -----
+        The growth of fodder is calculated as:
+
+        .. math::
+
+            f_{new} = min(f_{old} + \delta * (1 - \alpha * (f_{max} - f_{old}) / f_{max}), f_{max})
+        """
+        f_max = Island.get_fodder_parameter(self.cell_type)
+        alpha = Island.get_fodder_parameter("alpha")
+        delta = Island.get_fodder_parameter("delta")
+
+        growth = delta * (1 - alpha * (f_max - self.fodder) / f_max) + self.fodder
 
         self.fodder = min(growth, f_max)
