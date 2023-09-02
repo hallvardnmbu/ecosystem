@@ -10,7 +10,7 @@ Released under the MIT License, see included LICENSE file.
 from PyQt5.QtWidgets import (
     QMainWindow, QTabWidget, QApplication, QWidget,
     QHBoxLayout, QVBoxLayout, QLineEdit, QGroupBox,
-    QLabel, QPushButton, QRadioButton, QComboBox,
+    QLabel, QPushButton, QRadioButton, QComboBox, QSlider,
     QGraphicsView, QGraphicsScene,
     QMessageBox
 )
@@ -35,6 +35,11 @@ VARIABLE = {
     "island": ["W" * 11 for _ in range(11)],
     "selected": (None, None),
     "biosim": None,
+}
+DEFAULT_PARAMETERS = {
+    "Herbivore": Herbivore.default_parameters(),
+    "Carnivore": Carnivore.default_parameters(),
+    "Fodder": Island.default_fodder_parameters()
 }
 
 
@@ -447,7 +452,9 @@ class Simulate(QWidget):
 
         self.species_dropdown = None
         self.parameter_dropdown = None
-        self.value_dropdown = None
+        self.value_slider = None
+        self.label = None
+        self.interval = None
         self.years = None
 
         self.buttons()
@@ -469,7 +476,8 @@ class Simulate(QWidget):
         self.parameter_dropdown.currentIndexChanged.connect(self.parameter_changed)
 
         # Create the value dropdown
-        self.value_dropdown = QComboBox()
+        self.value_slider = QSlider(Qt.Horizontal)
+        self.label = QLabel()
 
         # Create the add button
         add_button = QPushButton("Set parameter")
@@ -485,7 +493,8 @@ class Simulate(QWidget):
         top_layout = QHBoxLayout()
         top_layout.addWidget(self.species_dropdown)
         top_layout.addWidget(self.parameter_dropdown)
-        top_layout.addWidget(self.value_dropdown)
+        top_layout.addWidget(self.value_slider)
+        top_layout.addWidget(self.label)
         top_layout.addWidget(add_button)
         top_layout.addWidget(reset_parameter)
         top_layout.addSpacing(100)
@@ -546,39 +555,47 @@ class Simulate(QWidget):
     def parameter_changed(self):
         """Executed when the parameter selection changes."""
         if self.parameter_dropdown.currentText() == "":
-            self.value_dropdown.clear()
             return
 
-        values = self.valid_values[self.parameter_dropdown.currentText()]
+        species = self.parameter_dropdown.currentText()
+        species = species[0] if self.species_dropdown.currentText() == "Fodder" else species
 
-        self.value_dropdown.clear()
-        self.value_dropdown.addItems([str(round(value, 3)) for value in values])
+        start, stop, self.interval = self.valid_values[species]
+        default = DEFAULT_PARAMETERS[self.species_dropdown.currentText()][species] / self.interval
 
-        if self.species_dropdown.currentText() == "Fodder":
-            self.value_dropdown.setCurrentIndex(10)
+        self.value_slider.setMinimum(int(start))
+        self.value_slider.setMaximum(int(stop/self.interval))
+        self.value_slider.setValue(int(default))
+        self.value_slider.setSingleStep(stop)
+
+        self.update_value()
+        self.value_slider.valueChanged.connect(self.update_value)
+
+    def update_value(self):
+        self.label.setText("{:.2f}".format(self.value_slider.value() * self.interval))
 
     @property
     def valid_values(self):
         """Returns a dictionary of valid values for each parameter."""
         return {
-            "w_birth": np.arange(0, 20.1, 0.1),
-            "sigma_birth": np.arange(0, 5.1, 0.1),
-            "beta": np.arange(0, 5.1, 0.1),
-            "eta": np.arange(0, 1.1, 0.1),
-            "a_half": np.arange(0, 81, 1),
-            "phi_age": np.arange(0, 2.1, 0.1),
-            "w_half": np.arange(0, 30.5, 0.5),
-            "phi_weight": np.arange(0, 2.1, 0.1),
-            "mu": np.arange(0, 4.1, 0.1),
-            "gamma": np.arange(0, 8.1, 0.1),
-            "zeta": np.arange(0, 20.1, 0.1),
-            "xi": np.arange(0, 10.1, 0.1),
-            "omega": np.arange(0, 8.1, 0.1),
-            "F": np.arange(0, 105, 5),
-            "DeltaPhiMax": np.arange(0.5, 50.5, 0.5),
-            "Highland": np.arange(0, 1010, 10),
-            "Lowland": np.arange(0, 1010, 10),
-            "Desert": np.arange(0, 1010, 10),
+            "w_birth": (0, 20, 0.1),
+            "sigma_birth": (0, 5, 0.1),
+            "beta": (0, 5, 0.1),
+            "eta": (0, 1, 0.01),
+            "a_half": (0, 80, 1),
+            "phi_age": (0, 2, 0.01),
+            "w_half": (0, 30, 0.5),
+            "phi_weight": (0, 2, 0.01),
+            "mu": (0, 4, 0.01),
+            "gamma": (0, 8, 0.01),
+            "zeta": (0, 20, 0.1),
+            "xi": (0, 10, 0.1),
+            "omega": (0, 8, 0.1),
+            "F": (0, 100, 5),
+            "DeltaPhiMax": (1, 50, 0.5),
+            "H": (0, 1000, 10),
+            "L": (0, 1000, 10),
+            "D": (0, 1000, 10),
         }
 
     def set_parameter(self):
@@ -589,7 +606,7 @@ class Simulate(QWidget):
             return
 
         parameter = self.parameter_dropdown.currentText()
-        value = float(self.value_dropdown.currentText())
+        value = float(self.label.text())
 
         if species == "Herbivore":
             Herbivore.set_parameters({parameter: value})
@@ -616,7 +633,8 @@ class Simulate(QWidget):
                 {parameter[0]: Island.default_fodder_parameters()[parameter[0]]}
             )
 
-    def reset_all_parameters(self):
+    @staticmethod
+    def reset_all_parameters():
         """Reset all parameters to their default values."""
         Herbivore.set_parameters(Herbivore.default_parameters())
         Carnivore.set_parameters(Carnivore.default_parameters())
