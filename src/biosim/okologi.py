@@ -692,7 +692,7 @@ class Simulate(QWidget):
 
         now = datetime.datetime.now()
         when = f"{now.hour}:{now.minute}.{now.second} {now.microsecond}"
-        MODIFIED_PARAMETERS[when] = ("ALL", "ALL", "ALL")
+        MODIFIED_PARAMETERS[when] = ("ALL", "ALL", "RESET")
 
     def plot(self):
         """Plot the population on the island."""

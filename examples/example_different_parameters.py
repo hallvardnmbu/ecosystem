@@ -2,7 +2,7 @@
 Example using different species' parameters.
 """
 
-from src.biosim.simulation import BioSim
+from biosim.simulation import BioSim
 
 if __name__ == "__main__":
 
