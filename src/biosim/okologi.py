@@ -7,12 +7,13 @@ Released under the MIT License, see included LICENSE file.
 """
 
 
+import datetime
 from PyQt5.QtWidgets import (
     QMainWindow, QTabWidget, QApplication, QWidget,
     QHBoxLayout, QVBoxLayout, QLineEdit, QGroupBox,
     QLabel, QPushButton, QRadioButton, QComboBox, QSlider,
     QGraphicsView, QGraphicsScene,
-    QMessageBox
+    QMessageBox, QTableWidget, QTableWidgetItem
 )
 from PyQt5.QtGui import (
     QPainter, QPen, QBrush, QColor,
@@ -21,7 +22,6 @@ from PyQt5.QtGui import (
 from PyQt5.QtCore import (
     Qt, QRect, QRectF
 )
-
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 import numpy as np
@@ -41,6 +41,7 @@ DEFAULT_PARAMETERS = {
     "Carnivore": Carnivore.default_parameters(),
     "Fodder": Island.default_fodder_parameters()
 }
+MODIFIED_PARAMETERS = {}
 
 
 def ecol_100():
@@ -90,6 +91,15 @@ class Main(QMainWindow):
         self.plot_layout.addWidget(self.plot)
         self.tabs.addTab(self.plot, 'Simulate')
 
+        # Parameter history:
+        self.history_widget = QWidget()
+        self.history_layout = QVBoxLayout()
+        self.history_widget.setLayout(self.history_layout)
+
+        self.history = History()
+        self.history_layout.addWidget(self.history)
+        self.tabs.addTab(self.history, 'Parameter history')
+
         self.previous = 0
         self.tabs.currentChanged.connect(self.change)
 
@@ -101,10 +111,14 @@ class Main(QMainWindow):
         # Resetting the island when switching to draw page:
         if index == 0:
             self.plot.reset()
+            MODIFIED_PARAMETERS.clear()
 
             msg = QMessageBox()
-            msg.setText("Population has been reset.")
+            msg.setText("Population and parameters has been reset.")
             msg.exec_()
+
+        if index == 3: # Switching to history page
+            self.history.update()
 
         # Updating the island when switching from draw page:
         if self.previous == 0 and index != 0:
@@ -633,7 +647,9 @@ class Simulate(QWidget):
 
             Island.set_fodder_parameters({parameter: value})
 
-            # TODO: Legge til loggefunksjoner som dokumenterer når hvilke parameter ble endret.
+        now = datetime.datetime.now()
+        when = f"{now.hour}:{now.minute}.{now.second} {now.microsecond}"
+        MODIFIED_PARAMETERS[when] = (species, parameter, value)
 
     def reset_parameter(self):
         """Reset the parameter for the species."""
@@ -646,8 +662,10 @@ class Simulate(QWidget):
 
         if species == "Herbivore":
             Herbivore.set_parameters({parameter: Herbivore.default_parameters()[parameter]})
+            value = Herbivore.default_parameters()[parameter]
         elif species == "Carnivore":
             Carnivore.set_parameters({parameter: Carnivore.default_parameters()[parameter]})
+            value = Carnivore.default_parameters()[parameter]
         elif species == "Fodder":
             if parameter in ["Highland", "Lowland", "Desert"]:
                 parameter = parameter[0]
@@ -659,6 +677,11 @@ class Simulate(QWidget):
             Island.set_fodder_parameters(
                 {parameter: Island.default_fodder_parameters()[parameter]}
             )
+            value = Island.default_fodder_parameters()[parameter]
+
+        now = datetime.datetime.now()
+        when = f"{now.hour}:{now.minute}.{now.second} {now.microsecond}"
+        MODIFIED_PARAMETERS[when] = (species, parameter, value)
 
     @staticmethod
     def reset_all_parameters():
@@ -666,6 +689,10 @@ class Simulate(QWidget):
         Herbivore.set_parameters(Herbivore.default_parameters())
         Carnivore.set_parameters(Carnivore.default_parameters())
         Island.set_fodder_parameters(Island.default_fodder_parameters())
+
+        now = datetime.datetime.now()
+        when = f"{now.hour}:{now.minute}.{now.second} {now.microsecond}"
+        MODIFIED_PARAMETERS[when] = ("ALL", "ALL", "ALL")
 
     def plot(self):
         """Plot the population on the island."""
@@ -703,3 +730,32 @@ class Simulate(QWidget):
         """Reset the simulation."""
         VARIABLE["biosim"].island.year = 0
         VARIABLE["biosim"].graphics.reset_graphics()
+
+
+class History(QWidget):
+    """Class for visualising the parameter history."""
+    def __init__(self):
+        super().__init__()
+
+        self.setGeometry(400, 200, 1000, 800)
+        self.setLayout(QVBoxLayout())
+
+        self.table = QTableWidget()
+        self.table.setColumnCount(4)
+        self.table.setHorizontalHeaderLabels(["Time", "Species", "Parameter", "Value"])
+        self.layout().addWidget(self.table)
+
+        self.update()
+
+    def update(self):
+        """Update the window."""
+        self.table.setRowCount(len(MODIFIED_PARAMETERS))
+        for row, (time, (species, parameter, value)) in enumerate(MODIFIED_PARAMETERS.items()):
+            time_item = QTableWidgetItem(time.split()[0])
+            species_item = QTableWidgetItem(species)
+            parameter_item = QTableWidgetItem(parameter)
+            value_item = QTableWidgetItem(str(value))
+            self.table.setItem(row, 0, time_item)
+            self.table.setItem(row, 1, species_item)
+            self.table.setItem(row, 2, parameter_item)
+            self.table.setItem(row, 3, value_item)
