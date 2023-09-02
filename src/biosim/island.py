@@ -29,7 +29,8 @@ class Island:
         -------
         dict
         """
-        return {"H": 300, "L": 800, "D": 0, "W": 0}
+        return {"H": 300, "L": 800, "D": 0, "W": 0,
+                "growth_reduction": 0.8, "growth_factor": 150}
 
     @classmethod
     def set_fodder_parameters(cls, new_parameters):
@@ -78,7 +79,9 @@ class Island:
         return {"H": cls.H,
                 "L": cls.L,
                 "D": cls.D,
-                "W": cls.W}[terrain_type]
+                "W": cls.W,
+                "growth_reduction": cls.growth_reduction,
+                "growth_factor": cls.growth_factor}[terrain_type]
 
     def __init__(self, geography, ini_pop=None):
         self.year = 0
@@ -424,4 +427,10 @@ class Cell:
 
     def grow_fodder(self):
         """Grows fodder in the cell."""
-        self.fodder = Island.get_fodder_parameter(self.cell_type)
+        f_max = Island.get_fodder_parameter(self.cell_type)
+        growth_reduction = Island.get_fodder_parameter("growth_reduction")
+        growth_factor = Island.get_fodder_parameter("growth_factor")
+
+        growth = growth_factor * (1 - growth_reduction * (f_max - self.fodder) / f_max + self.fodder)
+
+        self.fodder = min(growth, f_max)

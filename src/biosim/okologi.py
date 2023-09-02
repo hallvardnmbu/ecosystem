@@ -468,7 +468,7 @@ class Simulate(QWidget):
     def parameter_selection(self):
         """Add parameter selection to the window."""
         self.species_dropdown = QComboBox()
-        self.species_dropdown.addItems(["Modify parameters:", "Herbivore", "Carnivore", "Fodder"])
+        self.species_dropdown.addItems(["PARAMETERS", "Herbivore", "Carnivore", "Fodder"])
         self.species_dropdown.currentIndexChanged.connect(self.species_changed)
 
         # Create the parameter dropdown
@@ -547,7 +547,8 @@ class Simulate(QWidget):
         elif species == "Carnivore":
             self.parameter_dropdown.addItems(Carnivore.default_parameters().keys())
         elif species == "Fodder":
-            self.parameter_dropdown.addItems(["Highland", "Lowland", "Desert"])
+            self.parameter_dropdown.addItems(["Highland", "Lowland", "Desert",
+                                              "Growth reduction", "Growth factor"])
 
         # Update the value dropdown based on the selected parameter
         self.parameter_changed()
@@ -558,7 +559,13 @@ class Simulate(QWidget):
             return
 
         species = self.parameter_dropdown.currentText()
-        species = species[0] if self.species_dropdown.currentText() == "Fodder" else species
+
+        if species in ["Highland", "Lowland", "Desert"]:
+            species = species[0]
+        elif species == "Growth reduction":
+            species = "growth_reduction"
+        elif species == "Growth factor":
+            species = "growth_factor"
 
         start, stop, self.interval = self.valid_values[species]
         default = DEFAULT_PARAMETERS[self.species_dropdown.currentText()][species] / self.interval
@@ -577,6 +584,8 @@ class Simulate(QWidget):
     @property
     def valid_values(self):
         """Returns a dictionary of valid values for each parameter."""
+        fodder = max([Island.get_fodder_parameter(ter) for ter in ["H", "L", "D"]])
+
         return {
             "w_birth": (0, 20, 0.1),
             "sigma_birth": (0, 5, 0.1),
@@ -596,13 +605,15 @@ class Simulate(QWidget):
             "H": (0, 1000, 10),
             "L": (0, 1000, 10),
             "D": (0, 1000, 10),
+            "growth_reduction": (0, 1, 0.01),
+            "growth_factor": (0, fodder, 10)
         }
 
     def set_parameter(self):
         """Set the parameter for the selected species."""
         species = self.species_dropdown.currentText()
 
-        if species == "Modify parameters:":
+        if species == "PARAMETERS":
             return
 
         parameter = self.parameter_dropdown.currentText()
@@ -613,13 +624,20 @@ class Simulate(QWidget):
         elif species == "Carnivore":
             Carnivore.set_parameters({parameter: value})
         elif species == "Fodder":
-            Island.set_fodder_parameters({parameter[0]: value})
+            if parameter in ["Highland", "Lowland", "Desert"]:
+                parameter = parameter[0]
+            elif parameter == "Growth reduction":
+                parameter = "growth_reduction"
+            elif parameter == "Growth factor":
+                parameter = "growth_factor"
+
+            Island.set_fodder_parameters({parameter: value})
 
     def reset_parameter(self):
         """Reset the parameter for the species."""
         species = self.species_dropdown.currentText()
 
-        if species == "Modify parameters:":
+        if species == "PARAMETERS":
             return
 
         parameter = self.parameter_dropdown.currentText()
@@ -629,8 +647,15 @@ class Simulate(QWidget):
         elif species == "Carnivore":
             Carnivore.set_parameters({parameter: Carnivore.default_parameters()[parameter]})
         elif species == "Fodder":
+            if parameter in ["Highland", "Lowland", "Desert"]:
+                parameter = parameter[0]
+            elif parameter == "Growth reduction":
+                parameter = "growth_reduction"
+            elif parameter == "Growth factor":
+                parameter = "growth_factor"
+
             Island.set_fodder_parameters(
-                {parameter[0]: Island.default_fodder_parameters()[parameter[0]]}
+                {parameter: Island.default_fodder_parameters()[parameter]}
             )
 
     @staticmethod
