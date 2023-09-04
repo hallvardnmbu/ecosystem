@@ -707,7 +707,7 @@ class History(QWidget):
         self.table.setHorizontalHeaderLabels(["Time", "Species", "Parameter", "Value"])
         self.layout().addWidget(self.table)
 
-        reset = QPushButton("Reset history")
+        reset = QPushButton("Clear history")
         reset.clicked.connect(self.reset)
         self.layout().addWidget(reset)
 

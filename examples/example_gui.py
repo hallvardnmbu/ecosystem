@@ -1,6 +1,6 @@
 """Run the BioSim-package with the GUI."""
 
-from src.biosim.gui import BioSimGUI
+from biosim.gui import BioSimGUI
 
 if __name__ == "__main__":
 
