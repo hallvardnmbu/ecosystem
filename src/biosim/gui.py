@@ -1,407 +1,673 @@
-"""Provides a Graphical User Interface (GUI) for the simulation of an ecosystem."""
+"""
+Improved graphical user interface for BioSim.
+
+Copyright (c) 2023 Hallvard Høyland Lavik / NMBU
+This file is part of the BioSim-package, adding a more intuitive GUI.
+Released under the MIT License, see included LICENSE file.
+"""
 
 
-# Here ChatGPT (mostly), Stackoverflow, google and relevant documentation was used in order to
-# create the GUI. I could not have done this without these tools.
-
-
-import re
-import tkinter as tk
-from tkinter import messagebox
+import datetime
+from PyQt5.QtWidgets import (
+    QMainWindow, QTabWidget, QApplication, QWidget,
+    QHBoxLayout, QVBoxLayout, QLineEdit, QGroupBox,
+    QLabel, QPushButton, QRadioButton, QComboBox, QSlider,
+    QGraphicsView, QGraphicsScene,
+    QMessageBox, QTableWidget, QTableWidgetItem
+)
+from PyQt5.QtGui import (
+    QPainter, QPen, QBrush, QColor,
+    QDoubleValidator, QIntValidator
+)
+from PyQt5.QtCore import (
+    Qt, QRect, QRectF
+)
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.pyplot as plt
+import numpy as np
 
 from .simulation import BioSim
+from .animals import Herbivore, Carnivore
+from .island import Island
 
 
-class BioSimGUI(tk.Tk):
-    """
-    Graphical User Interface (GUI) superclass for the simulation of an ecosystem.
+VARIABLE = {
+    "island": ["W" * 11 for _ in range(11)],
+    "selected": (None, None),
+    "biosim": None,
+    "colours": {
+        "W": "#95CBCC",
+        "H": "#E8EC9E",
+        "L": "#B9D687",
+        "D": "#FFEEBA"
+    }
+}
+PARAMETERS = {
+    "Herbivore": Herbivore.default_parameters(),
+    "Carnivore": Carnivore.default_parameters(),
+    "rename": {
+        "Highland": "H",
+        "Lowland": "L",
+        "Desert": "D",
+        "Water": "W",
+        "Growth reduction (alpha)": "alpha",
+        "Growth factor (delta)": "delta"
+    }
+}
+PARAMETERS["Fodder"] = {{v: k for k, v in PARAMETERS["rename"].items()}.get(k, k): v
+                        for k, v in Island.default_fodder_parameters().items()}
+MODIFIED_PARAMETERS = {}
 
-    Contains information about the map and the population of animals to be simulated.
-    """
-    def __init__(self, map_size=15):
+
+class BioSimGUI:
+    def __init__(self):
+        """Initialises and starts the application."""
+        app = QApplication([])
+        window = Main()
+        window.show()
+        app.exec_()
+
+
+class Main(QMainWindow):
+    """Class for the main window."""
+    def __init__(self):
         super().__init__()
-        self.title("Model herbivores and carnivores on an island")
 
-        self.island = ["W" * map_size for _ in range(map_size)]
-        self.population = []
-        self.colours = {"W": "#95CBCC",
-                        "H": "#E8EC9E",
-                        "L": "#B9D687",
-                        "D": "#FFEEBA"}
+        self.setGeometry(400, 200, 1000, 820)
+        self.setWindowTitle("Model herbivores and carnivores on an island")
 
-        self.pages = {"Draw": Draw(self),
-                      "Populate": Populate(self),
-                      "Parameters": Parameters(self)}
-        self.pages["Draw"].pack()
+        # Create the tabs:
+        tabs = QTabWidget()
+        self.setCentralWidget(tabs)
 
-        messagebox.showinfo("Alert",
-                            "OUTDATED. Use ECOL100() from 'biosim.okologi' instead.")
+        # Draw:
+        draw_widget = QWidget()
+        draw_layout = QVBoxLayout()
+        draw_widget.setLayout(draw_layout)
+
+        self.draw = Draw()
+        draw_layout.addWidget(self.draw)
+        tabs.addTab(self.draw, 'Draw')
+
+        # Populate:
+        populate_widget = QWidget()
+        populate_layout = QVBoxLayout()
+        populate_widget.setLayout(populate_layout)
+
+        self.populate = Populate()
+        populate_layout.addWidget(self.populate)
+        tabs.addTab(self.populate, 'Populate')
+
+        # Simulate:
+        simulate_widget = QWidget()
+        simulate_layout = QVBoxLayout()
+        simulate_widget.setLayout(simulate_layout)
+
+        self.simulate = Simulate()
+        simulate_layout.addWidget(self.simulate)
+        tabs.addTab(self.simulate, 'Simulate')
+
+        # Parameter history:
+        history_widget = QWidget()
+        history_layout = QVBoxLayout()
+        history_widget.setLayout(history_layout)
+
+        self.history = History()
+        history_layout.addWidget(self.history)
+        tabs.addTab(self.history, 'Parameter history')
+
+        self.previous = 0
+        tabs.currentChanged.connect(self.change)
+
+    def change(self, index):
+        """Switching to new tabs executes the following."""
+        if index == 0: # Switching to draw page.
+            self.simulate.reset()
+            MODIFIED_PARAMETERS.clear()
+
+            # May need to be removed if ECOL100 is run from server:
+            msg = QMessageBox()
+            msg.setText("Population and parameters has been reset.")
+            msg.exec_()
+        elif index == 1:  # Switching to populate page.
+            self.populate.plot.update()
+        elif index == 3: # Switching to history page.
+            self.history.update()
+
+        if self.previous == 0 and index != 0:  # Switching from draw page.
+            geogr = "\n".join(VARIABLE["island"])
+            VARIABLE["biosim"] = BioSim(island_map=geogr)
+            VARIABLE["selected"] = (None, None)
+
+        self.previous = index
 
 
-class Draw(tk.Frame):
-    """Page in the GUI for drawing the map."""
-    def __init__(self, master):
-        tk.Frame.__init__(self, master)
-        self.master = master
+class Draw(QWidget):
+    """Class for drawing the island."""
+    def __init__(self):
+        super().__init__()
 
-        self._size = 30
+        self.setGeometry(400, 200, 1000, 800)
+        self.setWindowTitle("Model herbivores and carnivores on an island")
+        self.setLayout(QVBoxLayout())
 
-        self.selected = tk.StringVar()
-        self.drawing = False
+        self.plot = Map()
+        self.plot.setGeometry(QRect(0, 0, 800, 800))
+        self.layout().addWidget(self.plot)
 
-        self.canvas = tk.Canvas(self)
-
-        self.brushes = tk.Frame(self)
-        self.brushes.pack(side=tk.RIGHT, padx=10)
+        self.color_widget = None
 
         self.buttons()
-        self.draw()
-
-        self.canvas.bind("<Button-1>", self.click)
-        self.canvas.bind("<Button-1>", self.start_drawing)
-        self.canvas.bind("<B1-Motion>", self.continue_drawing)
-        self.canvas.bind("<ButtonRelease-1>", self.stop_drawing)
+        self.plot.update()
 
     def buttons(self):
-        """Create buttons for selecting terrain types to draw."""
-        finished_button = tk.Button(self,
-                                    text="Continue",
-                                    width=7,
-                                    command=self.finished_drawing)
-        finished_button.place(anchor="ne", relx=1, rely=0, x=-10, y=10)
+        """Add buttons to the window."""
+        txt = QLabel("Select terrain type to draw.", self)
+        txt.setGeometry(850, 290, 200, 100)
 
-        terrain_label = tk.Label(self.brushes,
-                                 text="Draw with:")
-        terrain_label.pack(pady=5)
-        terrain_types = ["Water",
-                         "Highland",
-                         "Lowland",
-                         "Desert"]
-        for terrain in terrain_types:
-            button = tk.Radiobutton(self.brushes,
-                                    text=terrain,
-                                    variable=self.selected,
-                                    value=terrain[0])
-            button.pack(pady=5, anchor="w")
+        # Select terrain type:
+        color_layout = QVBoxLayout()
+        for name, color in VARIABLE["colours"].items():
+            button = QPushButton(name, self)
+            button.setFixedSize(100, 100)
+            button.setStyleSheet(f"background-color: {color}")
+            button.clicked.connect(lambda _, name=name: self.color_clicked(name))
+            color_layout.addWidget(button)
 
-        increase_button = tk.Button(self,
-                                    text="Increase",
-                                    width=7,
-                                    command=self.increase_map_size)
-        increase_button.place(anchor="se", relx=1.0, rely=1.0, x=-10, y=-50)
+        self.color_widget = QWidget(self)
+        self.color_widget.setLayout(color_layout)
+        self.color_widget.setGeometry(QRect(880, 350, 450, 450))
 
-        decrease_button = tk.Button(self,
-                                    text="Decrease",
-                                    width=7,
-                                    command=self.decrease_map_size)
-        decrease_button.place(anchor="se", relx=1.0, rely=1.0, x=-10, y=-15)
+        # Modify map:
+        txt = QLabel("Increase/decrease map size.", self)
+        txt.setGeometry(850, 0, 200, 100)
 
-    def draw(self):
-        """Draw the initial map to be drawn on."""
-        self.canvas.delete("all")
-        self._canvas()
+        bigger_button = QPushButton("Bigger", self)
+        bigger_button.setGeometry(QRect(880, 70, 110, 100))
+        bigger_button.clicked.connect(self.bigger)
 
-        for i, row in enumerate(self.master.island):
-            for j, terrain in enumerate(row):
-                color = self.master.colours[terrain]
+        smaller_button = QPushButton("Smaller", self)
+        smaller_button.setGeometry(QRect(880, 170, 110, 100))
+        smaller_button.clicked.connect(self.smaller)
 
-                self.canvas.create_rectangle(i * self._size,
-                                             j * self._size,
-                                             (i + 1) * self._size,
-                                             (j + 1) * self._size,
-                                             fill=color,
-                                             tags=f"cell_{i}_{j}")
+    def color_clicked(self, name):
+        """
+        Change the selected terrain type.
 
-    def _canvas(self):
-        """Configure the canvas."""
-        self._width = len(self.master.island[0])
-        self._height = len(self.master.island)
-        self.width = self._width * self._size
-        self.height = self._height * self._size
+        Parameters
+        ----------
+        name : str
+        """
+        self.plot.terrain = name[0]
+        for button in self.color_widget.findChildren(QPushButton):
+            if button.text() == name:
+                button.setStyleSheet(
+                    f"background-color: {VARIABLE['colours'][name[0]]}; border: 2px solid black"
+                )
+            else:
+                button.setStyleSheet(
+                    f"background-color: {VARIABLE['colours'][button.text()[0]]}"
+                )
 
-        self.canvas.config(width=self.width, height=self.height)
-        self.canvas.pack(side=tk.LEFT, padx=10)
-
-    def click(self, event):
-        """Handle clicks on the map."""
-        x = event.x // self._size
-        y = event.y // self._size
-
-        if x < 0 or x >= self._width or y < 0 or y >= self._height:
-            return
-
-        if self.selected:
-            self.update_cell_terrain(event)
-
-    def start_drawing(self, event):
-        """Start drawing when the left mouse button is pressed."""
-        self.drawing = True
-        self.update_cell_terrain(event)
-
-    def continue_drawing(self, event):
-        """Continue drawing when the left mouse button is pressed and is dragged."""
-        if self.drawing:
-            self.update_cell_terrain(event)
-
-    def stop_drawing(self, _):
-        """Stop drawing when the left mouse button is released."""
-        self.drawing = False
-
-    def update_cell_terrain(self, event):
-        """Update the terrain of the cell based on the drawn terrain type."""
-        if self.selected:
-            i = event.x // self._size
-            j = event.y // self._size
-
-            if 1 <= i < self._width-1 and 1 <= j < self._height-1:
-                terrain = self.selected.get()
-
-                # Inserts the new letter into the string at the position it is drawn:
-                new = self.master.island[i][:j] + terrain + self.master.island[i][j+1:]
-                self.master.island[i] = new
-
-                color = ""
-                if terrain == "W":
-                    color = "#95CBCC"
-                elif terrain == "H":
-                    color = "#E8EC9E"
-                elif terrain == "L":
-                    color = "#B9D687"
-                elif terrain == "D":
-                    color = "#FFEEBA"
-
-                self.canvas.create_rectangle(
-                    i * self._size,
-                    j * self._size,
-                    (i + 1) * self._size,
-                    (j + 1) * self._size,
-                    fill=color)
-
-    def finished_drawing(self):
-        """Switch to the AddAnimals page."""
-        self.master.pages["Draw"].pack_forget()
-        # When navigating to "Populate" from drawing, a fresh simulation is initiated. This is
-        # done in case you for instance draw water where animals currently are residing. This is
-        # not strictly necessary, seeing as animals in 'W' can't move and will die due to lack of
-        # food, but is done to clean up the visualisation window, without the user having to
-        # click the reset button manually.
-        self.master.pages["Populate"].__init__(self.master)
-        self.master.pages["Populate"].pack()
-
-    def increase_map_size(self):
+    def bigger(self):
         """Increase the size of the map."""
-        if len(self.master.island[0]) + 2 < 35:
-            new = ["W" * (len(self.master.island[0]) + 2)]
-            for row in self.master.island:
-                _row = "W" + row + "W"
-                new.append(_row)
-            new.append("W" * (len(self.master.island[0]) + 2))
+        if len(VARIABLE["island"][0]) >= 44:
+            return
 
-            self.master.island = new
+        new = ["W" * (len(VARIABLE["island"][0]) + 2)]
+        for row in VARIABLE["island"]:
+            _row = "W" + row + "W"
+            new.append(_row)
+        new.append("W" * (len(VARIABLE["island"][0]) + 2))
 
-            self.draw()
-        else:
-            messagebox.showinfo("Error", "A bigger map is being prevented.")
+        VARIABLE["island"] = new
+        self.plot.update()
 
-    def decrease_map_size(self):
+    def smaller(self):
         """Decrease the size of the map."""
-        if len(self.master.island[0]) - 2 > 12:
-            new = ["W" * (len(self.master.island[0]) - 2)]
-            for row in self.master.island[2:-2]:
-                _row = "W" + row[2:-2] + "W"
-                new.append(_row)
-            new.append("W" * (len(self.master.island[0]) - 2))
-
-            self.master.island = new
-
-            self.draw()
-        else:
-            messagebox.showinfo("Error", "A smaller map is being prevented.")
-
-
-class Populate(tk.Frame):
-    """Page in the GUI for adding a population of animals to the map."""
-    def __init__(self, master):
-        tk.Frame.__init__(self, master)
-        self.master = master
-
-        self.selected_cell = tk.Variable(value=None)
-
-        self._size = 30
-        self.grid_width = len(self.master.island[0])
-        self.grid_height = len(self.master.island)
-        map_size = self.grid_width + 1
-
-        canvas_width = self.grid_width * self._size
-        canvas_height = self.grid_height * self._size
-
-        canvas = tk.Canvas(self, width=canvas_width, height=canvas_height)
-        canvas.grid(row=1, column=0, columnspan=map_size, padx=5, pady=5, sticky="w")
-
-        # Visualise the map:
-        for x, row in enumerate(self.master.island):
-            for y, terrain in enumerate(row):
-                color = self.master.colours[terrain]
-
-                canvas.create_rectangle(x * self._size,
-                                        y * self._size,
-                                        (x + 1) * self._size,
-                                        (y + 1) * self._size,
-                                        fill=color,
-                                        tags=f"cell_{x}_{y}")
-                canvas.tag_bind(f"cell_{x}_{y}", "<Button-1>", self._handle_click)
-
-        self.validate_integer_cmd = (self.register(self._validate_integer), '%P')
-        self.validate_float_cmd = (self.register(self._validate_float), '%P')
-
-        self.species_var = tk.StringVar()
-        species_label = tk.Label(self, text="Species:")
-        species_label.grid(row=1, column=1 + map_size, padx=5, pady=5)
-        herbivore_button = tk.Radiobutton(self, text="Herbivore", variable=self.species_var,
-                                          value="Herbivore")
-        herbivore_button.grid(row=1, column=2 + map_size, padx=5, pady=5)
-        carnivore_button = tk.Radiobutton(self, text="Carnivore", variable=self.species_var,
-                                          value="Carnivore")
-        carnivore_button.grid(row=1, column=3 + map_size, padx=5, pady=5)
-
-        age_label = tk.Label(self, text="Age:")
-        age_label.grid(row=1, column=4 + map_size, padx=5, pady=5)
-        self.age_entry = tk.Entry(self, width=5)
-        self.age_entry.grid(row=1, column=5 + map_size, padx=5, pady=5)
-        self.age_entry.config(validate="key", validatecommand=self.validate_integer_cmd)
-
-        weight_label = tk.Label(self, text="Weight:")
-        weight_label.grid(row=1, column=6 + map_size, padx=5, pady=5)
-        self.weight_entry = tk.Entry(self, width=5)
-        self.weight_entry.grid(row=1, column=7 + map_size, padx=5, pady=5)
-        self.weight_entry.config(validate="key", validatecommand=self.validate_float_cmd)
-
-        n_animals_label = tk.Label(self, text="# animals:")
-        n_animals_label.grid(row=1, column=8 + map_size, padx=5, pady=5)
-        self.n_animals_entry = tk.Entry(self, width=5)
-        self.n_animals_entry.grid(row=1, column=9 + map_size, padx=5, pady=5)
-        self.n_animals_entry.config(validate="key", validatecommand=self.validate_integer_cmd)
-
-        add_button = tk.Button(self, text="Add", command=self.add_info)
-        add_button.grid(row=1, column=10 + map_size, padx=5, pady=5)
-
-        button_back = tk.Button(self,
-                                text="Draw",
-                                width=7,
-                                command=lambda: self.navigate_page_draw())
-        button_back.grid(row=0, column=9 + map_size, padx=5, pady=5)
-        button_next = tk.Button(self,
-                                text="Parameters",
-                                width=7,
-                                command=lambda: self.navigate_page_params())
-        button_next.grid(row=0, column=10 + map_size, padx=5, pady=5)
-
-        text_label = tk.Label(self, text="# years:")
-        text_label.place(anchor="se", relx=1.0, rely=1.0, x=-65, y=-45)
-        self.year_entry = tk.Entry(self, width=5)
-        self.year_entry.place(anchor="se", relx=1.0, rely=1.0, x=-5, y=-40)
-        self.year_entry.config(validate="key", validatecommand=self.validate_integer_cmd)
-
-        simulate_button = tk.Button(self,
-                                    text="Simulate",
-                                    width=9,
-                                    command=self.simulate)
-        simulate_button.place(anchor="se", relx=1.0, rely=1.0, x=-5, y=-5)
-
-        clear_button = tk.Button(self,
-                                 text="Clear animals",
-                                 width=9,
-                                 command=self.restart)
-        clear_button.place(anchor="se", relx=1.0, rely=1.0, x=-120, y=-5)
-
-        geogr = ["".join(terrain) for terrain in zip(*self.master.island)]
-        geogr = "\n".join(geogr)
-        self.master.sim = BioSim(island_map=geogr, ini_pop=self.master.population)
-
-    def navigate_page_draw(self):
-        """Navigate back to the drawing page."""
-        self.master.pages["Populate"].pack_forget()
-        self.master.pages["Draw"].pack()
-
-    def navigate_page_params(self):
-        """Navigate back to the drawing page."""
-        self.master.pages["Populate"].pack_forget()
-        self.master.pages["Parameters"].pack()
-
-    def add_info(self):
-        """
-        Saves the information about the animals to be added to the map.
-
-        Raises
-        ------
-        ValueError
-            If no cell is selected.
-            If no species is selected.
-        """
-        try:
-            x, y = self.selected_cell.get()
-        except ValueError:
-            messagebox.showinfo("Error", "No cell selected.")
-
-        species = str(self.species_var.get())
-        if not species:
-            messagebox.showinfo("Error", "No species selected.")
-
-        age = int(self.age_entry.get()) if self.age_entry.get().isdigit() else None
-        weight = float(self.weight_entry.get()) if self._is_float(self.weight_entry.get()) else None
-        n_animals = int(self.n_animals_entry.get()) if self.n_animals_entry.get().isdigit() else 1
-
-        add_animals = {"loc": (x + 1, y + 1),
-                       "pop": [{"species": species,
-                                "age": age,
-                                "weight": weight} for _ in range(n_animals)]}
-
-        self.master.population.append(add_animals)
-
-    @staticmethod
-    def _is_float(value):
-        """Additional check for float values on input."""
-        try:
-            float(value)
-            return True
-        except ValueError:
-            return False
-
-    @staticmethod
-    def _validate_integer(value):
-        """Checks whether the input value is an integer."""
-        return re.match(r'^\d*$', value) is not None
-
-    @staticmethod
-    def _validate_float(value):
-        """Checks whether the input value is float."""
-        return re.match(r'^\d*\.?\d*$', value) is not None
-
-    def _handle_click(self, event):
-        """Handle clicks on the map, to select the desired cell."""
-        canvas = event.widget
-        x = event.x // self._size
-        y = event.y // self._size
-
-        if x < 0 or x >= self.grid_width or y < 0 or y >= self.grid_height:
+        if len(VARIABLE["island"][0]) <= 4:
             return
 
-        if self.master.island[x][y] == "W":
+        new = ["W" * (len(VARIABLE["island"][0]) - 2)]
+        for row in VARIABLE["island"][2:-2]:
+            _row = "W" + row[2:-2] + "W"
+            new.append(_row)
+        new.append("W" * (len(VARIABLE["island"][0]) - 2))
+
+        VARIABLE["island"] = new
+        self.plot.update()
+
+
+class Map(QGraphicsView):
+    """Class for visualising the island."""
+    def __init__(self, terrain="W", drawing=True):
+        super().__init__()
+
+        self.terrain = terrain
+        self.drawing = drawing
+        self.size = 10
+
+        self.scene = QGraphicsScene(self)
+        self.setScene(self.scene)
+        self.setRenderHint(QPainter.Antialiasing)
+        self.setFixedSize(800, 800)
+
+    def update(self):
+        """Update the scene."""
+        self.scene.clear()
+        pen = QPen(Qt.black)
+        pen.setWidthF(0.1)
+        for j, row in enumerate(VARIABLE["island"]):
+            for i, cell in enumerate(row):
+                brush = QBrush(QColor(VARIABLE['colours'][cell]))
+                rect = QRectF(i * self.size, j * self.size, self.size, self.size)
+                self.scene.addRect(rect, pen, brush)
+        self.scene.setSceneRect(self.scene.itemsBoundingRect())
+        self.fitInView(self.scene.sceneRect(), Qt.KeepAspectRatio)
+
+    def resizeEvent(self, event):
+        """Resizes the plot to fit within the scene."""
+        self.fitInView(self.scene.sceneRect(), Qt.KeepAspectRatio)
+
+    def mousePressEvent(self, event):
+        """Executed when the mouse is pressed."""
+        if self.drawing:
+            self.mouseMoveEvent(event)
             return
 
-        self.selected_cell.set((y, x))
-        canvas.delete("selection")
-        canvas.create_rectangle(x * self._size, y * self._size, (x + 1) *
-                                self._size,
-                                (y + 1) *
-                                self._size, outline="black", fill="black", tags="selection")
+        # Handles selection of cell when populating the island.
+        if event.buttons() == Qt.LeftButton and self.terrain == "SELECT":
+            position = self.mapToScene(event.pos())
+            i = int(position.x() // self.size)
+            j = int(position.y() // self.size)
 
-    def restart(self):
+            if VARIABLE["island"][j][i] != "W":
+                self.update()
+
+                pen = QPen(Qt.black)
+                pen.setWidthF(0.1)
+                self.scene.addRect(
+                    i * self.size, j * self.size,
+                    self.size, self.size,
+                    pen, QBrush(QColor("black"))
+                )
+
+                VARIABLE["selected"] = (i, j)
+            else:
+                msg = QMessageBox()
+                msg.setText("Cannot place animals in water.")
+                msg.exec_()
+
+    def mouseMoveEvent(self, event):
+        """Executed when the mouse is pressed-moved."""
+        if event.buttons() == Qt.LeftButton and self.drawing:
+            position = self.mapToScene(event.pos())
+            i = int(position.x() // self.size)
+            j = int(position.y() // self.size)
+
+            if 0 < i < len(VARIABLE["island"][0])-1 and 0 < j < len(VARIABLE["island"])-1:
+                VARIABLE["island"][j] = (VARIABLE["island"][j][:i] +
+                                         self.terrain +
+                                         VARIABLE["island"][j][i + 1:])
+
+                pen = QPen(Qt.black)
+                pen.setWidthF(0.1)
+                self.scene.addRect(
+                    i * self.size, j * self.size,
+                    self.size, self.size,
+                    pen, QBrush(QColor(VARIABLE['colours'][self.terrain]))
+                )
+
+
+class Populate(QWidget):
+    """Class for populating the island."""
+    def __init__(self):
+        super().__init__()
+
+        self.setGeometry(400, 200, 1000, 800)
+        self.setWindowTitle("Model herbivores and carnivores on an island")
+
+        self.plot = None
+        self.herbivore = None
+        self.age = None
+        self.weight = None
+        self.amount = None
+
+        self.initialise()
+
+    def initialise(self):
+        """Initialise the window."""
+        self.plot = Map(drawing=False, terrain="SELECT")
+        self.plot.setGeometry(QRect(0, 0, 800, 800))
+
+        # Create the species group
+        species_group = QGroupBox()
+        species_layout = QVBoxLayout()
+        species_group.setLayout(species_layout)
+        self.herbivore = QRadioButton("Herbivore") #
+        carnivore = QRadioButton("Carnivore")
+        species_layout.addWidget(self.herbivore)
+        species_layout.addWidget(carnivore)
+        self.herbivore.setChecked(True)
+        species_group.setFixedSize(200, 80)
+        species_layout.setAlignment(Qt.AlignHCenter)
+
+        # Create the age label and entry
+        age_layout = QHBoxLayout()
+        age_label = QLabel("Age:")
+        self.age = QLineEdit()
+        self.age.setFixedSize(100, 40)
+        age_layout.addWidget(age_label)
+        age_layout.addWidget(self.age)
+
+        # Create the weight label and entry
+        weight_layout = QHBoxLayout()
+        weight_label = QLabel("Weight:")
+        self.weight = QLineEdit()
+        self.weight.setFixedSize(100, 40)
+        weight_layout.addWidget(weight_label)
+        weight_layout.addWidget(self.weight)
+
+        # Create the number of animals label and entry
+        amount_layout = QHBoxLayout()
+        amount_label = QLabel("Amount:")
+        self.amount = QLineEdit()
+        self.amount.setFixedSize(100, 40)
+        amount_layout.addWidget(amount_label)
+        amount_layout.addWidget(self.amount)
+
+        # Create the add button
+        add = QPushButton("Add")
+        add.setFixedSize(200, 200)
+        add.clicked.connect(self.populate)
+
+        # Create the reset button
+        reset = QPushButton("Reset population")
+        reset.setFixedSize(200, 100)
+        reset.clicked.connect(self.reset)
+
+        self.age.setValidator(QIntValidator())
+        self.weight.setValidator(QDoubleValidator())
+        self.amount.setValidator(QIntValidator())
+
+        # Add the input boxes to the input layout
+        input_layout = QVBoxLayout()
+        input_layout.addWidget(species_group)
+        input_layout.addLayout(age_layout)
+        input_layout.addLayout(weight_layout)
+        input_layout.addLayout(amount_layout)
+        input_layout.addStretch(5)
+        input_layout.addWidget(add)
+        input_layout.addStretch(20)
+        input_layout.addWidget(reset)
+
+        # Create the plot and input boxes layout
+        layout = QHBoxLayout()
+        layout.addWidget(self.plot)
+        layout.addLayout(input_layout)
+
+        self.setLayout(layout)
+
+    def populate(self):
+        """Populate the island with animals."""
+        j, i = VARIABLE["selected"]
+
+        if i is None or j is None:
+            msg = QMessageBox()
+            msg.setText("Please select a cell by clicking on the map.")
+            msg.exec_()
+            return
+
+        species = "Herbivore" if self.herbivore.isChecked() else "Carnivore"
+        age = int(self.age.text()) if self.age.text() else None
+        weight = float(self.weight.text()) if self.weight.text() else None
+        amount = int(self.amount.text()) if self.amount.text() else 1
+
+        animals = [{
+            "loc": (int(i) + 1, int(j) + 1),
+            "pop": [{"species": species,
+                     "age": age,
+                     "weight": weight} for _ in range(amount)]}]
+
+        VARIABLE["biosim"].add_population(animals)
+
+    @staticmethod
+    def reset():
+        """Reset the population on the island."""
+        VARIABLE["biosim"].island.slaughter()
+
+
+class Simulate(QWidget):
+    """Class for simulating the population on the island."""
+    def __init__(self):
+        super().__init__()
+
+        self.setGeometry(400, 200, 1000, 800)
+        self.setLayout(QVBoxLayout())
+
+        self.values = {
+            "w_birth": (0, 20, 0.1),
+            "sigma_birth": (0, 5, 0.1),
+            "beta": (0, 5, 0.1),
+            "eta": (0, 1, 0.01),
+            "a_half": (0, 80, 1),
+            "phi_age": (0, 2, 0.01),
+            "w_half": (0, 30, 0.5),
+            "phi_weight": (0, 2, 0.01),
+            "mu": (0, 4, 0.01),
+            "gamma": (0, 8, 0.01),
+            "zeta": (0, 20, 0.1),
+            "xi": (0, 10, 0.1),
+            "omega": (0, 8, 0.1),
+            "F": (0, 100, 5),
+            "DeltaPhiMax": (1, 50, 0.5),
+            "Highland": (0, 1000, 10),
+            "Lowland": (0, 1000, 10),
+            "Desert": (0, 1000, 10),
+            "Water": (0, 1000, 10),
+            "Growth reduction (alpha)": (0, 1, 0.01),
+            "Growth factor (delta)": (0, max(Island.default_fodder_parameters().values()), 10)
+        }
+
+        self.fig = None
+        self.canvas = None
+
+        self.species = None
+        self.parameter = None
+        self.value = None
+        self.label = None
+        self.interval = None
+
+        self.years = None
+        self.year = None
+
+        self.parameters()
+        self.simulation()
+
+        self.plot()
+
+    def parameters(self):
+        """Add parameter selection to the window."""
+        self.species = QComboBox()
+        self.species.addItems(["Herbivore", "Carnivore", "Fodder"])
+        self.species.currentIndexChanged.connect(self._species)
+
+        self.parameter = QComboBox()
+        self.parameter.currentIndexChanged.connect(self._parameter)
+
+        self.value = QSlider(Qt.Horizontal)
+        self.label = QLabel()
+
+        add = QPushButton("Set parameter")
+        add.clicked.connect(self.set_parameter)
+        add.setFixedWidth(140)
+
+        reset_parameter = QPushButton("Reset parameter")
+        reset_parameter.clicked.connect(self.reset_parameter)
+        reset_parameter.setFixedWidth(140)
+
+        reset_all_parameters = QPushButton("Reset all parameters")
+        reset_all_parameters.clicked.connect(self.reset_all_parameters)
+        reset_all_parameters.setFixedWidth(200)
+
+        parameters = QHBoxLayout()
+        parameters.addWidget(self.species)
+        parameters.addWidget(self.parameter)
+        parameters.addWidget(self.value)
+        parameters.addWidget(self.label)
+        parameters.addWidget(add)
+        parameters.addWidget(reset_parameter)
+        parameters.addSpacing(100)
+        parameters.addWidget(reset_all_parameters)
+        self.layout().addLayout(parameters)
+
+        self._species()
+        self._parameter()
+
+    def simulation(self):
+        """Add simulation selection to the window."""
+        self.years = QSlider(Qt.Horizontal)
+        self.years.setMinimum(0)
+        self.years.setMaximum(1000)
+        self.years.setValue(100)
+        self.years.valueChanged.connect(self._years)
+        self.years.setFixedWidth(200)
+        self.year = QLabel()
+        self.year.setFixedWidth(40)
+        self._years()
+
+        simulate_button = QPushButton("Simulate")
+        simulate_button.clicked.connect(self.simulate)
+        simulate_button.setFixedWidth(140)
+
+        pause = QPushButton("Pause simulation")
+        pause.clicked.connect(self.stop)
+        pause.setFixedWidth(140)
+
+        reset = QPushButton("Reset years")
+        reset.clicked.connect(self.restart_years)
+        reset.setFixedWidth(200)
+
+        simulation = QHBoxLayout()
+        simulation.addWidget(QLabel("Number of years to simulate:"))
+        simulation.addWidget(self.years)
+        simulation.addWidget(self.year)
+        simulation.addWidget(simulate_button)
+        simulation.addWidget(pause)
+        simulation.addSpacing(100)
+        simulation.addWidget(reset)
+        self.layout().addLayout(simulation)
+
+    def _species(self):
+        """Executed when the species selection changes."""
+        species = self.species.currentText()
+        self.parameter.clear()
+        self.parameter.addItems(PARAMETERS[species].keys())
+
+        self._parameter()
+
+    def _parameter(self):
+        """Executed when the parameter selection changes."""
+        parameter = self.parameter.currentText()
+        if parameter == "":
+            # This check is needed because the function is called when the species is changed,
+            # before the new species is 'selected'.
+            return
+
+        species = self.species.currentText()
+
+        start, stop, self.interval = self.values[parameter]
+        default = PARAMETERS[species][parameter] / self.interval
+
+        self.value.setMinimum(int(start))
+        self.value.setMaximum(int(stop/self.interval))
+        self.value.setValue(int(default))
+
+        self._value()
+        self.value.valueChanged.connect(self._value)
+
+    def _value(self):
+        """Executed when the value selection changes."""
+        self.label.setText("{:.2f}".format(self.value.value() * self.interval))
+
+    def _years(self):
+        """Executed when the number of years to simulate changes."""
+        self.year.setText(str(self.years.value()))
+
+    def set_parameter(self):
+        """Set the parameter for the selected species."""
+        species = self.species.currentText()
+        parameter = self.parameter.currentText()
+        value = float(self.label.text())
+
+        if species == "Herbivore":
+            Herbivore.set_parameters({parameter: value})
+        elif species == "Carnivore":
+            Carnivore.set_parameters({parameter: value})
+        elif species == "Fodder":
+            parameter = PARAMETERS["rename"][parameter]
+
+            Island.set_fodder_parameters({parameter: value})
+            self.values["Growth factor (delta)"] = (
+                0,
+                max(value, self.values["Growth factor (delta)"][1]),
+                10
+            )
+
+        now = datetime.datetime.now()
+        when = f"{now.hour}:{now.minute}.{now.second} {now.microsecond}"
+        MODIFIED_PARAMETERS[when] = (species, parameter, value)
+
+    def reset_parameter(self):
+        """Reset the parameter for the species."""
+        species = self.species.currentText()
+        parameter = self.parameter.currentText()
+
+        if species == "Herbivore":
+            Herbivore.set_parameters({parameter: Herbivore.default_parameters()[parameter]})
+            value = Herbivore.default_parameters()[parameter]
+        elif species == "Carnivore":
+            Carnivore.set_parameters({parameter: Carnivore.default_parameters()[parameter]})
+            value = Carnivore.default_parameters()[parameter]
+        elif species == "Fodder":
+            parameter = PARAMETERS["rename"][parameter]
+            Island.set_fodder_parameters(
+                {parameter: Island.default_fodder_parameters()[parameter]}
+            )
+            value = Island.default_fodder_parameters()[parameter]
+
+        now = datetime.datetime.now()
+        when = f"{now.hour}:{now.minute}.{now.second} {now.microsecond}"
+        MODIFIED_PARAMETERS[when] = (species, parameter, value)
+
+    @staticmethod
+    def reset_all_parameters():
+        """Reset all parameters to their default values."""
+        Herbivore.set_parameters(Herbivore.default_parameters())
+        Carnivore.set_parameters(Carnivore.default_parameters())
+        Island.set_fodder_parameters(Island.default_fodder_parameters())
+
+        now = datetime.datetime.now()
+        when = f"{now.hour}:{now.minute}.{now.second} {now.microsecond}"
+
+        i = 0
+        for species in ["Herbivore", "Carnivore", "Fodder"]:
+            for parameter, value in PARAMETERS[species].items():
+                MODIFIED_PARAMETERS[when + f"{i}"] = (species, parameter, value)
+                i += 1
+
+    def plot(self):
+        """Plot the population on the island."""
+        self.fig = plt.Figure(figsize=(15, 10))
+
+        self.canvas = FigureCanvas(self.fig)
+        self.layout().addWidget(self.canvas)
+
+    @staticmethod
+    def restart_years():
         """Clears the population list."""
-        self.master.population = []
-        geogr = ["".join(terrain) for terrain in zip(*self.master.island)]
-        geogr = "\n".join(geogr)
-        self.master.sim = BioSim(island_map=geogr, ini_pop=self.master.population)
+        VARIABLE["biosim"].island.year = 0
+        VARIABLE["biosim"].graphics.reset_counts()
 
     def simulate(self):
         """
@@ -412,144 +678,55 @@ class Populate(tk.Frame):
         ValueError
             If number of years to simulate has not been specified.
         """
-        if not self.year_entry.get().isdigit():
-            messagebox.showinfo("Error", "Number of years to simulate has not been specified.")
-        else:
-            years = int(self.year_entry.get())
-            self.master.sim.add_population(self.master.population)
-            self.master.sim.simulate(years)
-
-
-class Parameters(tk.Frame):
-    """Page in the GUI to change the parameters of the animals and island."""
-    def __init__(self, master):
-        tk.Frame.__init__(self, master)
-        self.master = master
-
-        button_draw = tk.Button(self,
-                                text="Draw",
-                                width=7,
-                                command=lambda: self.navigate_page_draw())
-        button_draw.grid(row=0, column=8, padx=5, pady=5)
-        button_simu = tk.Button(self,
-                                text="Simulate",
-                                width=7,
-                                command=lambda: self.navigate_page_simulate())
-        button_simu.grid(row=0, column=9, padx=5, pady=5)
-
-        self.validate_text_cmd = (self.register(self._validate_text), '%P')
-        self.validate_integer_cmd = (self.register(self._validate_integer), '%P')
-        self.validate_float_cmd = (self.register(self._validate_float), '%P')
-
-        self.species_var = tk.StringVar()
-        animal_params = tk.Label(self, text="Change animal parameter:")
-        animal_params.grid(row=1, column=1, padx=5, pady=5)
-        herbivore_button = tk.Radiobutton(self, text="Herbivore", variable=self.species_var,
-                                          value="Herbivore")
-        herbivore_button.grid(row=1, column=2, padx=5, pady=5)
-        carnivore_button = tk.Radiobutton(self, text="Carnivore", variable=self.species_var,
-                                          value="Carnivore")
-        carnivore_button.grid(row=2, column=2, padx=5, pady=5)
-
-        _animal_param = tk.Label(self, text="Parameter:")
-        _animal_param.grid(row=1, column=3, padx=5, pady=5)
-        self._animal_param_entry = tk.Entry(self, width=5)
-        self._animal_param_entry.grid(row=1, column=4, padx=5, pady=5)
-        self._animal_param_entry.config(validate="key", validatecommand=self.validate_text_cmd)
-
-        _animal_value = tk.Label(self, text="Value:")
-        _animal_value.grid(row=1, column=5, padx=5, pady=5)
-        self._animal_value_entry = tk.Entry(self, width=5)
-        self._animal_value_entry.grid(row=1, column=6, padx=5, pady=5)
-        self._animal_value_entry.config(validate="key", validatecommand=self.validate_float_cmd)
-
-        add_animal_param_button = tk.Button(self, text="Update", command=self.add_info)
-        add_animal_param_button.grid(row=1, column=7, padx=5, pady=5)
-
-        # I couldn't find an elegant solution to separate the animal and landscape parameters,
-        # so I ended up doing the following:
-        separator1 = tk.Label(self, text=" -=- " * 8)
-        separator1.grid(row=3, column=1, padx=0, pady=5)
-        separator2 = tk.Label(self, text=" -=- " * 4)
-        separator2.grid(row=3, column=2, padx=0, pady=5)
-        separator3 = tk.Label(self, text=" -=- " * 4)
-        separator3.grid(row=3, column=3, padx=0, pady=5)
-        separator4 = tk.Label(self, text=" -=- " * 2)
-        separator4.grid(row=3, column=4, padx=0, pady=5)
-        separator5 = tk.Label(self, text=" -=- " * 4)
-        separator5.grid(row=3, column=5, padx=0, pady=5)
-        separator6 = tk.Label(self, text=" -=- " * 3)
-        separator6.grid(row=3, column=6, padx=0, pady=5)
-        separator7 = tk.Label(self, text=" -=- " * 4)
-        separator7.grid(row=3, column=7, padx=0, pady=5)
-
-        self.landscape_var = tk.StringVar()
-        landscape_params = tk.Label(self, text="Change landscape parameter:")
-        landscape_params.grid(row=4, column=1, padx=5, pady=5)
-        h_button = tk.Radiobutton(self, text="H", variable=self.landscape_var, value="H")
-        h_button.grid(row=4, column=2, padx=5, pady=5)
-        l_button = tk.Radiobutton(self, text="L", variable=self.landscape_var, value="L")
-        l_button.grid(row=5, column=2, padx=5, pady=5)
-        d_button = tk.Radiobutton(self, text="D", variable=self.landscape_var, value="D")
-        d_button.grid(row=6, column=2, padx=5, pady=5)
-        w_button = tk.Radiobutton(self, text="W", variable=self.landscape_var, value="W")
-        w_button.grid(row=7, column=2, padx=5, pady=5)
-
-        _land_param = tk.Label(self, text="Fodder:")
-        _land_param.grid(row=4, column=3, padx=5, pady=5)
-        self._land_param_entry = tk.Entry(self, width=5)
-        self._land_param_entry.grid(row=4, column=4, padx=5, pady=5)
-        self._land_param_entry.config(validate="key", validatecommand=self.validate_integer_cmd)
-
-        add_land_param_button = tk.Button(self, text="Update", command=self.add_info)
-        add_land_param_button.grid(row=4, column=5, padx=5, pady=5)
-
-    def add_info(self):
-        """Saves the information about the parameters to be added to the simulation."""
-        species = str(self.species_var.get())
-        if species:
-            param = self._animal_param_entry.get() if self._animal_param_entry.get() else None
-            val = float(self._animal_value_entry.get()) if self._is_float(
-                self._animal_value_entry.get()) else None
-            self.master.sim.set_animal_parameters(species, {param: val})
-
-        landscape = str(self.landscape_var.get())
-        if landscape:
-            val = float(self._land_param_entry.get()) if self._is_float(
-                self._land_param_entry.get()) else None
-            self.master.sim.set_landscape_parameters(landscape, {"f_max": val})
+        years = int(self.years.value())
+        VARIABLE["biosim"].should_stop = False
+        VARIABLE["biosim"].simulate(years, figure=self.fig, canvas=self.canvas)
 
     @staticmethod
-    def _validate_text(text):
-        """Checks whether the input text is valid."""
-        pattern = r'^[a-zA-Z_]+$'
-        return re.match(pattern, text) is not None
+    def stop():
+        """Stops the simulation."""
+        VARIABLE["biosim"].should_stop = True
 
     @staticmethod
-    def _validate_integer(value):
-        """Checks whether the input value is an integer."""
-        return re.match(r'^\d*$', value) is not None
+    def reset():
+        """Reset the simulation."""
+        VARIABLE["biosim"].island.year = 0
+        VARIABLE["biosim"].graphics.reset_graphics()
 
-    @staticmethod
-    def _validate_float(value):
-        """Checks whether the input value is float."""
-        return re.match(r'^\d*\.?\d*$', value) is not None
 
-    @staticmethod
-    def _is_float(value):
-        """Additional check for float values on input."""
-        try:
-            float(value)
-            return True
-        except ValueError:
-            return False
+class History(QWidget):
+    """Class for visualising the parameter history."""
+    def __init__(self):
+        super().__init__()
 
-    def navigate_page_simulate(self):
-        """Navigate back to the simulations page."""
-        self.master.pages["Parameters"].pack_forget()
-        self.master.pages["Populate"].pack()
+        self.setGeometry(400, 200, 1000, 800)
+        self.setLayout(QHBoxLayout())
 
-    def navigate_page_draw(self):
-        """Navigate to the drawing page."""
-        self.master.pages["Parameters"].pack_forget()
-        self.master.pages["Draw"].pack()
+        self.table = QTableWidget()
+        self.table.setColumnCount(4)
+        self.table.setHorizontalHeaderLabels(["Time", "Species", "Parameter", "Value"])
+        self.layout().addWidget(self.table)
+
+        reset = QPushButton("Reset history")
+        reset.clicked.connect(self.reset)
+        self.layout().addWidget(reset)
+
+        self.update()
+
+    def update(self):
+        """Update the window."""
+        self.table.setRowCount(len(MODIFIED_PARAMETERS))
+        for row, (time, (species, parameter, value)) in enumerate(MODIFIED_PARAMETERS.items()):
+            time_item = QTableWidgetItem(time.split()[0])
+            species_item = QTableWidgetItem(species)
+            parameter_item = QTableWidgetItem(parameter)
+            value_item = QTableWidgetItem(str(value))
+            self.table.setItem(row, 0, time_item)
+            self.table.setItem(row, 1, species_item)
+            self.table.setItem(row, 2, parameter_item)
+            self.table.setItem(row, 3, value_item)
+
+    def reset(self):
+        """Reset the parameter history."""
+        MODIFIED_PARAMETERS.clear()
+        self.update()

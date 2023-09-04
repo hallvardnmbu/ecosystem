@@ -94,7 +94,7 @@ class Island:
             cls.set_parameters(cls.default_parameters())
         self.set_fodder_parameters(self.default_fodder_parameters())
         self.cells, self.habitable_cells = self._terraform()
-        self.habitated_cells = {}
+        self.inhabited_cells = {}
         self.add_population(population=ini_pop) if ini_pop is not None else None
 
     def _terraform(self):
@@ -190,7 +190,7 @@ class Island:
             i = location[0] - 1
             j = location[1] - 1
 
-            self.habitated_cells[self.cells[(i+1, j+1)]] = (i+1, j+1)
+            self.inhabited_cells[self.cells[(i+1, j+1)]] = (i+1, j+1)
 
             animals = location_animals["pop"]
             for animal in animals:
@@ -228,7 +228,7 @@ class Island:
             :math:`\Phi`: the parents' fitness.
             N: number of animals of the same species in the cell.
         """
-        for cell in self.habitated_cells:
+        for cell in self.inhabited_cells:
             p_baby = {cls.__name__: cls.gamma * len(cell.animals[cls.__name__])
                       for cls in Animal.__subclasses__()}
 
@@ -253,7 +253,7 @@ class Island:
         Carnivores eat herbivores. They hunt in random order and prey on the weakest herbivores
         first.
         """
-        for cell in self.habitated_cells:
+        for cell in self.inhabited_cells:
             if cell.animals["Herbivore"]:
 
                 cell.grow_fodder()
@@ -280,7 +280,7 @@ class Island:
         it refrains from moving.
         """
         migrating_animals = []
-        for cell, pos in self.habitated_cells.items():
+        for cell, pos in self.inhabited_cells.items():
             for animal in itertools.chain(*cell.animals.values()):
 
                 # The probability of migrating is calculated:
@@ -356,14 +356,14 @@ class Island:
 
     def _update_habitated_cells(self):
         """Updates the list of habitated cells."""
-        self.habitated_cells = {}
+        self.inhabited_cells = {}
         for cell, pos in self.habitable_cells.items():
             if cell.animals["Herbivore"] or cell.animals["Carnivore"]:
-                self.habitated_cells[cell] = pos
+                self.inhabited_cells[cell] = pos
 
     def ageing(self):
         """Iterates through all the animals on the island and ages them accordingly."""
-        for cell in self.habitated_cells:
+        for cell in self.inhabited_cells:
             for animal in itertools.chain(*cell.animals.values()):
                 animal.aging()
 
@@ -371,7 +371,7 @@ class Island:
         """
         Iterates through all the animals on the island and decrements their weight accordingly.
         """
-        for cell in self.habitated_cells:
+        for cell in self.inhabited_cells:
             for animal in itertools.chain(*cell.animals.values()):
                 animal.lose_weight_year()
 
@@ -383,7 +383,7 @@ class Island:
         -----
         An animal dies with a probability of :math:`\omega` * (1 - :math:`\Phi`).
         """
-        for cell in self.habitated_cells:
+        for cell in self.inhabited_cells:
             dying_animals = []
             for animal in list(itertools.chain(*cell.animals.values())).copy():
                 animal.calculate_fitness()
@@ -441,13 +441,18 @@ class Island:
                                                 for cls in Animal.__subclasses__()}
                                           for pos in self.cells.keys()}
 
-        for cell, pos in self.habitated_cells.items():
+        for cell, pos in self.inhabited_cells.items():
             for animal in itertools.chain(*cell.animals.values()):
                 population[animal.__class__.__name__].append(animal)
                 n_animals_per_species[animal.__class__.__name__] += 1
                 n_animals_per_species_per_cell[pos][animal.__class__.__name__] += 1
 
         return population, n_animals_per_species, n_animals_per_species_per_cell
+
+    def slaughter(self):
+        """Slaughter all animals on the island."""
+        for cell, pos in self.inhabited_cells.items():
+            cell.animals = {cls.__name__: [] for cls in Animal.__subclasses__()}
 
 
 class Cell:
