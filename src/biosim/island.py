@@ -285,6 +285,9 @@ class Island:
                     continue
 
                 new_cell, new_pos = self._movable(pos, animal)
+                if pos == new_pos:
+                    continue
+
                 probability = self._movement_possibility(pos, new_pos, animal,
                                                          animal.__class__.__name__)
                 if random.random() > probability:
@@ -327,7 +330,11 @@ class Island:
         possibilities = []
         for move_i, move_j in neighbours:
             try:
-                if animal.movable[self.geography[pos[0] + move_i - 1][pos[1] + move_j - 1]]:
+                zero_index = (pos[0] + move_i - 1, pos[1] + move_j - 1)
+                if zero_index[0] < 0 or zero_index[1] < 0:
+                    continue
+
+                if animal.movable[self.geography[zero_index[0]][zero_index[1]]]:
                     possibilities.append((pos[0] + move_i, pos[1] + move_j))
             except (IndexError, KeyError):
                 pass  # Catches the case where the animal is at the edge of the map.
