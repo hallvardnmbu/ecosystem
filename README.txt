@@ -13,10 +13,10 @@ Features of the BioSim package
   assignment. When saving an image, an (existing or nonexist) absolute/relative directory can be
   passed. The images are stored within a subdirectory "images", to avoid clutter.
 
-* We have created a GUI which makes using the package more intuitive and simple to use. The GUI
-  does however lack some of the features accessible through the command line interface, although 
-  the most important ones are included. (Setting visualisation parameters are not included.) See 
-  documentation for examples of how to use the GUI (under "Examples").
+* OUTDATED DOCUMENTATION. We have created a GUI which makes using the package more intuitive and
+  simple to use. The GUI does however lack some of the features accessible through the command line
+  interface, although the most important ones are included. (Setting visualisation parameters are
+  not included.) See documentation for examples of how to use the GUI (under "Examples").
 
 * We have optimised the code in several places and reduced bottlenecks down to the bare minimum,
   which leads to extremely fast simulation(s); 28.6s when profiling check_sim without visualisation.
