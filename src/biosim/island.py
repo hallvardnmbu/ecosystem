@@ -178,9 +178,9 @@ class Island:
 
         Notes
         -----
-        When adding a population to the island, the habitated cells are stored. This makes it
+        When adding a population to the island, the inhabited cells are stored. This makes it
         significantly faster to go through the annual cycle (by only iterating through the
-        habitated cells).
+        inhabited cells).
         """
         for location_animals in population:
             location = location_animals["loc"]
@@ -286,7 +286,7 @@ class Island:
                     continue
 
                 new_cell, new_pos = self._movable(pos, animal)
-                probability = self._movement_possibility(pos, new_pos,
+                probability = self._movement_possibility(pos, new_pos, animal,
                                                          animal.__class__.__name__)
                 if random.random() > probability:
                     continue
@@ -302,7 +302,7 @@ class Island:
             from_cell.animals[animal.__class__.__name__].remove(animal)
             to_cell.animals[animal.__class__.__name__].append(animal)
 
-        self._update_habitated_cells()
+        self._update_inhabited_cells()
 
     def _movable(self, pos, animal):
         """
@@ -339,7 +339,7 @@ class Island:
 
         return new_cell, new_pos
 
-    def _movement_possibility(self, position, new, species):
+    def _movement_possibility(self, position, new, animal, species):
         r"""
         Returns the neighbouring cells of the given cell.
 
@@ -349,6 +349,7 @@ class Island:
             The cell to retrieve the neighbouring cells of.
         new : tuple
             The cell to move to.
+        animal : Animal
         species : str
             The species of the animal.
 
@@ -359,8 +360,10 @@ class Island:
         """
         i, j = position
 
+        movable, stride = animal.motion()
+
         neighbors = {}
-        for move_i, move_j in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+        for move_i, move_j in [(stride, 0), (-stride, 0), (0, stride), (0, -stride)]:
             try:
                 cell = self.cells[(i + move_i, j + move_j)]
                 fodder = Island.get_fodder_parameter(cell.cell_type)
@@ -369,13 +372,13 @@ class Island:
                 except ZeroDivisionError:
                     abundance = 100  # 100% chance of moving to an empty cell.
                 neighbors[(i + move_i, j + move_j)] = math.exp(abundance)
-            except KeyError:
-                pass
+            except (IndexError, KeyError):
+                neighbors[(i + move_i, j + move_j)] = 0
 
         return neighbors[new] / sum(neighbors.values())
 
-    def _update_habitated_cells(self):
-        """Updates the list of habitated cells."""
+    def _update_inhabited_cells(self):
+        """Updates the list of inhabited cells."""
         self.inhabited_cells = {}
         for cell, pos in self.habitable_cells.items():
             if cell.animals["Herbivore"] or cell.animals["Carnivore"]:
