@@ -51,25 +51,6 @@ class Animal:
         return random.lognormvariate(mu, sigma)
 
     @classmethod
-    def motion(cls):
-        r"""
-        Get the movement parameters for the species.
-
-        Returns
-        -------
-        movable : dict
-            Movable terrain.
-
-            .. code:: python
-
-                {'terrain': boolean, ...}
-
-        stride : int
-            Step size (how far (many cells) the species' animals move per year).
-        """
-        return cls.movable, cls.stride
-
-    @classmethod
     def set_motion(cls, new_movable=None, new_stride=None):
         """
         Sets the movement parameters for the species.
@@ -92,24 +73,20 @@ class Animal:
         """
         if new_stride is not None:
             try:
-                if new_stride < 0:
-                    raise ValueError("Stride should be nonzero or positive.")
                 cls.stride = round(new_stride)
             except TypeError as err:
                 raise TypeError("Stride should be a number.") from err
         else:
-            stride, _ = cls.default_motion()
-            cls.stride = stride
+            cls.stride = cls.default_motion()["stride"]
 
         if new_movable is not None:
-            _, movable = cls.default_motion()
+            movable = cls.default_motion()["movable"]
             if not all(key in movable.keys() for key in new_movable.keys()):
                 raise KeyError("New movable terrain contains invalid terrain types.")
             for key, boolean in new_movable.items():
                 cls.movable[key] = boolean
         else:
-            _, movable = cls.default_motion()
-            cls.movable = movable
+            cls.movable = cls.default_motion()["movable"]
 
     @classmethod
     def get_parameters(cls):
@@ -323,7 +300,8 @@ class Herbivore(Animal):
         movable : dict
             Movable terrain.
         """
-        return 1, {"H": True, "L": True, "D": True, "W": False}
+        return {"stride": 1,
+                "movable": {"H": True, "L": True, "D": True, "W": False}}
 
     @classmethod
     def default_parameters(cls):
@@ -401,7 +379,8 @@ class Carnivore(Animal):
         movable : dict
             Movable terrain.
         """
-        return 1, {"H": True, "L": True, "D": True, "W": False}
+        return {"stride": 1,
+                "movable": {"H": True, "L": True, "D": True, "W": False}}
 
     @classmethod
     def default_parameters(cls):

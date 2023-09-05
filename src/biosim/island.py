@@ -199,8 +199,7 @@ class Island:
                     raise ValueError(f"Invalid species: {animal}.")
                 species = animal["species"]
 
-                movable, _ = self.species_map[species].motion()
-                if not movable[self.geography[i][j]]:
+                if not self.species_map[species].movable[self.geography[i][j]]:
                     raise ValueError(f"Invalid terrain: {location}.")
 
                 cell = self.cells[(i+1, j+1)]
@@ -319,13 +318,16 @@ class Island:
         new_cell : Cell
         new_pos : tuple
         """
-        movable, stride = animal.motion()
-
-        neighbours = [(stride, 0), (-stride, 0), (0, stride), (0, -stride)]
+        neighbours = [
+            (animal.stride, 0),
+            (-animal.stride, 0),
+            (0, animal.stride),
+            (0, -animal.stride)
+        ]
         possibilities = []
         for move_i, move_j in neighbours:
             try:
-                if movable[self.geography[pos[0] + move_i - 1][pos[1] + move_j - 1]]:
+                if animal.movable[self.geography[pos[0] + move_i - 1][pos[1] + move_j - 1]]:
                     possibilities.append((pos[0] + move_i, pos[1] + move_j))
             except (IndexError, KeyError):
                 pass  # Catches the case where the animal is at the edge of the map.
@@ -359,11 +361,9 @@ class Island:
             Probability of moving to the new cell.
         """
         i, j = position
-
-        movable, stride = animal.motion()
-
         neighbors = {}
-        for move_i, move_j in [(stride, 0), (-stride, 0), (0, stride), (0, -stride)]:
+        for move_i, move_j in [(animal.stride, 0), (-animal.stride, 0),
+                               (0, animal.stride), (0, -animal.stride)]:
             try:
                 cell = self.cells[(i + move_i, j + move_j)]
                 fodder = Island.get_fodder_parameter(cell.cell_type)
