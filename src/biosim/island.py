@@ -282,32 +282,17 @@ class Island:
         migrating_animals = []
         for cell, pos in self.inhabited_cells.items():
             for animal in itertools.chain(*cell.animals.values()):
+                if random.random() > animal.mu * animal.fitness:
+                    continue
 
-                # The probability of migrating is calculated:
-                if random.random() < animal.mu * animal.fitness:
+                new_cell, new_pos = self._movable(pos, animal)
+                probability = self._movement_possibility(pos, new_pos,
+                                                         animal.__class__.__name__)
+                if random.random() > probability:
+                    continue
 
-                    movable, stride = animal.motion()
-
-                    move_i, move_j = random.choice(
-                        [(stride, 0),
-                         (-stride, 0),
-                         (0, stride),
-                         (0, -stride)]
-                    )
-                    i, j = pos
-
-                    try:
-                        if movable[self.geography[i + move_i - 1][j + move_j - 1]]:
-                            probability = self._neighouring_cells(pos, (i + move_i, j + move_j),
-                                                                  animal.__class__.__name__)
-                            if random.random() < probability:
-                                new_cell = self.cells[(i + move_i, j + move_j)]
-                                movement = (animal, cell, new_cell)
-                                migrating_animals.append(movement)
-                    except IndexError:
-                        pass
-                    except KeyError:
-                        pass
+                movement = (animal, cell, new_cell)
+                migrating_animals.append(movement)
 
         # In order to prevent animals from moving multiple times (say an animal moves from (1,
         # 1) -> (1, 2), we don't want the animal to be able to move again), the movements are
@@ -319,7 +304,42 @@ class Island:
 
         self._update_habitated_cells()
 
-    def _neighouring_cells(self, position, new, species):
+    def _movable(self, pos, animal):
+        """
+        Selects a random neighbouring cell for the animal to move to. It selects the cell based
+        on the animals motion parameters (possible cell types to move to).
+
+        Parameters
+        ----------
+        pos : tuple
+        animal : Animal
+
+        Returns
+        -------
+        new_cell : Cell
+        new_pos : tuple
+        """
+        movable, stride = animal.motion()
+
+        neighbours = [(stride, 0), (-stride, 0), (0, stride), (0, -stride)]
+        possibilities = []
+        for move_i, move_j in neighbours:
+            try:
+                if movable[self.geography[pos[0] + move_i - 1][pos[1] + move_j - 1]]:
+                    possibilities.append((pos[0] + move_i, pos[1] + move_j))
+            except (IndexError, KeyError):
+                pass  # Catches the case where the animal is at the edge of the map.
+
+        if possibilities:
+            new_pos = random.choice(possibilities)
+            new_cell = self.cells[new_pos]
+        else:
+            new_pos = pos
+            new_cell = self.cells[pos]
+
+        return new_cell, new_pos
+
+    def _movement_possibility(self, position, new, species):
         r"""
         Returns the neighbouring cells of the given cell.
 
@@ -451,7 +471,7 @@ class Island:
 
     def slaughter(self):
         """Slaughter all animals on the island."""
-        for cell, pos in self.inhabited_cells.items():
+        for cell in self.inhabited_cells:
             cell.animals = {cls.__name__: [] for cls in Animal.__subclasses__()}
 
 
