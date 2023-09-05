@@ -77,7 +77,10 @@ class Animal:
             except TypeError as err:
                 raise TypeError("Stride should be a number.") from err
         else:
-            cls.stride = cls.default_motion()["stride"]
+            try:
+                stride = cls.stride
+            except AttributeError:
+                cls.stride = cls.default_motion()["stride"]
 
         if new_movable is not None:
             movable = cls.default_motion()["movable"]
@@ -86,7 +89,10 @@ class Animal:
             for key, boolean in new_movable.items():
                 cls.movable[key] = boolean
         else:
-            cls.movable = cls.default_motion()["movable"]
+            try:
+                movable = cls.movable
+            except AttributeError:
+                cls.movable = cls.default_motion()["movable"]
 
     @classmethod
     def get_parameters(cls):

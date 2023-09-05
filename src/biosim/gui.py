@@ -54,6 +54,8 @@ PARAMETERS = {
         "Growth factor (delta)": "delta"
     }
 }
+PARAMETERS["Herbivore"].update({"Movement": Herbivore.default_motion()})
+PARAMETERS["Carnivore"].update({"Movement": Carnivore.default_motion()})
 PARAMETERS["Fodder"] = {{v: k for k, v in PARAMETERS["rename"].items()}.get(k, k): v
                         for k, v in Island.default_fodder_parameters().items()}
 MODIFIED_PARAMETERS = {}
@@ -462,9 +464,14 @@ class Simulate(QWidget):
             "F": (0, 100, 5),
             "DeltaPhiMax": (1, 50, 0.5),
             "Highland": (0, 1000, 10),
+            "H": (0, 1, 1),
             "Lowland": (0, 1000, 10),
+            "L": (0, 1, 1),
             "Desert": (0, 1000, 10),
+            "D": (0, 1, 1),
             "Water": (0, 1000, 10),
+            "W": (0, 1, 1),
+            "Stride": (0, len(VARIABLE["island"]), 1),
             "Growth reduction (alpha)": (0, 1, 0.01),
             "Growth factor (delta)": (0, max(Island.default_fodder_parameters().values()), 10)
         }
@@ -474,6 +481,8 @@ class Simulate(QWidget):
 
         self.species = None
         self.parameter = None
+        self.movement = None
+        self.movement_value = None
         self.value = None
         self.label = None
         self.interval = None
@@ -495,7 +504,16 @@ class Simulate(QWidget):
         self.parameter = QComboBox()
         self.parameter.currentIndexChanged.connect(self._parameter)
 
+        self.movement = QComboBox()
+        self.movement.addItems(["Stride", "Highland", "Lowland", "Desert", "Water"])
+        self.movement.currentIndexChanged.connect(self._movement)
+        self.movement.setVisible(False)
+        self.movement_value = QSlider(Qt.Horizontal)
+        self.movement_value.valueChanged.connect(self._value)
+        self.movement_value.setVisible(False)
+
         self.value = QSlider(Qt.Horizontal)
+        self.value.valueChanged.connect(self._value)
         self.label = QLabel()
 
         add = QPushButton("Set parameter")
@@ -513,6 +531,8 @@ class Simulate(QWidget):
         parameters = QHBoxLayout()
         parameters.addWidget(self.species)
         parameters.addWidget(self.parameter)
+        parameters.addWidget(self.movement)
+        parameters.addWidget(self.movement_value)
         parameters.addWidget(self.value)
         parameters.addWidget(self.label)
         parameters.addWidget(add)
@@ -576,6 +596,18 @@ class Simulate(QWidget):
 
         species = self.species.currentText()
 
+        if parameter == "Movement":
+            self.value.setVisible(False)
+            self.movement.setVisible(True)
+            self.movement_value.setVisible(True)
+
+            self._movement()
+            return
+
+        self.movement.setVisible(False)
+        self.movement_value.setVisible(False)
+        self.value.setVisible(True)
+
         start, stop, self.interval = self.values[parameter]
         default = PARAMETERS[species][parameter] / self.interval
 
@@ -584,11 +616,35 @@ class Simulate(QWidget):
         self.value.setValue(int(default))
 
         self._value()
-        self.value.valueChanged.connect(self._value)
+
+    def _movement(self):
+        """Executed when the movement selection changes."""
+        if self.parameter.currentText() == "":
+            # This check is needed because the function is called when the species is changed,
+            # before the new species is 'selected'.
+            return
+
+        parameter = self.movement.currentText()
+        parameter = parameter[0] if parameter != "Stride" else parameter
+
+        start, stop, self.interval = self.values[parameter]
+        self.movement_value.setMinimum(start)
+        self.movement_value.setMaximum(stop)
+        self.movement_value.setValue(1)
+
+        self._value()
 
     def _value(self):
         """Executed when the value selection changes."""
-        self.label.setText("{:.2f}".format(self.value.value() * self.interval))
+        if self.parameter.currentText() != "Movement":
+            self.label.setText(f"{self.value.value() * self.interval:.2f}")
+            return
+
+        if self.movement.currentText() != "Stride":
+            values = {1: "True", 0: "False"}
+            self.label.setText(values[self.movement_value.value()])
+        else:
+            self.label.setText(f"{self.movement_value.value():.0f}")
 
     def _years(self):
         """Executed when the number of years to simulate changes."""
@@ -598,21 +654,40 @@ class Simulate(QWidget):
         """Set the parameter for the selected species."""
         species = self.species.currentText()
         parameter = self.parameter.currentText()
-        value = float(self.label.text())
 
-        if species == "Herbivore":
-            Herbivore.set_parameters({parameter: value})
-        elif species == "Carnivore":
-            Carnivore.set_parameters({parameter: value})
-        elif species == "Fodder":
-            parameter = PARAMETERS["rename"][parameter]
+        if parameter == "Movement":
+            mapping = {
+                "Herbivore": Herbivore,
+                "Carnivore": Carnivore,
+                "1": True,
+                "0": False
+            }
 
-            Island.set_fodder_parameters({parameter: value})
-            self.values["Growth factor (delta)"] = (
-                0,
-                max(value, self.values["Growth factor (delta)"][1]),
-                10
-            )
+            parameter = self.movement.currentText()
+            value = self.movement_value.value()
+
+            if parameter == "Stride":
+                mapping[species].set_motion(new_stride=int(value))
+            else:
+                parameter = parameter[0]
+                value = mapping[str(value)]
+                mapping[species].set_motion(new_movable={parameter: value})
+        else:
+            value = float(self.label.text())
+
+            if species == "Herbivore":
+                Herbivore.set_parameters({parameter: value})
+            elif species == "Carnivore":
+                Carnivore.set_parameters({parameter: value})
+            elif species == "Fodder":
+                parameter = PARAMETERS["rename"][parameter]
+
+                Island.set_fodder_parameters({parameter: value})
+                self.values["Growth factor (delta)"] = (
+                    0,
+                    max(value, self.values["Growth factor (delta)"][1]),
+                    10
+                )
 
         now = datetime.datetime.now()
         when = f"{now.hour}:{now.minute}.{now.second} {now.microsecond}"
@@ -623,18 +698,38 @@ class Simulate(QWidget):
         species = self.species.currentText()
         parameter = self.parameter.currentText()
 
-        if species == "Herbivore":
-            Herbivore.set_parameters({parameter: Herbivore.default_parameters()[parameter]})
-            value = Herbivore.default_parameters()[parameter]
-        elif species == "Carnivore":
-            Carnivore.set_parameters({parameter: Carnivore.default_parameters()[parameter]})
-            value = Carnivore.default_parameters()[parameter]
-        elif species == "Fodder":
-            parameter = PARAMETERS["rename"][parameter]
-            Island.set_fodder_parameters(
-                {parameter: Island.default_fodder_parameters()[parameter]}
-            )
-            value = Island.default_fodder_parameters()[parameter]
+        if parameter == "Movement":
+            mapping = {
+                "Herbivore": Herbivore,
+                "Carnivore": Carnivore,
+                1: "True",
+                0: "False"
+            }
+
+            parameter = self.movement.currentText()
+            value = self.movement_value.value()
+
+            if parameter == "Stride":
+                mapping[species].set_motion(new_stride=mapping[species].default_motion()["stride"])
+            else:
+                parameter = parameter[0]
+                value = mapping[value]
+                mapping[species].set_motion(
+                    new_movable={parameter: mapping[species].default_motion()["movable"][parameter]}
+                )
+        else:
+            if species == "Herbivore":
+                Herbivore.set_parameters({parameter: Herbivore.default_parameters()[parameter]})
+                value = Herbivore.default_parameters()[parameter]
+            elif species == "Carnivore":
+                Carnivore.set_parameters({parameter: Carnivore.default_parameters()[parameter]})
+                value = Carnivore.default_parameters()[parameter]
+            elif species == "Fodder":
+                parameter = PARAMETERS["rename"][parameter]
+                Island.set_fodder_parameters(
+                    {parameter: Island.default_fodder_parameters()[parameter]}
+                )
+                value = Island.default_fodder_parameters()[parameter]
 
         now = datetime.datetime.now()
         when = f"{now.hour}:{now.minute}.{now.second} {now.microsecond}"
@@ -644,7 +739,11 @@ class Simulate(QWidget):
     def reset_all_parameters():
         """Reset all parameters to their default values."""
         Herbivore.set_parameters(Herbivore.default_parameters())
+        Herbivore.set_motion(new_stride=Herbivore.default_motion()["stride"],
+                             new_movable=Herbivore.default_motion()["movable"])
         Carnivore.set_parameters(Carnivore.default_parameters())
+        Carnivore.set_motion(new_stride=Carnivore.default_motion()["stride"],
+                             new_movable=Carnivore.default_motion()["movable"])
         Island.set_fodder_parameters(Island.default_fodder_parameters())
 
         now = datetime.datetime.now()
@@ -653,7 +752,12 @@ class Simulate(QWidget):
         i = 0
         for species in ["Herbivore", "Carnivore", "Fodder"]:
             for parameter, value in PARAMETERS[species].items():
-                MODIFIED_PARAMETERS[when + f"{i}"] = (species, parameter, value)
+                if parameter != "Movement":
+                    MODIFIED_PARAMETERS[when + f"{i}"] = (species, parameter, value)
+                else:
+                    for parameter, value in PARAMETERS[species]["Movement"].items():
+                        MODIFIED_PARAMETERS[when + f"{i}"] = (species, parameter, value)
+                        i += 1
                 i += 1
 
     def plot(self):

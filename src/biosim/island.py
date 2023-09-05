@@ -87,14 +87,17 @@ class Island:
     def __init__(self, geography, ini_pop=None):
         self.year = 0
         self.geography = textwrap.dedent(geography).split("\n")
+
         self.species_map = {}
         for cls in Animal.__subclasses__():
             self.species_map[cls.__name__] = cls
             cls.set_motion()
             cls.set_parameters(cls.default_parameters())
         self.set_fodder_parameters(self.default_fodder_parameters())
-        self.cells, self.habitable_cells = self._terraform()
+
+        self.cells = self._terraform()
         self.inhabited_cells = {}
+
         self.add_population(population=ini_pop) if ini_pop is not None else None
 
     def _terraform(self):
@@ -138,24 +141,13 @@ class Island:
         if any(letter not in allowed for row in self.geography for letter in row):
             raise ValueError("The map contains invalid terrain types.")
 
-        # Habitable cell types:
-        habitable_types = []
-        for cls in Animal.__subclasses__():
-            habitable_types.extend(k for k, v in cls.movable.items() if v is True)
-        habitable_types = list(dict.fromkeys(habitable_types))  # Removes duplicates.
-
         cells = {}
-        habitable_cells = {}
         for i in range(cols):
             for j in range(rows):
                 # Creates the cell-objects in the grid with the index corresponding to the terrain:
                 cells[(i+1, j+1)] = Cell(cell_type=self.geography[i][j])
 
-                # Retrieves the habitable cells for the animals:
-                if self.geography[i][j] in habitable_types:
-                    habitable_cells[cells[(i+1, j+1)]] = (i+1, j+1)
-
-        return cells, habitable_cells
+        return cells
 
     def add_population(self, population):
         r"""
@@ -374,20 +366,27 @@ class Island:
             try:
                 cell = self.cells[(i + move_i, j + move_j)]
                 fodder = Island.get_fodder_parameter(cell.cell_type)
-                try:
-                    abundance = cell.fodder / (len(cell.animals[species]) * fodder)
-                except ZeroDivisionError:
-                    abundance = 100  # 100% chance of moving to an empty cell.
+                population = len(cell.animals[species])
+
+                if population != 0:
+                    abundance = cell.fodder / (population * fodder)
+                else:
+                    abundance = cell.fodder / fodder
+
                 neighbors[(i + move_i, j + move_j)] = math.exp(abundance)
             except (IndexError, KeyError):
+                pass
+            except ZeroDivisionError:
                 neighbors[(i + move_i, j + move_j)] = 0
-
-        return neighbors[new] / sum(neighbors.values())
+        try:
+            return neighbors[new] / sum(neighbors.values())
+        except ZeroDivisionError:
+            return 0.5  # 50% chance of moving if none of the neighboring cells are preffered.
 
     def _update_inhabited_cells(self):
         """Updates the list of inhabited cells."""
         self.inhabited_cells = {}
-        for cell, pos in self.habitable_cells.items():
+        for pos, cell in self.cells.items():
             if cell.animals["Herbivore"] or cell.animals["Carnivore"]:
                 self.inhabited_cells[cell] = pos
 
