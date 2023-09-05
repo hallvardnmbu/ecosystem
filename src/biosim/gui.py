@@ -527,7 +527,7 @@ class Simulate(QWidget):
     def simulation(self):
         """Add simulation selection to the window."""
         self.years = QSlider(Qt.Horizontal)
-        self.years.setMinimum(0)
+        self.years.setMinimum(1)
         self.years.setMaximum(1000)
         self.years.setValue(100)
         self.years.valueChanged.connect(self._years)
