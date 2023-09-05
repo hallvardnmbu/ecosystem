@@ -144,7 +144,7 @@ class Island:
         cells = {}
         for i in range(cols):
             for j in range(rows):
-                # Creates the cell-objects in the grid with the index corresponding to the terrain:
+                # Creates the Cell-objects in the grid with the index corresponding to the terrain:
                 cells[(i+1, j+1)] = Cell(cell_type=self.geography[i][j])
 
         return cells
@@ -179,11 +179,8 @@ class Island:
             if location[0] > len(self.geography) or location[1] > len(self.geography[0]):
                 raise ValueError(f"Invalid location: {location}.")
 
-            i = location[0] - 1
-            j = location[1] - 1
-
-            self.inhabited_cells[self.cells[(i+1, j+1)]] = (i+1, j+1)
-
+            i, j = location
+            self.inhabited_cells[self.cells[(i, j)]] = (i, j)
             animals = location_animals["pop"]
             for animal in animals:
 
@@ -191,10 +188,10 @@ class Island:
                     raise ValueError(f"Invalid species: {animal}.")
                 species = animal["species"]
 
-                if not self.species_map[species].movable[self.geography[i][j]]:
+                if not self.species_map[species].movable[self.geography[i-1][j-1]]:
                     raise ValueError(f"Invalid terrain: {location}.")
 
-                cell = self.cells[(i+1, j+1)]
+                cell = self.cells[(i, j)]
                 if "age" not in animal:
                     age = None
                 else:
@@ -276,13 +273,8 @@ class Island:
                 if random.random() > animal.mu * animal.fitness:
                     continue
 
-                new_cell, new_pos = self._movable(pos, animal)
-                if pos == new_pos:
-                    continue
-
-                probability = self._movement_possibility(pos, new_pos, animal,
-                                                         animal.__class__.__name__)
-                if random.random() > probability:
+                new_cell = self._migrate(pos, animal)
+                if new_cell is None:
                     continue
 
                 movement = (animal, cell, new_cell)
@@ -298,36 +290,41 @@ class Island:
 
         self._update_inhabited_cells()
 
-    def _movable(self, pos, animal):
+    def _migrate(self, position, animal):
         """
         Selects a random neighbouring cell for the animal to move to. It selects the cell based
-        on the animals motion parameters (possible cell types to move to).
+        on the animals motion parameters (possible cell types to move to), and the abundance of
+        food in the neighboring cells.
 
         Parameters
         ----------
-        pos : tuple
+        position : tuple
         animal : Animal
 
         Returns
         -------
         new_cell : Cell
-        new_pos : tuple
         """
-        neighbours = [
-            (animal.stride, 0),
-            (-animal.stride, 0),
-            (0, animal.stride),
-            (0, -animal.stride)
-        ]
+        i, j = position
+        neighbors = {}
         possibilities = []
-        for move_i, move_j in neighbours:
+        for move_i, move_j in [(animal.stride, 0), (-animal.stride, 0),
+                               (0, animal.stride), (0, -animal.stride)]:
             try:
-                zero_index = (pos[0] + move_i - 1, pos[1] + move_j - 1)
-                if zero_index[0] < 0 or zero_index[1] < 0:
+                _cell = self.cells[(i + move_i, j + move_j)]
+                _fodder = Island.get_fodder_parameter(_cell.cell_type)
+                _population = len(_cell.animals[animal.__class__.__name__])
+
+                abundance = _cell.fodder / max(_population * _fodder, _fodder, _population, 1)
+# TODO: Endre fra "1" til noe mere 'realistisk'?
+                neighbors[(i + move_i, j + move_j)] = math.exp(abundance)
+
+                zero_i, zero_j = (i + move_i - 1, j + move_j - 1)
+                if zero_i < 0 or zero_j < 0:
                     continue
 
-                if animal.movable[self.geography[zero_index[0]][zero_index[1]]]:
-                    possibilities.append((pos[0] + move_i, pos[1] + move_j))
+                if animal.movable[self.geography[zero_i][zero_j]]:
+                    possibilities.append((i + move_i, j + move_j))
             except (IndexError, KeyError):
                 pass  # Catches the case where the animal is at the edge of the map.
 
@@ -335,53 +332,17 @@ class Island:
             new_pos = random.choice(possibilities)
             new_cell = self.cells[new_pos]
         else:
-            new_pos = pos
-            new_cell = self.cells[pos]
+            return None
 
-        return new_cell, new_pos
-
-    def _movement_possibility(self, position, new, animal, species):
-        r"""
-        Returns the neighbouring cells of the given cell.
-
-        Parameters
-        ----------
-        position : tuple
-            The cell to retrieve the neighbouring cells of.
-        new : tuple
-            The cell to move to.
-        animal : Animal
-        species : str
-            The species of the animal.
-
-        Returns
-        -------
-        float
-            Probability of moving to the new cell.
-        """
-        i, j = position
-        neighbors = {}
-        for move_i, move_j in [(animal.stride, 0), (-animal.stride, 0),
-                               (0, animal.stride), (0, -animal.stride)]:
-            try:
-                cell = self.cells[(i + move_i, j + move_j)]
-                fodder = Island.get_fodder_parameter(cell.cell_type)
-                population = len(cell.animals[species])
-
-                if population != 0:
-                    abundance = cell.fodder / (population * fodder)
-                else:
-                    abundance = cell.fodder / fodder
-
-                neighbors[(i + move_i, j + move_j)] = math.exp(abundance)
-            except (IndexError, KeyError):
-                pass
-            except ZeroDivisionError:
-                neighbors[(i + move_i, j + move_j)] = 0
         try:
-            return neighbors[new] / sum(neighbors.values())
+            probability = neighbors[new_pos] / sum(neighbors.values())
         except ZeroDivisionError:
-            return 0.5  # 50% chance of moving if none of the neighboring cells are preffered.
+            probability = 0.5  # 50% chance of moving if no neighboring cells are preffered.
+
+        if random.random() < probability:
+            return new_cell
+        else:
+            return None
 
     def _update_inhabited_cells(self):
         """Updates the list of inhabited cells."""
