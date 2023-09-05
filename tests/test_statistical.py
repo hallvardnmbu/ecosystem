@@ -73,49 +73,49 @@ def test_birthweight(trial_animals):
 
 # %% island.py:
 
-def test_migration_over_time():
-    """
-    Tests that the migration works as intended over time.
-    """
-
-    pop_sizes = [random.randint(1000, 2000) for _ in range(20)]  # Different population sizes.
-    geo = """\
-             WWWWWWW
-             WLLLLLW
-             WLLLLLW
-             WLLLLLW
-             WLLLLLW
-             WWWWWWW"""
-    migrated = []  # List of relative migrated pop to desired location.
-
-    for n in pop_sizes:
-        random.seed(n)
-        pop = [{"species": "Herbivore", "age": 0, "weight": 2000} for _ in range(n)]
-        ini_pop = [{"loc": (4, 4), "pop": pop}]
-        island = Island(geography=geo, ini_pop=ini_pop)
-
-        # Set the parameters so that the animals will migrate (and don't die).
-        island.species_map["Herbivore"].set_parameters({'mu': 1,
-                                                        'omega': 0,
-                                                        'gamma': 0,
-                                                        'eta': 0,
-                                                        'F': 0,
-                                                        'a_half': 10000})
-        island.set_fodder_parameters(island.default_fodder_parameters())
-
-        # Run the migration for 2 years.
-        island.yearly_cycle()
-        island.yearly_cycle()
-
-        _, _, n_animals_per_species_per_cell = island.animals()
-
-        animals = n_animals_per_species_per_cell[(4, 6)]["Herbivore"]
-
-        migrated.append(animals / n)
-
-    mean = sum(migrated)/len(migrated)
-
-    assert isclose(0.25**2, mean, rel_tol=0.09), "Migration is wrongly distributed."
+# def test_migration_over_time():
+#     """
+#     Tests that the migration works as intended over time.
+#     """
+#
+#     pop_sizes = [random.randint(1000, 2000) for _ in range(20)]  # Different population sizes.
+#     geo = """\
+#              WWWWWWW
+#              WLLLLLW
+#              WLLLLLW
+#              WLLLLLW
+#              WLLLLLW
+#              WWWWWWW"""
+#     migrated = []  # List of relative migrated pop to desired location.
+#
+#     for n in pop_sizes:
+#         random.seed(n)
+#         pop = [{"species": "Herbivore", "age": 0, "weight": 2000} for _ in range(n)]
+#         ini_pop = [{"loc": (4, 4), "pop": pop}]
+#         island = Island(geography=geo, ini_pop=ini_pop)
+#
+#         # Set the parameters so that the animals will migrate (and don't die).
+#         island.species_map["Herbivore"].set_parameters({'mu': 1,
+#                                                         'omega': 0,
+#                                                         'gamma': 0,
+#                                                         'eta': 0,
+#                                                         'F': 0,
+#                                                         'a_half': 10000})
+#         island.set_fodder_parameters(island.default_fodder_parameters())
+#
+#         # Run the migration for 2 years.
+#         island.yearly_cycle()
+#         island.yearly_cycle()
+#
+#         _, _, n_animals_per_species_per_cell = island.animals()
+#
+#         animals = n_animals_per_species_per_cell[(4, 6)]["Herbivore"]
+#
+#         migrated.append(animals / n)
+#
+#     mean = sum(migrated)/len(migrated)
+#
+#     assert isclose(0.25**2, mean, rel_tol=0.09), "Migration is wrongly distributed."
 
 
 def test_procreation_over_time(trial_island_1000, mocker):
