@@ -133,6 +133,11 @@ class Main(QMainWindow):
             msg.exec_()
         elif index == 1:  # Switching to populate page.
             self.populate.plot.update()
+        elif index == 2:  # Switching to simulate page.
+            try:
+                VARIABLE["biosim"].should_stop = False
+            except AttributeError:
+                pass
         elif index == 3: # Switching to history page.
             self.history.update()
 
@@ -140,6 +145,8 @@ class Main(QMainWindow):
             geogr = "\n".join(VARIABLE["island"])
             VARIABLE["biosim"] = BioSim(island_map=geogr)
             VARIABLE["selected"] = (None, None)
+        elif self.previous == 2 and index != 2:
+            self.simulate.stop()
 
         self.previous = index
 
@@ -168,9 +175,10 @@ class Draw(QWidget):
         txt.setGeometry(850, 290, 200, 100)
 
         # Select terrain type:
+        color_map = {"W": "Water", "H": "Highland", "L": "Lowland", "D": "Desert"}
         color_layout = QVBoxLayout()
         for name, color in VARIABLE["colours"].items():
-            button = QPushButton(name, self)
+            button = QPushButton(color_map[name], self)
             button.setFixedSize(100, 100)
             button.setStyleSheet(f"background-color: {color}")
             button.clicked.connect(lambda _, name=name: self.color_clicked(name))
@@ -181,9 +189,6 @@ class Draw(QWidget):
         self.color_widget.setGeometry(QRect(880, 350, 450, 450))
 
         # Modify map:
-        txt = QLabel("Increase/decrease map size.", self)
-        txt.setGeometry(850, 0, 200, 100)
-
         bigger_button = QPushButton("Bigger", self)
         bigger_button.setGeometry(QRect(880, 70, 110, 100))
         bigger_button.clicked.connect(self.bigger)
@@ -202,7 +207,7 @@ class Draw(QWidget):
         """
         self.plot.terrain = name[0]
         for button in self.color_widget.findChildren(QPushButton):
-            if button.text() == name:
+            if button.text()[0] == name:
                 button.setStyleSheet(
                     f"background-color: {VARIABLE['colours'][name[0]]}; border: 2px solid black"
                 )
