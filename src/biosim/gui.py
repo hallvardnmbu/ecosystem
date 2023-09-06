@@ -51,7 +51,7 @@ PARAMETERS = {
         "Desert": "D",
         "Water": "W",
         "Growth reduction (alpha)": "alpha",
-        "Growth factor (delta)": "delta"
+        "Growth factor (v_max)": "v_max"
     }
 }
 PARAMETERS["Herbivore"].update({"Movement": Herbivore.default_motion()})
@@ -473,7 +473,7 @@ class Simulate(QWidget):
             "W": (0, 1, 1),
             "Stride": (0, len(VARIABLE["island"]), 1),
             "Growth reduction (alpha)": (0, 1, 0.01),
-            "Growth factor (delta)": (0, max(Island.default_fodder_parameters().values()), 10)
+            "Growth factor (v_max)": (0, 1500, 10)
         }
 
         self.fig = None
@@ -683,9 +683,9 @@ class Simulate(QWidget):
                 parameter = PARAMETERS["rename"][parameter]
 
                 Island.set_fodder_parameters({parameter: value})
-                self.values["Growth factor (delta)"] = (
+                self.values["Growth factor (v_max)"] = (
                     0,
-                    max(value, self.values["Growth factor (delta)"][1]),
+                    max(value, self.values["Growth factor (v_max)"][1]),
                     10
                 )
 

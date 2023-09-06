@@ -31,7 +31,7 @@ class Island:
         dict
         """
         return {"H": 300, "L": 800, "D": 0, "W": 0,
-                "alpha": 0.8, "delta": 150}
+                "alpha": 0.1, "v_max": 800}
 
     @classmethod
     def set_fodder_parameters(cls, new_parameters):
@@ -82,7 +82,7 @@ class Island:
                 "D": cls.D,
                 "W": cls.W,
                 "alpha": cls.alpha,
-                "delta": cls.delta}[terrain_type]
+                "v_max": cls.v_max}[terrain_type]
 
     def __init__(self, geography, ini_pop=None):
         self.year = 0
@@ -291,56 +291,53 @@ class Island:
         self._update_inhabited_cells()
 
     def _migrate(self, position, animal):
-        """
-        Selects a random neighbouring cell for the animal to move to. It selects the cell based
-        on the animals motion parameters (possible cell types to move to), and the abundance of
-        food in the neighboring cells.
 
-        Parameters
-        ----------
-        position : tuple
-        animal : Animal
-
-        Returns
-        -------
-        new_cell : Cell
-        """
         i, j = position
-        neighbors = {}
+        propensity = {}
         possibilities = []
+
+        num = 0
         for move_i, move_j in [(animal.stride, 0), (-animal.stride, 0),
                                (0, animal.stride), (0, -animal.stride)]:
-            try:
-                _cell = self.cells[(i + move_i, j + move_j)]
-                _fodder = Island.get_fodder_parameter(_cell.cell_type)
-                _population = len(_cell.animals[animal.__class__.__name__])
 
-                abundance = _cell.fodder / max(_population * _fodder, _fodder, _population, 1)
-# TODO: Endre fra "1" til noe mere 'realistisk'?
-                neighbors[(i + move_i, j + move_j)] = math.exp(abundance)
+            zero_i, zero_j = (i + move_i - 1, j + move_j - 1)
+            if zero_i < 0 or zero_j < 0:
+                continue
 
-                zero_i, zero_j = (i + move_i - 1, j + move_j - 1)
-                if zero_i < 0 or zero_j < 0:
-                    continue
+            if not animal.movable[self.geography[zero_i][zero_j]]:
+                continue
 
-                if animal.movable[self.geography[zero_i][zero_j]]:
-                    possibilities.append((i + move_i, j + move_j))
-            except (IndexError, KeyError):
-                pass  # Catches the case where the animal is at the edge of the map.
+            if animal.__class__.__name__ == "Herbivore":
+                fodder = self.cells[(i + move_i, j + move_j)].fodder
+            elif animal.__class__.__name__ == "Carnivore":
+                fodder = 0
+                for herbivore in self.cells[(i + move_i, j + move_j)].animals["Herbivore"]:
+                    fodder += herbivore.w
+            else:
+                raise ValueError(f"Update migration to account for new species.")
+
+            population = len(self.cells[(i + move_i, j + move_j)].animals[
+                                 animal.__class__.__name__])
+            abundance = fodder / max(((population + 1) * animal.F),
+                                     population + 1,
+                                     animal.F,
+                                     1)
+
+            possibilities.append((i + move_i, j + move_j))
+            propensity[(i + move_i, j + move_j)] = math.exp(abundance)
 
         if possibilities:
             new_pos = random.choice(possibilities)
-            new_cell = self.cells[new_pos]
         else:
             return None
 
         try:
-            probability = neighbors[new_pos] / sum(neighbors.values())
+            probability = propensity[new_pos] / sum(propensity.values())
         except ZeroDivisionError:
             probability = 0.5  # 50% chance of moving if no neighboring cells are preffered.
 
         if random.random() < probability:
-            return new_cell
+            return self.cells[new_pos]
         else:
             return None
 
@@ -469,16 +466,15 @@ class Cell:
 
         .. math::
 
-            f_{new} = min(f_{old} + \delta * (1 - \alpha * (f_{max} - f_{old}) / f_{max}), f_{max})
+            f_{new} = min(f_{old} + v_max * (1 - \alpha * (f_{max} - f_{old}) / f_{max}), f_{max})
         """
         f_max = Island.get_fodder_parameter(self.cell_type)
-
         alpha = Island.get_fodder_parameter("alpha")
-        delta = Island.get_fodder_parameter("delta")
+        v_max = Island.get_fodder_parameter("v_max")
 
         try:
-            growth = delta * (1 - alpha * (f_max - self.fodder) / f_max) + self.fodder
+            growth = v_max * (1 - alpha * (f_max - self.fodder) / f_max)
         except ZeroDivisionError:
             growth = 0
 
-        self.fodder = min(growth, f_max)
+        self.fodder = min(self.fodder + growth, f_max)
