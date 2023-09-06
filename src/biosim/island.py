@@ -304,7 +304,10 @@ class Island:
             if zero_i < 0 or zero_j < 0:
                 continue
 
-            if not animal.movable[self.geography[zero_i][zero_j]]:
+            try:
+                if not animal.movable[self.geography[zero_i][zero_j]]:
+                    continue
+            except IndexError:
                 continue
 
             if animal.__class__.__name__ == "Herbivore":

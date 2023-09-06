@@ -190,11 +190,11 @@ class Draw(QWidget):
 
         # Modify map:
         bigger_button = QPushButton("Bigger", self)
-        bigger_button.setGeometry(QRect(880, 70, 110, 100))
+        bigger_button.setGeometry(QRect(880, 10, 110, 100))
         bigger_button.clicked.connect(self.bigger)
 
         smaller_button = QPushButton("Smaller", self)
-        smaller_button.setGeometry(QRect(880, 170, 110, 100))
+        smaller_button.setGeometry(QRect(880, 120, 110, 100))
         smaller_button.clicked.connect(self.smaller)
 
     def color_clicked(self, name):
