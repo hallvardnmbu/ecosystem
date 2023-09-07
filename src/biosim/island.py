@@ -63,14 +63,13 @@ class Island:
                 raise ValueError(f"Invalid value for: {key} ({val}).") from err
 
     @classmethod
-    def get_fodder_parameter(cls, terrain_type):
+    def get_fodder_parameter(cls, parameter):
         """
         Returns the fodder parameters for the given terrain type.
 
         Parameters
         ----------
-        terrain_type : str
-            The terrain type to retrive the f_max from.
+        parameter : str
 
         Returns
         -------
@@ -82,7 +81,7 @@ class Island:
                 "D": cls.D,
                 "W": cls.W,
                 "alpha": cls.alpha,
-                "v_max": cls.v_max}[terrain_type]
+                "v_max": cls.v_max}[parameter]
 
     def __init__(self, geography, ini_pop=None):
         self.year = 0
