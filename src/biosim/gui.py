@@ -24,7 +24,6 @@ from PyQt5.QtCore import (
 )
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
-import numpy as np
 
 from .simulation import BioSim
 from .animals import Herbivore, Carnivore
@@ -32,7 +31,7 @@ from .island import Island
 
 
 VARIABLE = {
-    "island": ["W" * 11 for _ in range(11)],
+    "island": ["W" * 21 for _ in range(21)],
     "selected": (None, None),
     "biosim": None,
     "colours": {
@@ -351,7 +350,7 @@ class Populate(QWidget):
         species_group = QGroupBox()
         species_layout = QVBoxLayout()
         species_group.setLayout(species_layout)
-        self.herbivore = QRadioButton("Herbivore") #
+        self.herbivore = QRadioButton("Herbivore")
         carnivore = QRadioButton("Carnivore")
         species_layout.addWidget(self.herbivore)
         species_layout.addWidget(carnivore)
