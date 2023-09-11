@@ -335,84 +335,119 @@ class Populate(QWidget):
 
         self.plot = None
         self.herbivore = None
-        self.age = None
-        self.weight = None
+        self.add = None
+        self.buttons = []
         self.amount = None
 
         self.initialise()
 
     def initialise(self):
         """Initialise the window."""
+        layout = QHBoxLayout()
+
+        # Creating the map.
         self.plot = Map(drawing=False, terrain="SELECT")
         self.plot.setGeometry(QRect(0, 0, 800, 800))
+        layout.addWidget(self.plot)
 
-        # Create the species group
-        species_group = QGroupBox()
-        species_layout = QVBoxLayout()
-        species_group.setLayout(species_layout)
+        # Creating the input boxes.
+        specifications = QVBoxLayout()
+        top = QVBoxLayout()
+        bottom = QVBoxLayout()
+
+        # Species selection.
+        species = QGroupBox()
+        _species = QVBoxLayout()
+        species.setLayout(_species)
         self.herbivore = QRadioButton("Herbivore")
         carnivore = QRadioButton("Carnivore")
-        species_layout.addWidget(self.herbivore)
-        species_layout.addWidget(carnivore)
-        self.herbivore.setChecked(True)
-        species_group.setFixedSize(200, 80)
-        species_layout.setAlignment(Qt.AlignHCenter)
+        _species.addWidget(self.herbivore)
+        _species.addWidget(carnivore)
+        _species.setAlignment(Qt.AlignHCenter)
+        species.setFixedSize(200, 80)
 
-        # Create the age label and entry
-        age_layout = QHBoxLayout()
-        age_label = QLabel("Age:")
-        self.age = QLineEdit()
-        self.age.setFixedSize(100, 40)
-        age_layout.addWidget(age_label)
-        age_layout.addWidget(self.age)
+        top.addWidget(species)
 
-        # Create the weight label and entry
-        weight_layout = QHBoxLayout()
-        weight_label = QLabel("Weight:")
-        self.weight = QLineEdit()
-        self.weight.setFixedSize(100, 40)
-        weight_layout.addWidget(weight_label)
-        weight_layout.addWidget(self.weight)
-
-        # Create the number of animals label and entry
-        amount_layout = QHBoxLayout()
-        amount_label = QLabel("Amount:")
+        # Amount of animals.
+        amount = QHBoxLayout()
+        label = QLabel("Number of animals:")
         self.amount = QLineEdit()
-        self.amount.setFixedSize(100, 40)
-        amount_layout.addWidget(amount_label)
-        amount_layout.addWidget(self.amount)
-
-        # Create the add button
-        add = QPushButton("Add")
-        add.setFixedSize(200, 200)
-        add.clicked.connect(self.populate)
-
-        # Create the reset button
-        reset = QPushButton("Reset population")
-        reset.setFixedSize(200, 100)
-        reset.clicked.connect(self.reset)
-
-        self.age.setValidator(QIntValidator())
-        self.weight.setValidator(QDoubleValidator())
+        # self.amount.setFixedSize(90, 40)
         self.amount.setValidator(QIntValidator())
+        amount.addWidget(label)
+        amount.addWidget(self.amount)
+        amount.setGeometry(QRect(0, 0, 500, 200))
 
-        # Add the input boxes to the input layout
-        input_layout = QVBoxLayout()
-        input_layout.addWidget(species_group)
-        input_layout.addLayout(age_layout)
-        input_layout.addLayout(weight_layout)
-        input_layout.addLayout(amount_layout)
-        input_layout.addStretch(5)
-        input_layout.addWidget(add)
-        input_layout.addStretch(20)
-        input_layout.addWidget(reset)
+        top.addLayout(amount)
 
-        # Create the plot and input boxes layout
-        layout = QHBoxLayout()
-        layout.addWidget(self.plot)
-        layout.addLayout(input_layout)
+        # Add button.
+        add = QHBoxLayout()
+        self.add = QPushButton("Add")
+        self.add.setFixedSize(200, 100)
+        self.add.setStyleSheet("background-color: #B7BFA1")
+        self.add.clicked.connect(self.populate)
+        add.addWidget(self.add)
+
+        top.addSpacing(20)
+        top.addLayout(add)
+
+        # R- and K-selected herbivore buttons.
+        selection = QHBoxLayout()
+        for name in ["R-selected", "K-selected"]:
+            button = QPushButton(name)
+            button.setFixedSize(100, 100)
+            button.setStyleSheet(f"background-color: #C0C0C0")
+            button.clicked.connect(lambda _, name=name: self.selection(name))
+            selection.addWidget(button)
+            self.buttons.append(button)
+
+        bottom.addLayout(selection)
+
+        # Reset button.
+        reset = QHBoxLayout()
+        _reset = QPushButton("Slaughter population")
+        _reset.setFixedSize(200, 100)
+        _reset.setStyleSheet("background-color: #C0C0C0")
+        _reset.clicked.connect(self.reset)
+        reset.addWidget(_reset)
+
+        bottom.addLayout(reset)
+
+        top.setAlignment((Qt.AlignHCenter | Qt.AlignTop))
+        specifications.addLayout(top)
+        specifications.addSpacing(10)
+        bottom.setAlignment(Qt.AlignHCenter | Qt.AlignBottom)
+        specifications.addLayout(bottom)
+        layout.addLayout(specifications)
 
         self.setLayout(layout)
+        self.herbivore.toggled.connect(self.species)
+        self.herbivore.setChecked(True)
+        self.selection("R")
+
+    def selection(self, name):
+        """Executed when the selection changes."""
+        for button in self.buttons:
+            if button.text() == name:
+                button.setStyleSheet(
+                    f"background-color: #B7BFA1; border: 4px solid black"
+                )
+            else:
+                button.setStyleSheet(
+                    f"background-color: #C0C0C0"
+                )
+
+        if name == "R-selected":
+            # TODO: Set parameters
+        else:
+            # TODO: Set parameters
+
+    def species(self):
+        """Executed when the species selection changes."""
+        if self.herbivore.isChecked():
+            self.add.setStyleSheet("background-color: #B7BFA1")
+        else:
+            self.add.setStyleSheet("background-color: #F2C38F")
 
     def populate(self):
         """Populate the island with animals."""
@@ -425,8 +460,8 @@ class Populate(QWidget):
             return
 
         species = "Herbivore" if self.herbivore.isChecked() else "Carnivore"
-        age = int(self.age.text()) if self.age.text() else None
-        weight = float(self.weight.text()) if self.weight.text() else None
+        age = None
+        weight = None
         amount = int(self.amount.text()) if self.amount.text() else 1
 
         animals = [{
