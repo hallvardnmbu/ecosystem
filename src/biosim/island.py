@@ -30,7 +30,7 @@ class Island:
         -------
         dict
         """
-        return {"H": 300, "L": 800, "D": 0, "W": 0,
+        return {"H": 300, "L": 800, "M": 0, "W": 0,
                 "alpha": 0.1, "v_max": 800}
 
     @classmethod
@@ -78,7 +78,7 @@ class Island:
         """
         return {"H": cls.H,
                 "L": cls.L,
-                "D": cls.D,
+                "M": cls.M,
                 "W": cls.W,
                 "alpha": cls.alpha,
                 "v_max": cls.v_max}[parameter]

@@ -234,7 +234,7 @@ class Graphics:
         if self._map_plot is None:
             self._map_plot = self._fig.add_subplot(self.gridspec[4:7, :9])
             self._island_map(self.my_colours, self.terrain_patches)
-            self._map_plot.set_title("Map of Rossumøya (Pylandia)")
+            self._map_plot.set_title("Island map")
 
         herb, carn = self._animal_data(n_species_cells)
         herbivore_colour = (0.71764, 0.749, 0.63137)
@@ -562,7 +562,7 @@ class Graphics:
         """
         colours = {"L": [colour / 255 for colour in [185, 214, 135]],
                    "H": [colour / 255 for colour in [232, 236, 158]],
-                   "D": [colour / 255 for colour in [255, 238, 186]],
+                   "M": [colour / 255 for colour in [128, 128, 128]],
                    "W": [colour / 255 for colour in [149, 203, 204]]}
 
         if my_colours is not None:
@@ -573,15 +573,15 @@ class Graphics:
 
         self._map_plot.imshow(coloured_map)
 
-        x_ticks = range(len(self.geography[0]))
-        x_ticks_labels = range(1, len(self.geography[0]) + 1)
-        y_ticks = range(len(self.geography))
-        y_ticks_labels = range(1, len(self.geography) + 1)
+        # Ticks:
+        # self._map_plot.set_xticks(range(len(self.geography[0])))
+        # self._map_plot.set_xticklabels(range(1, len(self.geography[0]) + 1))
+        # self._map_plot.set_yticks(range(len(self.geography)))
+        # self._map_plot.set_yticklabels(range(1, len(self.geography) + 1))
 
-        self._map_plot.set_xticks(x_ticks)
-        self._map_plot.set_xticklabels(x_ticks_labels)
-        self._map_plot.set_yticks(y_ticks)
-        self._map_plot.set_yticklabels(y_ticks_labels)
+        # Invisible ticks:
+        self._map_plot.set_xticks([])
+        self._map_plot.set_yticks([])
 
         if terrain_patches:
             patch_list = [patches.Rectangle((0, 0), 1, 1, color=val, label=key)

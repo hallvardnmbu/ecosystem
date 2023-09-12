@@ -38,7 +38,7 @@ VARIABLE = {
         "W": "#95CBCC",
         "H": "#E8EC9E",
         "L": "#B9D687",
-        "D": "#FFEEBA"
+        "M": "#808080"
     }
 }
 PARAMETERS = {
@@ -47,7 +47,7 @@ PARAMETERS = {
     "rename": {
         "Highland": "H",
         "Lowland": "L",
-        "Desert": "D",
+        "Mountain": "M",
         "Water": "W",
         "Growth reduction (alpha)": "alpha",
         "Growth factor (v_max)": "v_max"
@@ -174,7 +174,7 @@ class Draw(QWidget):
         txt.setGeometry(850, 290, 200, 100)
 
         # Select terrain type:
-        color_map = {"W": "Water", "H": "Highland", "L": "Lowland", "D": "Desert"}
+        color_map = {"W": "Water", "H": "Highland", "L": "Lowland", "M": "Mountain"}
         color_layout = QVBoxLayout()
         for name, color in VARIABLE["colours"].items():
             button = QPushButton(color_map[name], self)
@@ -438,9 +438,22 @@ class Populate(QWidget):
                 )
 
         if name == "R-selected":
+            pass
             # TODO: Set parameters
         else:
+            pass
             # TODO: Set parameters
+
+        try:
+            if VARIABLE["biosim"].island.year != 0:
+                geogr = "\n".join(VARIABLE["island"])
+                VARIABLE["biosim"] = BioSim(island_map=geogr)
+
+                msg = QMessageBox()
+                msg.setText("Simulation and population has been reset.")
+                msg.exec_()
+        except AttributeError:
+            pass
 
     def species(self):
         """Executed when the species selection changes."""
@@ -461,7 +474,7 @@ class Populate(QWidget):
 
         species = "Herbivore" if self.herbivore.isChecked() else "Carnivore"
         age = None
-        weight = None
+        weight = 5  # TODO: Endre på denne?
         amount = int(self.amount.text()) if self.amount.text() else 1
 
         animals = [{
@@ -506,8 +519,8 @@ class Simulate(QWidget):
             "H": (0, 1, 1),
             "Lowland": (0, 1000, 10),
             "L": (0, 1, 1),
-            "Desert": (0, 1000, 10),
-            "D": (0, 1, 1),
+            "Mountain": (0, 1000, 10),
+            "M": (0, 1, 1),
             "Water": (0, 1000, 10),
             "W": (0, 1, 1),
             "Stride": (0, len(VARIABLE["island"]), 1),
@@ -544,7 +557,7 @@ class Simulate(QWidget):
         self.parameter.currentIndexChanged.connect(self._parameter)
 
         self.movement = QComboBox()
-        self.movement.addItems(["Stride", "Highland", "Lowland", "Desert", "Water"])
+        self.movement.addItems(["Stride", "Highland", "Lowland", "Mountain", "Water"])
         self.movement.currentIndexChanged.connect(self._movement)
         self.movement.setVisible(False)
         self.movement_value = QSlider(Qt.Horizontal)

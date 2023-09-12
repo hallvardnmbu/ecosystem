@@ -307,7 +307,7 @@ class Herbivore(Animal):
             Movable terrain.
         """
         return {"stride": 1,
-                "movable": {"H": True, "L": True, "D": True, "W": False}}
+                "movable": {"H": True, "L": True, "M": True, "W": False}}
 
     @classmethod
     def default_parameters(cls):
@@ -386,7 +386,7 @@ class Carnivore(Animal):
             Movable terrain.
         """
         return {"stride": 1,
-                "movable": {"H": True, "L": True, "D": True, "W": False}}
+                "movable": {"H": True, "L": True, "M": True, "W": False}}
 
     @classmethod
     def default_parameters(cls):
