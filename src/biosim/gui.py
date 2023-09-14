@@ -5,18 +5,17 @@ Copyright (c) 2023 Hallvard Høyland Lavik / NMBU
 This file is part of the BioSim-package, adding a more intuitive GUI.
 Released under the MIT License, see included LICENSE file.
 """
-from PyQt5.QtCore import QMimeData, QSize
-from PyQt5.QtGui import QDrag, QPixmap
-from PyQt5.QtWidgets import QGraphicsPixmapItem, QGraphicsItem
+
 
 import datetime
-from PyQt5.QtCore import Qt, QRect, QRectF
-from PyQt5.QtGui import QPainter, QPen, QBrush, QColor, QIntValidator
+from PyQt5.QtCore import Qt, QRect, QRectF, QMimeData, QSize
+from PyQt5.QtGui import QPainter, QPen, QBrush, QColor, QIntValidator, QDrag, QPixmap
 from PyQt5.QtWidgets import (QMainWindow, QTabWidget, QApplication, QWidget,
                              QHBoxLayout, QVBoxLayout, QLineEdit, QGroupBox,
-                             QLabel, QPushButton, QRadioButton, QComboBox, QSlider,
+                             QLabel, QPushButton, QComboBox, QSlider,
                              QGraphicsView, QGraphicsScene,
-                             QMessageBox, QTableWidget, QTableWidgetItem)
+                             QMessageBox, QTableWidget, QTableWidgetItem,
+                             QGraphicsPixmapItem, QGraphicsItem)
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
@@ -25,7 +24,7 @@ from .animals import Herbivore, Carnivore
 from .island import Island
 
 
-# The QMessageBox's may need to be removed if ECOL100 is run from server.
+# TODO: The QMessageBox's may need to be removed if ECOL100 is run from server.
 
 
 VARIABLE = {"island": ["W" * 21 for _ in range(21)],
@@ -92,12 +91,12 @@ class BioSimGUI:
     @staticmethod
     def shrink(island):
         """
-        WORK IN PROGRESS
-
         Shrink the edges of the island to the minimum possible border (if not all cells are water).
         This is done by first transposing the island, then removing the top and bottom rows if they
-        are only water, and finally transposing the island back to its original orientation and doing
-        the same steps again.
+        are only water, and finally transposing the island back to its original orientation and
+        doing the same steps again. The island is then expanded to a square by adding water to
+        the top and bottom or left and right an equal amount of times at each side until it is a
+        square.
 
         Parameters
         ----------
@@ -107,8 +106,6 @@ class BioSimGUI:
         -------
         island : list
         """
-        return island
-
         if all(cell == "W" for row in island for cell in row):
             return island
         for _ in range(2):
@@ -126,6 +123,27 @@ class BioSimGUI:
                 island = island[:-1]
                 j -= 1
 
+        rows = len(island)
+        cols = len(island[0])
+        if rows < cols:
+            i = 1
+            while rows < cols:
+                if i % 2 == 0:
+                    island.append("W" * cols)
+                else:
+                    island = ["W" * cols] + island
+                i += 1
+                rows += 1
+        elif cols < rows:
+            j = 1
+            while cols < rows:
+                if j % 2 == 0:
+                    island = ["W" + row for row in island]
+                else:
+                    island = [row + "W" for row in island]
+                j += 1
+                cols += 1
+
         return island
 
 
@@ -138,8 +156,8 @@ class Main(QMainWindow):
         self.setWindowTitle("Model herbivores and carnivores on an island")
 
         # Create the tabs:
-        tabs = QTabWidget()
-        self.setCentralWidget(tabs)
+        self.tabs = QTabWidget()
+        self.setCentralWidget(self.tabs)
 
         # Draw:
         draw_widget = QWidget()
@@ -148,7 +166,7 @@ class Main(QMainWindow):
 
         self.draw = Draw()
         draw_layout.addWidget(self.draw)
-        tabs.addTab(self.draw, 'Draw')
+        self.tabs.addTab(self.draw, 'Draw')
 
         # Populate:
         populate_widget = QWidget()
@@ -157,7 +175,7 @@ class Main(QMainWindow):
 
         self.populate = Populate()
         populate_layout.addWidget(self.populate)
-        tabs.addTab(self.populate, 'Populate')
+        self.tabs.addTab(self.populate, 'Populate')
 
         # Simulate:
         simulate_widget = QWidget()
@@ -166,7 +184,7 @@ class Main(QMainWindow):
 
         self.simulate = Simulate()
         simulate_layout.addWidget(self.simulate)
-        tabs.addTab(self.simulate, 'Simulate')
+        self.tabs.addTab(self.simulate, 'Simulate')
 
         # History:
         history_widget = QWidget()
@@ -175,7 +193,7 @@ class Main(QMainWindow):
 
         self.history = History()
         history_layout.addWidget(self.history)
-        tabs.addTab(self.history, 'History')
+        self.tabs.addTab(self.history, 'History')
 
         # Advanced:
         advanced_widget = QWidget()
@@ -184,21 +202,31 @@ class Main(QMainWindow):
 
         self.advanced = Advanced()
         advanced_layout.addWidget(self.advanced)
-        tabs.addTab(self.advanced, 'Advanced settings')
+        self.tabs.addTab(self.advanced, 'Advanced settings')
 
         self.previous = 0
-        tabs.currentChanged.connect(self.change)
+        self.tabs.currentChanged.connect(self.change)
 
     def change(self, index):
         """Switching to new tabs executes the following."""
         if index == 0:  # Switching to draw page.
+            msg_box = QMessageBox()
+            msg_box.setIcon(QMessageBox.Warning)
+            msg_box.setText(
+                "Are you sure you want to switch to the draw page? This will reset everything."
+            )
+            msg_box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+            msg_box.setDefaultButton(QMessageBox.Cancel)
+            result = msg_box.exec_()
+            if result == QMessageBox.Cancel:
+                self.tabs.setCurrentIndex(self.previous)
+                return
+
             self.simulate.reset()
             VARIABLE["modified"].clear()
             VARIABLE["history"].clear()
-
-            msg = QMessageBox()
-            msg.setText("Population and parameters has been reset.")
-            msg.exec_()
+            VARIABLE["island"] = ["W" * 21 for _ in range(21)]
+            self.draw.plot.update()
         elif index == 1:  # Switching to populate page.
             self.populate.plot.update()
         elif index == 2:  # Switching to simulate page.
@@ -211,8 +239,9 @@ class Main(QMainWindow):
         elif index == 4:  # Switching to advanced page.
             self.advanced.update()
         if self.previous == 0 and index != 0:  # Switching from draw page.
-            geogr = BioSimGUI.shrink(VARIABLE["island"])
-            geogr = "\n".join(geogr)
+            VARIABLE["island"] = BioSimGUI.shrink(VARIABLE["island"])
+            self.populate.plot.update()
+            geogr = "\n".join(VARIABLE["island"])
             VARIABLE["biosim"] = BioSim(island_map=geogr)
             VARIABLE["selected"] = [(None, None), None]
         elif self.previous == 2 and index != 2:
@@ -623,7 +652,6 @@ class Populate(QWidget):
 
         try:
             if VARIABLE["biosim"].island.year != 0:
-                geogr = BioSimGUI.shrink(VARIABLE["island"])
                 geogr = "\n".join(geogr)
                 VARIABLE["biosim"].graphics.reset_graphics()
                 VARIABLE["biosim"] = BioSim(island_map=geogr)
