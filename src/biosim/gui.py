@@ -8,30 +8,22 @@ Released under the MIT License, see included LICENSE file.
 
 
 import datetime
-from PyQt5.QtWidgets import (
-    QMainWindow, QTabWidget, QApplication, QWidget,
-    QHBoxLayout, QVBoxLayout, QLineEdit, QGroupBox,
-    QLabel, QPushButton, QRadioButton, QComboBox, QSlider,
-    QGraphicsView, QGraphicsScene,
-    QMessageBox, QTableWidget, QTableWidgetItem
-)
-from PyQt5.QtGui import (
-    QPainter, QPen, QBrush, QColor,
-    QIntValidator
-)
-from PyQt5.QtCore import (
-    Qt, QRect, QRectF
-)
+from PyQt5.QtCore import Qt, QRect, QRectF
+from PyQt5.QtGui import QPainter, QPen, QBrush, QColor, QIntValidator
+from PyQt5.QtWidgets import (QMainWindow, QTabWidget, QApplication, QWidget,
+                             QHBoxLayout, QVBoxLayout, QLineEdit, QGroupBox,
+                             QLabel, QPushButton, QRadioButton, QComboBox, QSlider,
+                             QGraphicsView, QGraphicsScene,
+                             QMessageBox, QTableWidget, QTableWidgetItem)
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
-import numpy as np
 
 from .simulation import BioSim
 from .animals import Herbivore, Carnivore
 from .island import Island
 
 
-# The QMessageBox's may need to be removed if ECOL100 is run from server:
+# The QMessageBox's may need to be removed if ECOL100 is run from server.
 
 
 VARIABLE = {"island": ["W" * 21 for _ in range(21)],
@@ -82,7 +74,14 @@ VARIABLE["parameters"]["Fodder"] = {{v: k for k, v
 
 class BioSimGUI:
     def __init__(self):
-        """Initialises and starts the application."""
+        """
+        Initialises and starts the application.
+
+        Notes
+        -----
+        This is made to a class in order to have be visually pleasing (capital letters) without
+        "raising" an error.
+        """
         app = QApplication([])
         window = Main()
         window.show()
@@ -151,7 +150,7 @@ class Main(QMainWindow):
 
     def change(self, index):
         """Switching to new tabs executes the following."""
-        if index == 0: # Switching to draw page.
+        if index == 0:  # Switching to draw page.
             self.simulate.reset()
             VARIABLE["modified"].clear()
             VARIABLE["history"].clear()
@@ -168,7 +167,7 @@ class Main(QMainWindow):
                 pass
         elif index == 3:  # Switching to history page.
             self.history.update()
-        elif index == 4: # Switching to advanced page.
+        elif index == 4:  # Switching to advanced page.
             self.advanced.update()
         if self.previous == 0 and index != 0:  # Switching from draw page.
             geogr = "\n".join(VARIABLE["island"])
@@ -275,7 +274,16 @@ class Draw(QWidget):
 
 
 class Map(QGraphicsView):
-    """Class for visualising the island."""
+    """
+    Class for visualising the island.
+
+    Parameters
+    ----------
+    terrain : str, optional
+        Currently selected terrain type.
+    drawing : bool, optional
+        Whether the map can be drawn on or not.
+    """
     def __init__(self, terrain="W", drawing=True):
         super().__init__()
 
@@ -425,7 +433,7 @@ class Populate(QWidget):
         for name in ["R-selected", "K-selected"]:
             button = QPushButton(name)
             button.setFixedSize(100, 100)
-            button.setStyleSheet(f"background-color: #C0C0C0")
+            button.setStyleSheet("background-color: #C0C0C0")
             button.clicked.connect(lambda _, name=name: self.selection(name))
             selection.addWidget(button)
             self.buttons.append(button)
@@ -454,12 +462,19 @@ class Populate(QWidget):
         self.selection("R-selected")
 
     def selection(self, name):
-        """Executed when the selection changes."""
+        """
+        Executed when the selection changes.
+
+        Parameters
+        ----------
+        name : str
+            Text of the button that was clicked.
+        """
         for button in self.buttons:
             if button.text() == name:
-                button.setStyleSheet(f"background-color: #B7BFA1; border: 4px solid black")
+                button.setStyleSheet("background-color: #B7BFA1; border: 4px solid black")
             else:
-                button.setStyleSheet(f"background-color: #C0C0C0")
+                button.setStyleSheet("background-color: #C0C0C0")
         VARIABLE["history"].clear()
         VARIABLE["selection"]["current"] = name
 
@@ -592,7 +607,6 @@ class Simulate(QWidget):
         ValueError
             If number of years to simulate has not been specified.
         """
-        year = VARIABLE["biosim"].island.year
         years = int(self.years.value())
         VARIABLE["biosim"].should_stop = False
 

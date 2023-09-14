@@ -11,8 +11,8 @@ class Animal:
 
     Parameters
     ----------
-    age : int, optional
-    weight : float, optional
+    age : int
+    weight : float
 
     Raises
     ------
@@ -372,7 +372,6 @@ class Carnivore(Animal):
     weight : float, optional
         Weight of the animal.
     """
-
     @classmethod
     def default_motion(cls):
         """

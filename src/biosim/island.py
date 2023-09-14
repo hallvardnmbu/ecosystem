@@ -107,8 +107,6 @@ class Island:
         -------
         cells : dict
             A dictionary containing the cells of the island with the location as the keys.
-        habitable_cells : dict
-            A dictionary containing the habitable cells of the island with the cells as the keys.
 
         Raises
         ------
@@ -116,11 +114,6 @@ class Island:
             If the edges of the map are not 'W' (Water).
             If the map is not rectangular.
             If the map contains invalid terrain types.
-
-        Notes
-        -----
-        The reason for retrieving the habitable cells is to make it computationally faster when
-        going through the annual cycle.
         """
         cols = len(self.geography)
         rows = len(self.geography[0])
@@ -263,8 +256,25 @@ class Island:
         r"""
         Iterates through all the animals on the island.
         An animal migrates with a probability of :math:`\mu` * :math:`\Phi`, and moves to a
-        random directly neighbouring cell. If the neighbouring cell is immovable for the animal,
-        it refrains from moving.
+        random directly neighbouring cell. The animal may only move to cells it can move through,
+        and the cell is selected based on the abundance of fodder in the cell.
+
+        .. math::
+
+            N = \textrm{number of animals of the same species in the cell}
+
+            \textrm{abundance} = \frac{\textrm{fodder}}{\textrm{max}((N + 1) * F, N + 1, F, 1)}
+
+            \textrm{propensity} = e^{\textrm{abundance}}
+
+            \textrm{probability} = \frac{\textrm{propensity of new cell}}{\sum \textrm{propensity}}
+
+        Notes
+        -----
+        - In order to prevent animals from moving multiple times (say an animal moves from (1,
+        1) -> (1, 2), we don't want the animal to be able to move again), the movements are
+        executed after each cell has been iterated through.
+        - 50% chance of moving if no neighboring cells are preffered.
         """
         migrating_animals = []
         for cell, pos in self.inhabited_cells.items():
@@ -279,9 +289,6 @@ class Island:
                 movement = (animal, cell, new_cell)
                 migrating_animals.append(movement)
 
-        # In order to prevent animals from moving multiple times (say an animal moves from (1,
-        # 1) -> (1, 2), we don't want the animal to be able to move again), the movements are
-        # executed after each cell has been iterated through:
         for movement in migrating_animals:
             animal, from_cell, to_cell = movement
             from_cell.animals[animal.__class__.__name__].remove(animal)
@@ -290,12 +297,26 @@ class Island:
         self._update_inhabited_cells()
 
     def _migrate(self, position, animal):
+        """
+        Determines whether an animal migrates or not, and if it does, to which cell.
 
+        Parameters
+        ----------
+        position : tuple
+        animal : Animal
+
+        Returns
+        -------
+        Cell or None
+
+        Notes
+        -----
+        - See notes in :meth:`migrate`.
+        """
         i, j = position
         propensity = {}
         possibilities = []
 
-        num = 0
         for move_i, move_j in [(animal.stride, 0), (-animal.stride, 0),
                                (0, animal.stride), (0, -animal.stride)]:
 
@@ -316,7 +337,7 @@ class Island:
                 for herbivore in self.cells[(i + move_i, j + move_j)].animals["Herbivore"]:
                     fodder += herbivore.w
             else:
-                raise ValueError(f"Update migration to account for new species.")
+                raise ValueError("Update migration to account for new species.")
 
             population = len(self.cells[(i + move_i, j + move_j)].animals[
                                  animal.__class__.__name__])
@@ -336,7 +357,7 @@ class Island:
         try:
             probability = propensity[new_pos] / sum(propensity.values())
         except ZeroDivisionError:
-            probability = 0.5  # 50% chance of moving if no neighboring cells are preffered.
+            probability = 0.5
 
         if random.random() < probability:
             return self.cells[new_pos]
@@ -344,7 +365,10 @@ class Island:
             return None
 
     def _update_inhabited_cells(self):
-        """Updates the list of inhabited cells."""
+        """
+        Updates the list of inhabited cells to improve computational cost for most of the yearly
+        cycle(s).
+        """
         self.inhabited_cells = {}
         for pos, cell in self.cells.items():
             if cell.animals["Herbivore"] or cell.animals["Carnivore"]:
@@ -464,7 +488,7 @@ class Cell:
 
         Notes
         -----
-        The growth of fodder is calculated as:
+        The growth of fodder is dependent on how much was left from last cycle and is calculated as:
 
         .. math::
 

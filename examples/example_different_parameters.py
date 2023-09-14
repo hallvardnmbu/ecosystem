@@ -10,10 +10,10 @@ if __name__ == "__main__":
              WWWWWWWWWWWWW
              WWWLWWWWWHHWW
              WWLLLWWLWHLLW
-             WWLLLLWWWDLDW
-             WWHHLLLHWWDDW
-             WHHLLLHWWWLDW
-             WWWHHWWWWWDWW
+             WWLLLLWWWMLMW
+             WWHHLLLHWWMMW
+             WHHLLLHWWWLMW
+             WWWHHWWWWWMWW
              WWWWWWWWWWWWW"""
 
     population = [{"loc": (4, 11),

@@ -176,9 +176,9 @@ class Graphics:
         n_species_cells : dict
             Initial animal population (per cell).
         speed : float
-            Pause between visualisation updates (seconds).
+            Pause between visualisation updates (seconds). Only works when not using the GUI.
         figure : plt.Figure
-            For 'okologi'-GUI
+            Used for the GUI.
         """
         self.final_year = final_year
 
@@ -394,10 +394,10 @@ class Graphics:
 
                 {"Herbivore": [Herbivore(), Herbivore(), ...], ...}
 
-        canvas : FigureCanvas
-            For 'okologi'-GUI
-        history : bool
-            Whether to return the animals' histories.
+        canvas : FigureCanvas, optional
+            Used for the GUI.
+        history : bool, optional
+            Whether to return the animals' histories. Used for the GUI.
         """
         self._update_year_counter(year)
         self._update_line_plot(year, n_species)
@@ -414,9 +414,8 @@ class Graphics:
             canvas.draw()
             QApplication.processEvents()
 
-            # Pauses the simulation for more visible animation.
             loop = QEventLoop()
-            QTimer.singleShot(100, loop.quit)
+            QTimer.singleShot(self._speed * 1e8, loop.quit)
             loop.exec_()
 
         if history:
@@ -643,6 +642,12 @@ class Graphics:
         year : int
         animals : dict
             A dictionary with species as keys and lists of animal objects as values.
+
+        Returns
+        -------
+        dict
+            A dictionary with species as keys and dictionaries with the average age, weight and
+            fitness of the animals as values.
         """
         herbs = animals["Herbivore"]
         carns = animals["Carnivore"]

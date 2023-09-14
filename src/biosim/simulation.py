@@ -193,12 +193,16 @@ class BioSim:
             Number of years to simulate.
         speed : float, optional
             The interval between plot data-updates.
-        figure : plt.Figure
+        figure : plt.Figure, optional
             For 'okologi'-GUI
-        canvas : FigureCanvas
+        canvas : FigureCanvas, optional
             For 'okologi'-GUI
-        history : bool
+        history : bool, optional
             Whether to return the animals' histories.
+
+        Returns
+        -------
+        dict (if history=True)
         """
         simulate_years = num_years + self.year
 
