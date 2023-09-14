@@ -87,6 +87,41 @@ class BioSimGUI:
         window.show()
         app.exec_()
 
+    @staticmethod
+    def shrink(island):
+        """
+        Shrink the edges of the island to the minimum possible border (if not all cells are water).
+        This is done by first transposing the island, then removing the top and bottom rows if they
+        are only water, and finally transposing the island back to its original orientation and doing
+        the same steps again.
+
+        Parameters
+        ----------
+        island : list
+
+        Returns
+        -------
+        island : list
+        """
+        if all(cell == "W" for row in island for cell in row):
+            return island
+        for _ in range(2):
+            # Since transposing is done twice, it will be back to its original when returned.
+            island = [''.join(row) for row in zip(*island)]
+
+            # Remove top row(s) if it is only water.
+            i = 0
+            while all([cell == "W" for cell in island[i]]) and all([cell == "W" for cell in island[i+1]]):
+                island = island[1:]
+
+            # Remove bottom row(s) if it is only water.
+            j = len(island) - 1
+            while all([cell == "W" for cell in island[j]]) and all([cell == "W" for cell in island[j-1]]):
+                island = island[:-1]
+                j -= 1
+
+        return island
+
 
 class Main(QMainWindow):
     """Class for the main window."""
@@ -170,7 +205,8 @@ class Main(QMainWindow):
         elif index == 4:  # Switching to advanced page.
             self.advanced.update()
         if self.previous == 0 and index != 0:  # Switching from draw page.
-            geogr = "\n".join(VARIABLE["island"])
+            geogr = BioSimGUI.shrink(VARIABLE["island"])
+            geogr = "\n".join(geogr)
             VARIABLE["biosim"] = BioSim(island_map=geogr)
             VARIABLE["selected"] = (None, None)
         elif self.previous == 2 and index != 2:
@@ -472,7 +508,7 @@ class Populate(QWidget):
         """
         for button in self.buttons:
             if button.text() == name:
-                button.setStyleSheet("background-color: #B7BFA1; border: 4px solid black")
+                button.setStyleSheet("background-color: #B7BFA1; border: 4px solid #a4ab90")
             else:
                 button.setStyleSheet("background-color: #C0C0C0")
         VARIABLE["history"].clear()
@@ -480,7 +516,8 @@ class Populate(QWidget):
 
         try:
             if VARIABLE["biosim"].island.year != 0:
-                geogr = "\n".join(VARIABLE["island"])
+                geogr = BioSimGUI.shrink(VARIABLE["island"])
+                geogr = "\n".join(geogr)
                 VARIABLE["biosim"].graphics.reset_graphics()
                 VARIABLE["biosim"] = BioSim(island_map=geogr)
                 VARIABLE["selected"] = (None, None)
