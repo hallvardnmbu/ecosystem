@@ -415,7 +415,7 @@ class Graphics:
             QApplication.processEvents()
 
             loop = QEventLoop()
-            QTimer.singleShot(self._speed * 1e8, loop.quit)
+            QTimer.singleShot(int(self._speed * 1e8), loop.quit)
             loop.exec_()
 
         if history:
