@@ -666,7 +666,7 @@ class History(QWidget):
                    color=(0.71764, 0.749, 0.63137))
         thick.plot(years, VARIABLE["history"]["Carnivore"]["Weight"],
                    color=(0.949, 0.7647, 0.56078))
-        thick.set_ylabel("Value")
+        thick.set_ylabel("Mean value")
         thick.set_xticks([])
 
         fit.plot(years, VARIABLE["history"]["Herbivore"]["Fitness"],
