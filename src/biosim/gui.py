@@ -71,7 +71,7 @@ VARIABLE = {"island": ["W" * 21 for _ in range(21)],
                                          "zeta": 6.8,
                                          "F": 20,
                                          "beta": 0.9,
-                                         "mu": 0.1}}}  # TODO: Endre på disse.
+                                         "mu": 0.1}}}
 
 VARIABLE["parameters"]["Herbivore"].update({"Movement": Herbivore.default_motion()})
 VARIABLE["parameters"]["Carnivore"].update({"Movement": Carnivore.default_motion()})
@@ -463,8 +463,6 @@ class Populate(QWidget):
         VARIABLE["history"].clear()
         VARIABLE["selection"]["current"] = name
 
-        Herbivore.set_parameters(VARIABLE["selection"][name])
-
         try:
             if VARIABLE["biosim"].island.year != 0:
                 geogr = "\n".join(VARIABLE["island"])
@@ -478,6 +476,8 @@ class Populate(QWidget):
                 msg.exec_()
         except AttributeError:
             pass
+
+        Herbivore.set_parameters(VARIABLE["selection"][name])
 
     def populate(self):
         """Populate the island with animals."""
@@ -654,8 +654,6 @@ class History(QWidget):
         old.set_title("Age")
         thick.set_title("Weight")
         fit.set_title("Fitness")
-
-        # TODO: Endre 0 til nan.
 
         old.plot(years, VARIABLE["history"]["Herbivore"]["Age"],
                  label="Herbivore", color=(0.71764, 0.749, 0.63137))
