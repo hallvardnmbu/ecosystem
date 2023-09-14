@@ -5,7 +5,9 @@ Copyright (c) 2023 Hallvard Høyland Lavik / NMBU
 This file is part of the BioSim-package, adding a more intuitive GUI.
 Released under the MIT License, see included LICENSE file.
 """
-
+from PyQt5.QtCore import QMimeData, QSize
+from PyQt5.QtGui import QDrag, QPixmap
+from PyQt5.QtWidgets import QGraphicsPixmapItem, QGraphicsItem
 
 import datetime
 from PyQt5.QtCore import Qt, QRect, QRectF
@@ -90,6 +92,8 @@ class BioSimGUI:
     @staticmethod
     def shrink(island):
         """
+        WORK IN PROGRESS
+
         Shrink the edges of the island to the minimum possible border (if not all cells are water).
         This is done by first transposing the island, then removing the top and bottom rows if they
         are only water, and finally transposing the island back to its original orientation and doing
@@ -103,6 +107,8 @@ class BioSimGUI:
         -------
         island : list
         """
+        return island
+
         if all(cell == "W" for row in island for cell in row):
             return island
         for _ in range(2):
@@ -208,7 +214,7 @@ class Main(QMainWindow):
             geogr = BioSimGUI.shrink(VARIABLE["island"])
             geogr = "\n".join(geogr)
             VARIABLE["biosim"] = BioSim(island_map=geogr)
-            VARIABLE["selected"] = (None, None)
+            VARIABLE["selected"] = [(None, None), None]
         elif self.previous == 2 and index != 2:
             self.simulate.stop()
 
@@ -332,6 +338,12 @@ class Map(QGraphicsView):
         self.setRenderHint(QPainter.Antialiasing)
         self.setFixedSize(800, 800)
 
+        if self.drawing:
+            self.setCursor(Qt.CrossCursor)
+        else:
+            self.setCursor(Qt.ArrowCursor)
+            self.setAcceptDrops(True)
+
     def update(self):
         """Update the scene."""
         self.scene.clear()
@@ -372,7 +384,47 @@ class Map(QGraphicsView):
                     pen, QBrush(QColor("black"))
                 )
 
-                VARIABLE["selected"] = (i, j)
+                VARIABLE["selected"][0] = (i, j)
+            else:
+                msg = QMessageBox()
+                msg.setText("Cannot place animals in water.")
+                msg.exec_()
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasText():
+            event.acceptProposedAction()
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasText():
+            event.acceptProposedAction()
+
+    def dropEvent(self, event):
+        if event.mimeData().hasText():
+            position = self.mapToScene(event.pos())
+            i = int(position.x() // self.size)
+            j = int(position.y() // self.size)
+
+            if VARIABLE["island"][j][i] != "W":
+                self.update()
+
+                pen = QPen(Qt.black)
+                pen.setWidthF(0.1)
+                self.scene.addRect(
+                    i * self.size, j * self.size,
+                    self.size, self.size,
+                    pen, QBrush(QColor("black"))
+                )
+
+                # TODO: Insert image instead of black square (this doesnt work:).
+                # image_path = "src/static/{}.jpg".format(event.mimeData().text())
+                # image = QPixmap(image_path).scaled(self.size, self.size)
+                #
+                # # Add the water image to the scene.
+                # item = QGraphicsPixmapItem(image)
+                # item.setPos(i * self.size, j * self.size)
+                # self.scene.addItem(item)
+
+                VARIABLE["selected"] = [(i, j), event.mimeData().text()]
             else:
                 msg = QMessageBox()
                 msg.setText("Cannot place animals in water.")
@@ -397,6 +449,62 @@ class Map(QGraphicsView):
                     self.size, self.size,
                     pen, QBrush(QColor(VARIABLE['colours'][self.terrain]))
                 )
+
+
+class Species(QLabel):
+    """
+    Class for representing a species that can be dragged and dropped onto the map.
+
+    Parameters
+    ----------
+    pixmap : QPixmap
+        The pixmap to display for the species.
+    species : str
+    """
+    selected = None
+
+    def __init__(self, pixmap, species):
+        super().__init__()
+
+        self.setPixmap(pixmap.scaled(QSize(50, 50), Qt.KeepAspectRatio))
+        self.setFixedSize(50, 50)
+        self.setScaledContents(True)
+        self.setAcceptDrops(True)
+        self.setStyleSheet("background-color: white;")
+
+        # Define the size attribute.
+        self.size = 10
+        self.species = species
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            drag = QDrag(self)
+            mime_data = QMimeData()
+            mime_data.setText(self.species)
+            mime_data.setImageData(self.pixmap().toImage())
+            drag.setMimeData(mime_data)
+            drag.setPixmap(self.pixmap())
+            drag.exec_(Qt.CopyAction)
+
+            if Species.selected is not None:
+                Species.selected.setStyleSheet("")
+
+            Species.selected = self
+            self.setStyleSheet("border: 4px solid #a4ab90")
+
+            VARIABLE["selected"][1] = self.species
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() == Qt.LeftButton:
+            drag = QDrag(self)
+            mime_data = QMimeData()
+            mime_data.setText(self.species)
+            mime_data.setImageData(self.pixmap().toImage())
+            drag.setMimeData(mime_data)
+            drag.setPixmap(self.pixmap())
+            drag.exec_(Qt.CopyAction)
+
+            self.setStyleSheet("")
 
 
 class Populate(QWidget):
@@ -430,15 +538,24 @@ class Populate(QWidget):
         bottom = QVBoxLayout()
 
         # Species selection.
+        # species = QGroupBox()
+        # _species = QVBoxLayout()
+        # species.setLayout(_species)
+        # self.herbivore = QRadioButton("Herbivore")
+        # carnivore = QRadioButton("Carnivore")
+        # _species.addWidget(self.herbivore)
+        # _species.addWidget(carnivore)
+        # _species.setAlignment(Qt.AlignHCenter)
+        # species.setFixedSize(200, 80)  # TODO
         species = QGroupBox()
-        _species = QVBoxLayout()
+        _species = QHBoxLayout()
         species.setLayout(_species)
-        self.herbivore = QRadioButton("Herbivore")
-        carnivore = QRadioButton("Carnivore")
-        _species.addWidget(self.herbivore)
+        herbivore = Species(QPixmap("src/biosim/static/Herbivore.jpg"), "Herbivore")
+        carnivore = Species(QPixmap("src/biosim/static/Carnivore.jpg"), "Carnivore")
+        _species.addWidget(herbivore)
         _species.addWidget(carnivore)
         _species.setAlignment(Qt.AlignHCenter)
-        species.setFixedSize(200, 80)
+        species.setFixedSize(200, 100)
 
         top.addWidget(species)
 
@@ -494,7 +611,7 @@ class Populate(QWidget):
         layout.addLayout(specifications)
 
         self.setLayout(layout)
-        self.herbivore.setChecked(True)
+        # self.herbivore.setChecked(True)  # TODO
         self.selection("R-selected")
 
     def selection(self, name):
@@ -520,7 +637,7 @@ class Populate(QWidget):
                 geogr = "\n".join(geogr)
                 VARIABLE["biosim"].graphics.reset_graphics()
                 VARIABLE["biosim"] = BioSim(island_map=geogr)
-                VARIABLE["selected"] = (None, None)
+                VARIABLE["selected"] = [(None, None), None]
                 VARIABLE["history"].clear()
 
                 msg = QMessageBox()
@@ -533,17 +650,23 @@ class Populate(QWidget):
 
     def populate(self):
         """Populate the island with animals."""
-        j, i = VARIABLE["selected"]
+        j, i = VARIABLE["selected"][0]
 
         if i is None or j is None:
             msg = QMessageBox()
-            msg.setText("Please select a cell by clicking on the map.")
+            msg.setText("Please select a cell by clicking on the map or drag-dropping an animal.")
             msg.exec_()
             return
 
-        species = "Herbivore" if self.herbivore.isChecked() else "Carnivore"
-        age = None
-        weight = 5  # TODO: Endre på denne?
+        species = VARIABLE["selected"][1]
+        if species is None:
+            msg = QMessageBox()
+            msg.setText("Please select a species by clicking or drag-dropping to the map.")
+            msg.exec_()
+            return
+
+        age = 0
+        weight = 5
         amount = int(self.amount.text()) if self.amount.text() else 1
 
         animals = [{
