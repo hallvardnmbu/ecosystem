@@ -538,15 +538,6 @@ class Populate(QWidget):
         bottom = QVBoxLayout()
 
         # Species selection.
-        # species = QGroupBox()
-        # _species = QVBoxLayout()
-        # species.setLayout(_species)
-        # self.herbivore = QRadioButton("Herbivore")
-        # carnivore = QRadioButton("Carnivore")
-        # _species.addWidget(self.herbivore)
-        # _species.addWidget(carnivore)
-        # _species.setAlignment(Qt.AlignHCenter)
-        # species.setFixedSize(200, 80)  # TODO
         species = QGroupBox()
         _species = QHBoxLayout()
         species.setLayout(_species)
@@ -611,7 +602,6 @@ class Populate(QWidget):
         layout.addLayout(specifications)
 
         self.setLayout(layout)
-        # self.herbivore.setChecked(True)  # TODO
         self.selection("R-selected")
 
     def selection(self, name):
