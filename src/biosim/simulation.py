@@ -42,10 +42,6 @@ class BioSim:
         Specify custom colours for the terrain-types.
     terrain_patches : bool
         Whether to show the patch (which colour corresponds to which terrain-type)
-    figure : plt.Figure
-        For 'okologi'-GUI
-    canvas : FigureCanvas
-        For 'okologi'-GUI
 
     Notes
     -----
@@ -92,8 +88,7 @@ class BioSim:
                  img_fmt='png',
                  log_file=None,
                  my_colours=None,
-                 terrain_patches=True,
-                 figure=None, canvas=None):
+                 terrain_patches=True):
         random.seed(seed)
 
         if vis_years == 0 or vis_years is None:
@@ -113,14 +108,15 @@ class BioSim:
                                  img_fmt=img_fmt,
                                  log_file=log_file,
                                  my_colours=my_colours,
-                                 terrain_patches=terrain_patches,
-                                 figure=figure,
-                                 canvas=canvas)
+                                 terrain_patches=terrain_patches)
 
         self.log_file = log_file
         self.n_species = None
         self.n_species_cell = None
         self.should_stop = False
+
+        self.history = {species: {"Age": [], "Weight": [], "Fitness": []}
+                        for species in self.island.species_map}
 
     def set_animal_parameters(self, species, params):
         """
@@ -187,7 +183,7 @@ class BioSim:
         new_parameters = {landscape: params["f_max"]}
         self.island.set_fodder_parameters(new_parameters)
 
-    def simulate(self, num_years, speed=1e-6, figure=None, canvas=None):
+    def simulate(self, num_years, speed=1e-6, figure=None, canvas=None, history=False):
         """
         Run simulation for a given number of years.
 
@@ -201,6 +197,8 @@ class BioSim:
             For 'okologi'-GUI
         canvas : FigureCanvas
             For 'okologi'-GUI
+        history : bool
+            Whether to return the animals' histories.
         """
         simulate_years = num_years + self.year
 
@@ -222,17 +220,24 @@ class BioSim:
             if self.vis_years:
                 if self.year % self.vis_years == 0:
                     animals, self.n_species, self.n_species_cell = self.island.animals()
-                    self.graphics.update_graphics(self.year,
-                                                  self.n_species,
-                                                  self.n_species_cell,
-                                                  animals,
-                                                  canvas=canvas)
+                    _history = self.graphics.update_graphics(self.year,
+                                                             self.n_species,
+                                                             self.n_species_cell,
+                                                             animals,
+                                                             canvas=canvas, history=history)
+                    if history:
+                        for species, _parameter in _history.items():
+                            for parameter, value in _parameter.items():
+                                self.history[species][parameter].append(value)
             else:
                 if self.log_file:
                     _, self.n_species, _ = self.island.animals()
                     self.graphics.save_to_file(self.year, self.n_species)
         if self.vis_years and not canvas:
             plt.draw()
+
+        if history:
+            return self.history
 
     def add_population(self, population):
         """
@@ -244,6 +249,11 @@ class BioSim:
             Adds a population to the island.
         """
         self.island.add_population(population)
+
+    def reset_history(self):
+        """Reset the history of the animals."""
+        self.history = {species: {"Age": [], "Weight": [], "Fitness": []}
+                        for species in self.island.species_map}
 
     def make_movie(self, movie_fmt="mp4"):
         """

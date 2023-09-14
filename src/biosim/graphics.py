@@ -46,10 +46,6 @@ class Graphics:
         Specify custom colours for the terrain-types.
     terrain_patches : bool
         Whether to show the patch (which colour corresponds to which terrain-type)
-    figure : plt.Figure
-        For 'okologi'-GUI
-    canvas : FigureCanvas
-        For 'okologi'-GUI
     """
     def __init__(self,
                  geography,
@@ -63,8 +59,7 @@ class Graphics:
                  img_fmt,
                  log_file,
                  my_colours,
-                 terrain_patches,
-                 figure, canvas):
+                 terrain_patches):
         self.geography = geography
         if vis_years:
             self.vis_years = vis_years
@@ -128,8 +123,7 @@ class Graphics:
         self.gridspec = None
         self._speed = None
         self.final_year = None
-        self._fig = figure
-        self.canvas = canvas
+        self._fig = None
         self._map_plot = None
         self._year_ax = None
         self._line_ax = None
@@ -374,7 +368,8 @@ class Graphics:
                 write = csv.writer(file)
                 write.writerow(["Year", "Herbivores", "Carnivores"])
 
-    def update_graphics(self, year, n_species, n_species_cells, animals, canvas=None):
+    def update_graphics(self, year, n_species, n_species_cells, animals,
+                        canvas=None, history=True):
         r"""
         Updates the graphics with new data for the given year.
 
@@ -401,11 +396,13 @@ class Graphics:
 
         canvas : FigureCanvas
             For 'okologi'-GUI
+        history : bool
+            Whether to return the animals' histories.
         """
         self._update_year_counter(year)
         self._update_line_plot(year, n_species)
         self._update_heatmap(n_species_cells)
-        self._update_animal_features(animals, year)
+        _history = self._update_animal_features(animals, year)
 
         if not canvas:
             self._fig.canvas.flush_events()
@@ -421,6 +418,9 @@ class Graphics:
             loop = QEventLoop()
             QTimer.singleShot(100, loop.quit)
             loop.exec_()
+
+        if history:
+            return _history
 
     def make_movie(self, movie_fmt="mp4"):
         """
@@ -573,12 +573,6 @@ class Graphics:
 
         self._map_plot.imshow(coloured_map)
 
-        # Ticks:
-        # self._map_plot.set_xticks(range(len(self.geography[0])))
-        # self._map_plot.set_xticklabels(range(1, len(self.geography[0]) + 1))
-        # self._map_plot.set_yticks(range(len(self.geography)))
-        # self._map_plot.set_yticklabels(range(1, len(self.geography) + 1))
-
         # Invisible ticks:
         self._map_plot.set_xticks([])
         self._map_plot.set_yticks([])
@@ -622,7 +616,7 @@ class Graphics:
 
         return herb, carn
 
-    def _update_heatmap(self, n_species_cells):
+    def _update_heatmap(self, n_species_cells,):
         """
         Update the heatmap of animal distributions.
 
@@ -653,24 +647,25 @@ class Graphics:
         herbs = animals["Herbivore"]
         carns = animals["Carnivore"]
 
-        herbs_age = [herb.a for herb in herbs]
-        carns_age = [carn.a for carn in carns]
-        herbs_age, _ = np.histogram(herbs_age, bins=self.age_bins)
-        carns_age, _ = np.histogram(carns_age, bins=self.age_bins)
+        herbivores_age = [herb.a for herb in herbs]
+        carnivores_age = [carn.a for carn in carns]
+        herbs_age, _ = np.histogram(herbivores_age, bins=self.age_bins)
+        carns_age, _ = np.histogram(carnivores_age, bins=self.age_bins)
+
+        herbivores_weight = [herb.w for herb in herbs]
+        carnivores_weight = [carn.w for carn in carns]
+        herbs_weight, _ = np.histogram(herbivores_weight, bins=self.weight_bins)
+        carns_weight, _ = np.histogram(carnivores_weight, bins=self.weight_bins)
+
+        herbivores_fitness = [herb.fitness for herb in herbs]
+        carnivores_fitness = [carn.fitness for carn in carns]
+        herbs_fitness, _ = np.histogram(herbivores_fitness, bins=self.fitness_bins)
+        carns_fitness, _ = np.histogram(carnivores_fitness, bins=self.fitness_bins)
+
         self._age_herb.set_data(herbs_age)
         self._age_carn.set_data(carns_age)
-
-        herbs_weight = [herb.w for herb in herbs]
-        carns_weight = [carn.w for carn in carns]
-        herbs_weight, _ = np.histogram(herbs_weight, bins=self.weight_bins)
-        carns_weight, _ = np.histogram(carns_weight, bins=self.weight_bins)
         self._weight_herb.set_data(herbs_weight)
         self._weight_carn.set_data(carns_weight)
-
-        herbs_fitness = [herb.fitness for herb in herbs]
-        carns_fitness = [carn.fitness for carn in carns]
-        herbs_fitness, _ = np.histogram(herbs_fitness, bins=self.fitness_bins)
-        carns_fitness, _ = np.histogram(carns_fitness, bins=self.fitness_bins)
         self._fitness_herb.set_data(herbs_fitness)
         self._fitness_carn.set_data(carns_fitness)
 
@@ -683,6 +678,19 @@ class Graphics:
             self._age_ax.set_ylim([0, _age_ylim])
             self._weight_ax.set_ylim([0, _weight_ylim])
             self._fitness_ax.set_ylim([0, _fitness_ylim])
+
+        n_herbs = len(herbs)
+        n_carns = len(carns)
+        return {"Herbivore": {
+                     "Age": sum(herbivores_age) / n_herbs if n_herbs > 0 else np.nan,
+                     "Weight": sum(herbivores_weight) / n_herbs if n_herbs > 0 else np.nan,
+                     "Fitness": sum(herbivores_fitness) / n_herbs if n_herbs > 0 else np.nan
+                },
+                "Carnivore": {
+                    "Age": sum(carnivores_age) / n_carns if n_carns > 0 else np.nan,
+                    "Weight": sum(carnivores_weight) / n_carns if n_carns > 0 else np.nan,
+                    "Fitness": sum(carnivores_fitness) / n_carns if n_carns > 0 else np.nan}
+                }
 
     def save_to_file(self, year, data):
         """
