@@ -404,8 +404,6 @@ class Map(QGraphicsView):
             j = int(position.y() // self.size)
 
             if VARIABLE["island"][j][i] != "W":
-                self.update()
-
                 selected = VARIABLE["selected"][1]
                 if selected is None:
                     msg = QMessageBox()
@@ -451,8 +449,6 @@ class Map(QGraphicsView):
             j = int(position.y() // self.size)
 
             if VARIABLE["island"][j][i] != "W":
-                self.update()
-
                 path = os.path.dirname(os.path.abspath(__file__))
                 path = os.path.join(path, f"static/{event.mimeData().text()}.jpg")
                 image = QPixmap(path).scaled(self.size, self.size)
