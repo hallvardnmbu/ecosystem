@@ -7,6 +7,7 @@ Released under the MIT License, see included LICENSE file.
 """
 
 
+import os
 import datetime
 from PyQt5.QtCore import Qt, QRect, QRectF, QMimeData, QSize
 from PyQt5.QtGui import QPainter, QPen, QBrush, QColor, QIntValidator, QDrag, QPixmap
@@ -15,7 +16,7 @@ from PyQt5.QtWidgets import (QMainWindow, QTabWidget, QApplication, QWidget,
                              QLabel, QPushButton, QComboBox, QSlider,
                              QGraphicsView, QGraphicsScene,
                              QMessageBox, QTableWidget, QTableWidgetItem,
-                             QGraphicsPixmapItem, QGraphicsItem)
+                             QGraphicsPixmapItem, QInputDialog)
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
@@ -28,7 +29,7 @@ from .island import Island
 
 
 VARIABLE = {"island": ["W" * 21 for _ in range(21)],
-            "selected": (None, None),
+            "selected": [(None, None), None, None],
             "biosim": None,
             "colours": {"W": "#95CBCC",
                         "H": "#E8EC9E",
@@ -243,7 +244,7 @@ class Main(QMainWindow):
             self.populate.plot.update()
             geogr = "\n".join(VARIABLE["island"])
             VARIABLE["biosim"] = BioSim(island_map=geogr)
-            VARIABLE["selected"] = [(None, None), None]
+            VARIABLE["selected"] = [(None, None), None, None]
         elif self.previous == 2 and index != 2:
             self.simulate.stop()
 
@@ -360,7 +361,7 @@ class Map(QGraphicsView):
 
         self.terrain = terrain
         self.drawing = drawing
-        self.size = 10
+        self.size = 100
 
         self.scene = QGraphicsScene(self)
         self.setScene(self.scene)
@@ -405,15 +406,31 @@ class Map(QGraphicsView):
             if VARIABLE["island"][j][i] != "W":
                 self.update()
 
-                pen = QPen(Qt.black)
-                pen.setWidthF(0.1)
-                self.scene.addRect(
-                    i * self.size, j * self.size,
-                    self.size, self.size,
-                    pen, QBrush(QColor("black"))
-                )
+                selected = VARIABLE["selected"][1]
+                if selected is None:
+                    msg = QMessageBox()
+                    msg.setText("Please select a species by clicking or drag-dropping to the map.")
+                    msg.exec_()
+                    return
+
+                path = os.path.dirname(os.path.abspath(__file__))
+                path = os.path.join(path, f"static/{selected}.jpg")
+                image = QPixmap(path).scaled(self.size, self.size)
+
+                item = QGraphicsPixmapItem(image)
+                item.setPos(i * self.size, j * self.size)
+                self.scene.addItem(item)
 
                 VARIABLE["selected"][0] = (i, j)
+
+                num_animals, ok = QInputDialog.getInt(self, "Number of Animals",
+                                                      f"How many?",
+                                                      1, 1, 1000)
+                if ok:
+                    VARIABLE["selected"][2] = num_animals
+                    Populate.populate()
+                else:
+                    VARIABLE["selected"][2] = None
             else:
                 msg = QMessageBox()
                 msg.setText("Cannot place animals in water.")
@@ -436,24 +453,24 @@ class Map(QGraphicsView):
             if VARIABLE["island"][j][i] != "W":
                 self.update()
 
-                pen = QPen(Qt.black)
-                pen.setWidthF(0.1)
-                self.scene.addRect(
-                    i * self.size, j * self.size,
-                    self.size, self.size,
-                    pen, QBrush(QColor("black"))
-                )
+                path = os.path.dirname(os.path.abspath(__file__))
+                path = os.path.join(path, f"static/{event.mimeData().text()}.jpg")
+                image = QPixmap(path).scaled(self.size, self.size)
 
-                # TODO: Insert image instead of black square (this doesnt work:).
-                # image_path = "src/static/{}.jpg".format(event.mimeData().text())
-                # image = QPixmap(image_path).scaled(self.size, self.size)
-                #
-                # # Add the water image to the scene.
-                # item = QGraphicsPixmapItem(image)
-                # item.setPos(i * self.size, j * self.size)
-                # self.scene.addItem(item)
+                item = QGraphicsPixmapItem(image)
+                item.setPos(i * self.size, j * self.size)
+                self.scene.addItem(item)
 
-                VARIABLE["selected"] = [(i, j), event.mimeData().text()]
+                VARIABLE["selected"] = [(i, j), event.mimeData().text(), None]
+
+                num_animals, ok = QInputDialog.getInt(self, "Number of Animals",
+                                                      f"How many?",
+                                                      1, 1, 1000)
+                if ok:
+                    VARIABLE["selected"][2] = num_animals
+                    Populate.populate()
+                else:
+                    VARIABLE["selected"][2] = None
             else:
                 msg = QMessageBox()
                 msg.setText("Cannot place animals in water.")
@@ -495,8 +512,10 @@ class Species(QLabel):
     def __init__(self, pixmap, species):
         super().__init__()
 
-        self.setPixmap(pixmap.scaled(QSize(50, 50), Qt.KeepAspectRatio))
-        self.setFixedSize(50, 50)
+        self.pixmap = pixmap
+
+        self.setPixmap(pixmap.scaled(QSize(100, 100), Qt.KeepAspectRatio))
+        self.setFixedSize(100, 100)
         self.setScaledContents(True)
         self.setAcceptDrops(True)
         self.setStyleSheet("background-color: white;")
@@ -510,9 +529,9 @@ class Species(QLabel):
             drag = QDrag(self)
             mime_data = QMimeData()
             mime_data.setText(self.species)
-            mime_data.setImageData(self.pixmap().toImage())
+            mime_data.setImageData(self.pixmap.toImage())
+            drag.setPixmap(self.pixmap.scaled(QSize(100, 100), Qt.KeepAspectRatio))
             drag.setMimeData(mime_data)
-            drag.setPixmap(self.pixmap())
             drag.exec_(Qt.CopyAction)
 
             if Species.selected is not None:
@@ -528,9 +547,9 @@ class Species(QLabel):
             drag = QDrag(self)
             mime_data = QMimeData()
             mime_data.setText(self.species)
-            mime_data.setImageData(self.pixmap().toImage())
+            mime_data.setImageData(self.pixmap.toImage())
             drag.setMimeData(mime_data)
-            drag.setPixmap(self.pixmap())
+            drag.setPixmap(self.pixmap.scaled(QSize(100, 100), Qt.KeepAspectRatio))
             drag.exec_(Qt.CopyAction)
 
             self.setStyleSheet("")
@@ -545,10 +564,7 @@ class Populate(QWidget):
         self.setWindowTitle("Model herbivores and carnivores on an island")
 
         self.plot = None
-        self.herbivore = None
-        self.add = None
         self.buttons = []
-        self.amount = None
 
         self.initialise()
 
@@ -570,36 +586,14 @@ class Populate(QWidget):
         species = QGroupBox()
         _species = QHBoxLayout()
         species.setLayout(_species)
-        herbivore = Species(QPixmap("src/biosim/static/Herbivore.jpg"), "Herbivore")
-        carnivore = Species(QPixmap("src/biosim/static/Carnivore.jpg"), "Carnivore")
+        path = os.path.dirname(os.path.abspath(__file__))
+        herbivore = Species(QPixmap(os.path.join(path, "static/Herbivore.jpg")), "Herbivore")
+        carnivore = Species(QPixmap(os.path.join(path, "static/Carnivore.jpg")), "Carnivore")
         _species.addWidget(herbivore)
         _species.addWidget(carnivore)
         _species.setAlignment(Qt.AlignHCenter)
-        species.setFixedSize(200, 100)
 
         top.addWidget(species)
-
-        # Amount of animals.
-        amount = QHBoxLayout()
-        label = QLabel("Number of animals:")
-        self.amount = QLineEdit()
-        self.amount.setValidator(QIntValidator())
-        amount.addWidget(label)
-        amount.addWidget(self.amount)
-        amount.setGeometry(QRect(0, 0, 500, 200))
-
-        top.addLayout(amount)
-
-        # Add button.
-        add = QHBoxLayout()
-        self.add = QPushButton("Add")
-        self.add.setFixedSize(200, 100)
-        self.add.setStyleSheet("background-color: #C0C0C0")
-        self.add.clicked.connect(self.populate)
-        add.addWidget(self.add)
-
-        top.addSpacing(20)
-        top.addLayout(add)
 
         # R- and K-selected herbivore buttons.
         selection = QHBoxLayout()
@@ -652,10 +646,11 @@ class Populate(QWidget):
 
         try:
             if VARIABLE["biosim"].island.year != 0:
-                geogr = "\n".join(geogr)
+                VARIABLE["island"] = BioSimGUI.shrink(VARIABLE["island"])
+                geogr = "\n".join(VARIABLE["island"])
                 VARIABLE["biosim"].graphics.reset_graphics()
                 VARIABLE["biosim"] = BioSim(island_map=geogr)
-                VARIABLE["selected"] = [(None, None), None]
+                VARIABLE["selected"] = [(None, None), None, None]
                 VARIABLE["history"].clear()
 
                 msg = QMessageBox()
@@ -666,7 +661,8 @@ class Populate(QWidget):
 
         Herbivore.set_parameters(VARIABLE["selection"][name])
 
-    def populate(self):
+    @staticmethod
+    def populate():
         """Populate the island with animals."""
         j, i = VARIABLE["selected"][0]
 
@@ -685,7 +681,7 @@ class Populate(QWidget):
 
         age = 0
         weight = 5
-        amount = int(self.amount.text()) if self.amount.text() else 1
+        amount = VARIABLE["selected"][2] if VARIABLE["selected"][2] is not None else 1
 
         animals = [{
             "loc": (int(i) + 1, int(j) + 1),
