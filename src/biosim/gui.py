@@ -10,9 +10,9 @@ Released under the MIT License, see included LICENSE file.
 import os
 import datetime
 from PyQt5.QtCore import Qt, QRect, QRectF, QMimeData, QSize
-from PyQt5.QtGui import QPainter, QPen, QBrush, QColor, QIntValidator, QDrag, QPixmap
+from PyQt5.QtGui import QPainter, QPen, QBrush, QColor, QDrag, QPixmap
 from PyQt5.QtWidgets import (QMainWindow, QTabWidget, QApplication, QWidget,
-                             QHBoxLayout, QVBoxLayout, QLineEdit, QGroupBox,
+                             QHBoxLayout, QVBoxLayout, QGroupBox,
                              QLabel, QPushButton, QComboBox, QSlider,
                              QGraphicsView, QGraphicsScene,
                              QMessageBox, QTableWidget, QTableWidgetItem,
@@ -23,9 +23,6 @@ import matplotlib.pyplot as plt
 from .simulation import BioSim
 from .animals import Herbivore, Carnivore
 from .island import Island
-
-
-# TODO: The QMessageBox's may need to be removed if ECOL100 is run from server.
 
 
 VARIABLE = {"island": ["W" * 21 for _ in range(21)],
@@ -258,44 +255,52 @@ class Draw(QWidget):
 
         self.setGeometry(400, 200, 1000, 800)
         self.setWindowTitle("Model herbivores and carnivores on an island")
-        self.setLayout(QVBoxLayout())
+
+        self.layout = QHBoxLayout()
 
         self.plot = Map()
         self.plot.setGeometry(QRect(0, 0, 800, 800))
-        self.layout().addWidget(self.plot)
+        self.layout.addWidget(self.plot)
 
-        self.color_widget = None
+        self.selection = []
 
         self.buttons()
         self.plot.update()
 
+        self.setLayout(self.layout)
+
     def buttons(self):
         """Add buttons to the window."""
-        txt = QLabel("Select terrain type to draw.", self)
-        txt.setGeometry(850, 290, 200, 100)
+        buttons = QVBoxLayout()
+
+        bigger_button = QPushButton("Bigger")
+        bigger_button.setFixedSize(120, 120)
+        bigger_button.setStyleSheet("background-color: #FBFAF5")
+        bigger_button.clicked.connect(self.bigger)
+
+        smaller_button = QPushButton("Smaller")
+        smaller_button.setFixedSize(120, 120)
+        smaller_button.setStyleSheet("background-color: #FBFAF5")
+        smaller_button.clicked.connect(self.smaller)
+
+        buttons.addWidget(bigger_button)
+        buttons.addSpacing(5)
+        buttons.addWidget(smaller_button)
+        buttons.addStretch(1)
 
         # Select terrain type:
         color_map = {"W": "Water", "H": "Highland", "L": "Lowland", "M": "Mountain"}
-        color_layout = QVBoxLayout()
         for name, color in VARIABLE["colours"].items():
-            button = QPushButton(color_map[name], self)
-            button.setFixedSize(100, 100)
+            button = QPushButton(color_map[name])
+            button.setFixedSize(120, 120)
             button.setStyleSheet(f"background-color: {color}")
             button.clicked.connect(lambda _, name=name: self.color_clicked(name))
-            color_layout.addWidget(button)
+            buttons.addWidget(button)
+            buttons.addSpacing(5)
+            self.selection.append(button)
 
-        self.color_widget = QWidget(self)
-        self.color_widget.setLayout(color_layout)
-        self.color_widget.setGeometry(QRect(880, 350, 450, 450))
-
-        # Modify map:
-        bigger_button = QPushButton("Bigger", self)
-        bigger_button.setGeometry(QRect(880, 10, 110, 100))
-        bigger_button.clicked.connect(self.bigger)
-
-        smaller_button = QPushButton("Smaller", self)
-        smaller_button.setGeometry(QRect(880, 120, 110, 100))
-        smaller_button.clicked.connect(self.smaller)
+        buttons.setAlignment(Qt.AlignCenter)
+        self.layout.addLayout(buttons)
 
     def color_clicked(self, name):
         """
@@ -306,7 +311,7 @@ class Draw(QWidget):
         name : str
         """
         self.plot.terrain = name[0]
-        for button in self.color_widget.findChildren(QPushButton):
+        for button in self.selection:
             if button.text()[0] == name:
                 button.setStyleSheet(
                     f"background-color: {VARIABLE['colours'][name[0]]}; border: 2px solid black"
@@ -510,8 +515,8 @@ class Species(QLabel):
 
         self.pixmap = pixmap
 
-        self.setPixmap(pixmap.scaled(QSize(100, 100), Qt.KeepAspectRatio))
-        self.setFixedSize(100, 100)
+        self.setPixmap(pixmap.scaled(QSize(200, 200), Qt.KeepAspectRatio))
+        self.setFixedSize(180, 180)
         self.setScaledContents(True)
         self.setAcceptDrops(True)
         self.setStyleSheet("background-color: white;")
@@ -580,7 +585,7 @@ class Populate(QWidget):
 
         # Species selection.
         species = QGroupBox()
-        _species = QHBoxLayout()
+        _species = QVBoxLayout()
         species.setLayout(_species)
         path = os.path.dirname(os.path.abspath(__file__))
         herbivore = Species(QPixmap(os.path.join(path, "static/Herbivore.jpg")), "Herbivore")
@@ -596,7 +601,7 @@ class Populate(QWidget):
         for name in ["R-selected", "K-selected"]:
             button = QPushButton(name)
             button.setFixedSize(100, 100)
-            button.setStyleSheet("background-color: #C0C0C0")
+            button.setStyleSheet("background-color: #FBFAF5")
             button.clicked.connect(lambda _, name=name: self.selection(name))
             selection.addWidget(button)
             self.buttons.append(button)
@@ -607,7 +612,7 @@ class Populate(QWidget):
         reset = QHBoxLayout()
         _reset = QPushButton("Slaughter population")
         _reset.setFixedSize(200, 100)
-        _reset.setStyleSheet("background-color: #C0C0C0")
+        _reset.setStyleSheet("background-color: #FBFAF5")
         _reset.clicked.connect(self.reset)
         reset.addWidget(_reset)
 
@@ -636,7 +641,7 @@ class Populate(QWidget):
             if button.text() == name:
                 button.setStyleSheet("background-color: #B7BFA1; border: 4px solid #a4ab90")
             else:
-                button.setStyleSheet("background-color: #C0C0C0")
+                button.setStyleSheet("background-color: #FBFAF5")
         VARIABLE["history"].clear()
         VARIABLE["selection"]["current"] = name
 
