@@ -728,11 +728,15 @@ class Simulate(QWidget):
 
         simulate_button = QPushButton("Simulate")
         simulate_button.clicked.connect(self.simulate)
-        simulate_button.setFixedWidth(140)
 
-        pause = QPushButton("Pause simulation")
+        pause = QPushButton("Pause")
         pause.clicked.connect(self.stop)
-        pause.setFixedWidth(140)
+
+        faster = QPushButton("Faster")
+        faster.clicked.connect(self.faster)
+
+        slower = QPushButton("Slower")
+        slower.clicked.connect(self.slower)
 
         reset = QPushButton("Reset years")
         reset.clicked.connect(self.restart_years)
@@ -744,6 +748,8 @@ class Simulate(QWidget):
         simulation.addWidget(self.year)
         simulation.addWidget(simulate_button)
         simulation.addWidget(pause)
+        simulation.addWidget(faster)
+        simulation.addWidget(slower)
         simulation.addSpacing(100)
         simulation.addWidget(reset)
         self.layout().addLayout(simulation)
@@ -792,6 +798,16 @@ class Simulate(QWidget):
     def stop():
         """Stops the simulation."""
         VARIABLE["biosim"].should_stop = True
+
+    @staticmethod
+    def faster():
+        """Increase plot update speed."""
+        VARIABLE["biosim"].graphics._speed /= 2
+
+    @staticmethod
+    def slower():
+        """Decrease plot update speed."""
+        VARIABLE["biosim"].graphics._speed *= 2
 
     def reset(self):
         """Reset the simulation."""
