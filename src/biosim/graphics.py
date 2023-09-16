@@ -194,7 +194,6 @@ class Graphics:
 
         if self._year_ax is None:
             self._year_ax = self._fig.add_subplot(self.gridspec[1:2, :1])
-            self._year_ax.set_xlabel("Iteration count")
             self._year_ax.axis("off")
 
         if self._line_ax is None:
@@ -215,6 +214,7 @@ class Graphics:
                                               color=(0.949, 0.7647, 0.56078),
                                               label="Carnivore")[0]
             self._line_ax.legend()
+            self._line_ax.set_ylabel("# Animals")
         else:
             old_x_herb, old_y_herb = self.n_herbs.get_data()
             old_x_carn, old_y_carn = self.n_carns.get_data()
@@ -523,17 +523,18 @@ class Graphics:
         ----------
         year : int
         """
-        text = "Iteration: {}"
+        length = len(str(self.final_year)) - len(str(year)) + 3
+        text = "Iteration: {:>{}} {:>15}"
         if hasattr(self, "txt"):
             self.txt.remove()
 
         self.txt = self._year_ax.text(0.5, 0.5,
-                                      text.format(year),
+                                      text.format(year, length, ''),
                                       fontsize=10,
                                       horizontalalignment='center',
                                       verticalalignment='center',
                                       transform=self._year_ax.transAxes)
-        self.txt.set_text(text.format(year))
+        self.txt.set_text(text.format(year, length, ''))
 
     def _update_line_plot(self, year, n_animals):
         """
