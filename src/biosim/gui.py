@@ -150,12 +150,14 @@ class BioSimGUI:
 
             # Remove top row(s) if it is only water.
             i = 0
-            while all([cell == "W" for cell in island[i]]) and all([cell == "W" for cell in island[i+1]]):
+            while (all([cell == "W" for cell in island[i]]) and
+                   all([cell == "W" for cell in island[i+1]])):
                 island = island[1:]
 
             # Remove bottom row(s) if it is only water.
             j = len(island) - 1
-            while all([cell == "W" for cell in island[j]]) and all([cell == "W" for cell in island[j-1]]):
+            while (all([cell == "W" for cell in island[j]]) and
+                   all([cell == "W" for cell in island[j-1]])):
                 island = island[:-1]
                 j -= 1
 
@@ -475,7 +477,7 @@ class Map(QGraphicsView):
                 VARIABLE["selected"][0] = (i, j)
 
                 num_animals, ok = QInputDialog.getInt(self, "Number of Animals",
-                                                      f"How many?",
+                                                      "How many?",
                                                       1, 1, 1000)
                 if ok:
                     VARIABLE["selected"][2] = num_animals
@@ -512,7 +514,7 @@ class Map(QGraphicsView):
                 VARIABLE["selected"] = [(i, j), event.mimeData().text(), None]
 
                 num_animals, ok = QInputDialog.getInt(self, "Number of Animals",
-                                                      f"How many?",
+                                                      "How many?",
                                                       1, 1, 1000)
                 if ok:
                     VARIABLE["selected"][2] = num_animals
@@ -949,21 +951,21 @@ class Advanced(QWidget):
         self.label = None
         self.interval = None
         self.values = {
-            "w_birth": (0, 12, 0.5),
-            "sigma_birth": (0, 3, 0.1),
-            "beta": (0, 3, 0.1),
-            "eta": (0, 1, 0.01),
-            "a_half": (0, 80, 5),
-            "phi_age": (0, 1.5, 0.1),
-            "w_half": (0, 15, 1),
-            "phi_weight": (0, 1, 0.1),
-            "mu": (0, 1, 0.1),
-            "gamma": (0, 1, 0.1),
-            "zeta": (0, 10, 0.5),
+            "w_birth": (0, 20, 0.1),
+            "sigma_birth": (0, 10, 0.01),
+            "beta": (0, 5, 0.01),
+            "eta": (0, 3, 0.01),
+            "a_half": (0, 80, 0.5),
+            "phi_age": (0, 10, 0.001),
+            "w_half": (0, 20, 1),
+            "phi_weight": (0, 10, 0.001),
+            "mu": (0, 20, 0.1),
+            "gamma": (0, 3, 0.1),
+            "zeta": (0, 40, 0.1),
             "xi": (0, 3, 0.1),
-            "omega": (0, 1.5, 0.1),
-            "F": (0, 100, 10),
-            "DeltaPhiMax": (5, 50, 5),
+            "omega": (0, 1.5, 0.01),
+            "F": (0, 100, 5),
+            "DeltaPhiMax": (0.1, 100, 0.1),
             "Highland": (0, 1000, 10),
             "H": (0, 1, 1),
             "Lowland": (0, 1000, 10),
@@ -1200,11 +1202,14 @@ class Advanced(QWidget):
         else:
             if species == "Herbivore":
                 current = VARIABLE["selected"][2]
-                Herbivore.set_parameters({parameter:
-                                              VARIABLE["selection"][species][current][parameter]})
+                Herbivore.set_parameters({
+                    parameter: VARIABLE["selection"][species][current][parameter]
+                })
                 value = Herbivore.default_parameters()[parameter]
             elif species == "Carnivore":
-                Carnivore.set_parameters({parameter: Carnivore.default_parameters()[parameter]})
+                Carnivore.set_parameters({
+                    parameter: Carnivore.default_parameters()[parameter]
+                })
                 value = Carnivore.default_parameters()[parameter]
             elif species == "Fodder":
                 parameter = VARIABLE["parameters"]["rename"][parameter]
