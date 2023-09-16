@@ -694,9 +694,18 @@ class Populate(QWidget):
             if VARIABLE["biosim"].island.year != 0:
                 BioSimGUI.restart()
 
+                hist_spec = {"K-selected": {'age': {'max': 45, 'delta': 5},
+                                            'weight': {'max': 300, 'delta': 20},
+                                            'fitness': {'max': 1, 'delta': 0.1}},
+                             "R-selected": {'age': {'max': 45, 'delta': 5},
+                                            'weight': {'max': 60, 'delta': 5},
+                                            'fitness': {'max': 1, 'delta': 0.1}}}
+                VARIABLE["biosim"].graphics.hist_specs = hist_spec[name]
+
                 msg = QMessageBox()
                 msg.setText("Simulation and population has been reset.")
                 msg.exec_()
+
         except AttributeError:
             pass
 
@@ -835,9 +844,6 @@ class Simulate(QWidget):
         VARIABLE["history"] = VARIABLE["biosim"].simulate(years,
                                                           figure=self.fig, canvas=self.canvas,
                                                           history=True)
-
-        print(Herbivore.get_parameters())
-        print(Carnivore.get_parameters())
 
     @staticmethod
     def stop():
