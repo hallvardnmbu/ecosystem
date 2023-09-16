@@ -42,27 +42,61 @@ VARIABLE = {"island": ["W" * 21 for _ in range(21)],
                                       "Growth factor (v_max)": "v_max"}},
             "modified": {},
             "history": {},
-            "selection": {"current": "R-selected",
-                          "R-selected": {"omega": 2.0,  # Høy (unge)dødelighet.
-                                         "w_birth": 2.0,  # Større sannsynlighet for at unger dør
-                                         "sigma_birth": 1.8,  # dersom vekten (fitness) er lav.
-                                         "phi_weight": 0.03,  # Lavere fitness.
-                                         "eta": 0.1,  # Kort levetid (mister mye vekt).
-                                         "gamma": 0.6,  # Tidlig reproduksjon (fitness-avhengig).
-                                         "zeta": 0.15,  # Stor sannsynlighet for unger.
-                                         "F": 1,  # Lavere konkurranse.
-                                         "beta": 10,  # Større vektøkning av mindre mat.
-                                         "mu": 0.5},  # Mer migrasjon.
-                          "K-selected": {"omega": 0.03,
-                                         "w_birth": 15.0,
-                                         "sigma_birth": 1.3,
-                                         "phi_weight": 0.19,
-                                         "eta": 0.02,
-                                         "gamma": 0.09,
-                                         "zeta": 6.8,
-                                         "F": 20,
-                                         "beta": 0.9,
-                                         "mu": 0.1}},
+            "selection": {
+                "Herbivore": {
+                    "R-selected": {
+                        "w_birth": 10,  # Babyvekt ~ 2.6 kg
+                        "sigma_birth": 4,
+                        "zeta": 0.22,  # Barn hvis vekt > 3.08 kg
+                        "xi": 0.42,  # Mister ~ 1.1 kg ved fødsel.
+                        "gamma": 1,  # Føder med p = fitness * gamma.
+                        "F": 20,  # Appetitt.
+                        "beta": 0.05,  # Vektøkning ved mat ~ 1 kg.
+                        "eta": 0.1,  # Mister 10% av vekten per år.
+
+                        "phi_age": 5,  # Levetid ~ 5 år. Fitness synker.
+                        "a_half": 2.5,
+                        "phi_weight": 0.2,
+                        "w_half": 1,
+
+                        "mu": 17,  # Høy spredningsevne.
+                        "omega": 0.3
+                    },
+                    "K-selected": {
+                        "w_birth": 10,  # Babyvekt ~ 280.0 kg
+                        "sigma_birth": 0.03,
+                        "zeta": 35,  # Barn hvis vekt > 350 kg
+                        "xi": 0.3,  # Mister ~ 84 kg ved fødsel.
+                        "gamma": 1.2,  # Føder med p = fitness * gamma.
+                        "F": 75,  # Appetitt.
+                        "beta": 2,  # Vektøkning ved mat ~ 150 kg.
+                        "eta": 0.05,  # Mister 5% av vekten per år.
+
+                        "phi_age": 0.1,  # Fitness.
+                        "a_half": 14,
+                        "phi_weight": 0.4,
+                        "w_half": 2,
+
+                        "mu": 5,  # Spredningsevne.
+                        "omega": 0.09  # Lav dødelighet (lever lenger).
+                    }
+                },
+                "Carnivore": {
+                    "R-selected": {
+                        "beta": 0.75,  # Vektøkning ved mat ~ 1.95 kg.
+                        "omega": 0.8,  # Høy dødelighet.
+                        "DeltaPhiMax": 10,  # Høy aggressivitet.
+                        "F": 50  # Appetitt.
+                    },
+                    "K-selected": {
+                        "beta": 0.09,  # Vektøkning ved mat ~ 108 kg.
+                        "omega": 0.25,  # Lav dødelighet.
+                        "DeltaPhiMax": 10,
+                        "F": 1200,  # Appetitt.
+                        "phi_weight": 7
+                    }
+                }
+            },
             "dir": str(sys._MEIPASS) if getattr(sys, 'frozen', False) else "src/biosim/static"}
 
 VARIABLE["parameters"]["Herbivore"].update({"Movement": Herbivore.default_motion()})
@@ -82,6 +116,9 @@ class BioSimGUI:
         This is made to a class in order to have be visually pleasing (capital letters) without
         "raising" an error.
         """
+        Herbivore.set_parameters(Herbivore.default_parameters())
+        Carnivore.set_parameters(Carnivore.default_parameters())
+
         app = QApplication([])
         window = Main()
         window.show()
@@ -144,6 +181,20 @@ class BioSimGUI:
                 cols += 1
 
         return island
+
+    @staticmethod
+    def restart():
+        VARIABLE["island"] = BioSimGUI.shrink(VARIABLE["island"])
+        geogr = "\n".join(VARIABLE["island"])
+        try:
+            VARIABLE["biosim"].graphics.reset_graphics()
+        except (AttributeError, KeyError):
+            pass
+        VARIABLE["biosim"] = BioSim(island_map=geogr)
+        Herbivore.set_parameters(VARIABLE["selection"]["Herbivore"]["R-selected"])
+        Carnivore.set_parameters(VARIABLE["selection"]["Carnivore"]["R-selected"])
+        VARIABLE["selected"] = [(None, None), None, None]
+        VARIABLE["history"].clear()
 
 
 class Main(QMainWindow):
@@ -238,11 +289,8 @@ class Main(QMainWindow):
         elif index == 4:  # Switching to advanced page.
             self.advanced.update()
         if self.previous == 0 and index != 0:  # Switching from draw page.
-            VARIABLE["island"] = BioSimGUI.shrink(VARIABLE["island"])
+            BioSimGUI.restart()
             self.populate.plot.update()
-            geogr = "\n".join(VARIABLE["island"])
-            VARIABLE["biosim"] = BioSim(island_map=geogr)
-            VARIABLE["selected"] = [(None, None), None, None]
         elif self.previous == 2 and index != 2:
             self.simulate.stop()
 
@@ -640,16 +688,11 @@ class Populate(QWidget):
             else:
                 button.setStyleSheet("background-color: #FBFAF5")
         VARIABLE["history"].clear()
-        VARIABLE["selection"]["current"] = name
+        VARIABLE["selected"][2] = name
 
         try:
             if VARIABLE["biosim"].island.year != 0:
-                VARIABLE["island"] = BioSimGUI.shrink(VARIABLE["island"])
-                geogr = "\n".join(VARIABLE["island"])
-                VARIABLE["biosim"].graphics.reset_graphics()
-                VARIABLE["biosim"] = BioSim(island_map=geogr)
-                VARIABLE["selected"] = [(None, None), None, None]
-                VARIABLE["history"].clear()
+                BioSimGUI.restart()
 
                 msg = QMessageBox()
                 msg.setText("Simulation and population has been reset.")
@@ -657,7 +700,8 @@ class Populate(QWidget):
         except AttributeError:
             pass
 
-        Herbivore.set_parameters(VARIABLE["selection"][name])
+        Herbivore.set_parameters(VARIABLE["selection"]["Herbivore"][name])
+        Carnivore.set_parameters(VARIABLE["selection"]["Carnivore"][name])
 
     @staticmethod
     def populate():
@@ -678,7 +722,7 @@ class Populate(QWidget):
             return
 
         age = 0
-        weight = 5
+        weight = None
         amount = VARIABLE["selected"][2] if VARIABLE["selected"][2] is not None else 1
 
         animals = [{
@@ -791,6 +835,9 @@ class Simulate(QWidget):
         VARIABLE["history"] = VARIABLE["biosim"].simulate(years,
                                                           figure=self.fig, canvas=self.canvas,
                                                           history=True)
+
+        print(Herbivore.get_parameters())
+        print(Carnivore.get_parameters())
 
     @staticmethod
     def stop():
@@ -1146,8 +1193,9 @@ class Advanced(QWidget):
                 )
         else:
             if species == "Herbivore":
-                current = VARIABLE["selection"]["current"]
-                Herbivore.set_parameters({parameter: VARIABLE["selection"][current][parameter]})
+                current = VARIABLE["selected"][2]
+                Herbivore.set_parameters({parameter:
+                                              VARIABLE["selection"][species][current][parameter]})
                 value = Herbivore.default_parameters()[parameter]
             elif species == "Carnivore":
                 Carnivore.set_parameters({parameter: Carnivore.default_parameters()[parameter]})
@@ -1167,11 +1215,12 @@ class Advanced(QWidget):
 
     def reset_all_parameters(self):
         """Reset all parameters to their default values."""
-        current = VARIABLE["selection"]["current"]
-        Herbivore.set_parameters(VARIABLE["selection"][current])
+        current = VARIABLE["selected"][2]
+        Herbivore.set_parameters(VARIABLE["selection"]["Herbivore"][current])
         Herbivore.set_motion(new_stride=Herbivore.default_motion()["stride"],
                              new_movable=Herbivore.default_motion()["movable"])
         Carnivore.set_parameters(Carnivore.default_parameters())
+        Carnivore.set_parameters(VARIABLE["selection"]["Carnivore"][current])
         Carnivore.set_motion(new_stride=Carnivore.default_motion()["stride"],
                              new_movable=Carnivore.default_motion()["movable"])
         Island.set_fodder_parameters(Island.default_fodder_parameters())
