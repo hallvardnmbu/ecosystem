@@ -37,10 +37,12 @@ class Animal:
 
         .. math::
 
-            \mu = \log \left( \frac{{w_{\text{birth}}^2}}{{\sqrt{{\sigma_{\text{birth}}^2
-            + w_{\text{birth}}^2}}}} \right)
+            \mu = \log \left( \frac{{w_{\textrm{birth}}^2}}{{\sqrt{{\sigma_{\textrm{birth}}^2
+            + w_{\textrm{birth}}^2}}}} \right)
 
-            \sigma = \sqrt{\log \left( 1 + \frac{{\sigma_{\text{birth}}^2}}{{w_{\text{birth}}^2}}
+
+            \sigma = \sqrt{\log \left( 1 + \frac{{\sigma_{\textrm{birth}}^2}}{{w_{\textrm{
+            birth}}^2}}
             \right)}
 
         (Retrieved from: https://en.wikipedia.org/wiki/Log-normal_distribution).
@@ -255,7 +257,7 @@ class Animal:
 
             \Phi = \begin{cases}
                         0 & w \leq 0 \\
-                        q^+ (a, a_{\frac{1}{2}}) \times q^-(w, w_{\frac{1}{2}}) & \text{elsewhere}
+                        q^+ (a, a_{\frac{1}{2}}) \times q^-(w, w_{\frac{1}{2}}) & \textrm{elsewhere}
                     \end{cases}
 
             q^\pm (x, x_{\frac{1}{2}}, \phi) = \frac{1}{1 + e^{\pm \phi(x-x_{\frac{1}{2}})}}.
@@ -432,11 +434,11 @@ class Carnivore(Animal):
         .. math::
 
             p = \begin{cases}
-                    0 & \text{if } \Phi_{\text{carn}} \leq \Phi_{\text{herb}} \\
-                    \frac{\Phi_{\text{carn}} - \Phi_{\text{herb}}}{\Delta \Phi_{\text{max}}} &
-                    \text{if } 0 < \Phi_{\text{carn}} - \Phi_{\text{herb}} <
-                    \Delta \Phi_{\text{max}} \\
-                    1 & \text{otherwise}
+                    0 & \textrm{if } \Phi_{\textrm{carn}} \leq \Phi_{\textrm{herb}} \\
+                    \frac{\Phi_{\textrm{carn}} - \Phi_{\textrm{herb}}}{\Delta \Phi_{\textrm{max}}} &
+                    \textrm{if } 0 < \Phi_{\textrm{carn}} - \Phi_{\textrm{herb}} <
+                    \Delta \Phi_{\textrm{max}} \\
+                    1 & \textrm{otherwise}
                 \end{cases}.
         """
         eaten = 0

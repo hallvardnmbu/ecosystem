@@ -6,15 +6,18 @@ Welcome to BioSim's documentation!
    <div style="text-align: justify; font-size: 18px; margin-bottom: 20px;">
       The BioSim package is a framework for modelling biological systems. It is developed as part of
       the course INF200 at the Norwegian University of Life Sciences. The package contains tools for a
-      simple biological simulation, and is designed to be easily extendable. The package is highly
-      customisable, and easy to use.
+      relatively simple biological simulation, and is designed to be easily extendable. The
+      package is highly customisable, and easy to use.
+
+      It has further been improved in order to provide a seamless experience for users taking the
+      ECOL100-course at NMBU.
    </div>
 
 The package can be installed in terminal using the following command:
 
 .. code-block:: bash
 
-   pip install git+https://gitlab.com/nmbu.no/emner/inf200/h2022/june-block-teams/u13_hallvard_thyra/biosim-d13-hallvard-thyra
+   pip install git+https://github.com/hallvardnmbu/BioSim
 
 .. image:: _static/images/abstract_island.png
    :width: 700px

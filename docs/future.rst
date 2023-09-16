@@ -1,12 +1,9 @@
 Future ideas
 ============
 
-The BioSim-package is a reasonably fresh project, and there are many features that are "missing".
-The following list is comprised of a few of these features, that are planned to be implemented in
-the future. Bear in mind that this project is a part of the INF200-course at NMBU, and that there
-is a probability of discontinuation due to the uncertain future of the authors. Feel free,
-however, to contact the authors if you wish to take over the project. So, if time was not of the
-essence, the following features would be implemented:
+The BioSim-package started out as a part of the INF200-course at NMBU. After the course was done,
+the opportunity to continue working on the GUI for the ECOL100-course was given. This is a list
+of the features not yet implemented, but that would be nice to have in the future.
 
 Animals
 -------
@@ -18,7 +15,7 @@ leads to different probabilities of death for the different species in the diffe
 
 * Overpopulation.
 
-Great possibility of death if there are more than X animals in the same cell.
+Certain possibility of death if there are more than X animals in the same cell.
 
 * Sickness.
 
@@ -38,6 +35,7 @@ in the population of the ecosystem.
 
 Different species prefers different terrain types. The probability of migration is therefore
 determined by these preferances, and animals generally move towards the terrains they prefer.
+(Animals already move towards the cell with the most food with a higher probability.)
 
 Cells
 -----
@@ -74,6 +72,6 @@ During a yearly cycle the weather changes. This, in turn, affects the vegetation
 
 * Pack immunity.
 
-If there for instance are 10X Herbivores (contra Carnivores) in a cell, they achieve pack
+If there for instance are 10X Herbivores contra Carnivores in a cell, they achieve pack
 immunity, meaning that the Carnivores are unable to prey on them. Which in turn leads to a higher
 probability of Carnivores dying.

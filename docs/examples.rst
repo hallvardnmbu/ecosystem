@@ -17,9 +17,8 @@ Example simulation (without GUI):
 Example simulation (with GUI):
 ------------------------------
 
-To use the GUI, import :mod:`biosim.gui` and create an instance of the GUI class, specifying the
-desired map size (:code:`instance = BioSimGUI(map_size)`). The GUI will then open in a new window
-when :code:`instance.mainloop()` is called.
+To use the GUI, import :mod:`biosim.gui` and run the following command: :code:`BioSimGUI()`. The
+GUI will then be opened in its own window, and the rest is done throug it.
 
 Some pros and cons of the GUI:
 
@@ -27,27 +26,29 @@ Some pros and cons of the GUI:
 
 * Prevents the user from inputting invalid values.
 
-* A bit clumsy when navigating from the simulation plot back to the GUI.
-
 * Easy to use.
 
-* Able to continue on the previous simulation (as well as add animals), or reset it.
+* Possibility of modifying all animal and landscape parameters.
 
-* Possibility of specifying animal and landscape parameters.
+* Able to continue on the previous simulation. In between simulations, the user may modify the
+  parameters or add animals. There are also options to restart the simulation or to slaughter all
+  animals.
 
-* Not able to specify visualisation parameters.
+* Not able to specify visualisation parameters, as these are updated dynamically.
 
-* Able to navigate back and forth from drawing and simulating.
+* Able to navigate back and forth from drawing and simulating etc.
 
 * Super fun!
+
+OUTDATED VIDEO.
 
 .. raw:: html
 
    <iframe width="700" height="394" src="https://www.youtube.com/embed/1mKAqzywuL8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
-To use the GUI, run the following code (and change :code:`map_size` to your liking):
+Try it out for yourself!:
 
-.. literalinclude:: ../examples/example_with_gui.py
+.. literalinclude:: ../examples/example_gui.py
     :language: python
 
 Example changing species' parameters:

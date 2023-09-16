@@ -2,13 +2,13 @@ On further expansion
 ====================
 
 This package is designed to be easily expandable. Both new species and new terrain-types can be
-added with relative ease.
+added with (relative) ease (depending on the significance of the additions).
 
-In order to modify the species, the following steps are necessary:
+In order to add another species, the following steps are necessary:
 
-* Create a new subspecies with its own parameters and behaviour.
+* Create a new subspecies with its own default parameters and behaviour.
 
-* Update the feed-method in :mod:`island.py` to include the new species.
+* Update the yearly cycle-methods in :mod:`island.py` to include the new species.
 
 * (Optional) Update the graphics-method in :mod:`graphics.py` to include the new species.
 
@@ -16,14 +16,17 @@ In order to modify the terrain-types, the following steps are necessary:
 
 * Add the new terrain-type to :code:`default_fodder_parameters` and :code:`get_fodder_parameter`.
 
+* Add the new terrain to the various places they are needed. Here a search for the standard
+  terrain-types should show you where the new type is needed.
+
 .. raw:: html
 
    <div style="text-align: left; font-size: 30px; margin-bottom: 20px;">
       <b>Examples</b>
    </div>
 
-Adding a new species (without specifying a new feed- and graphics-method):
---------------------------------------------------------------------------
+Adding a new species (without specifying new yearly- and graphics-methods):
+----------------------------------------------------------------------------
 
 * Addition to :mod:`animals.py` (paste at the bottom of the module and modify):
 
@@ -81,12 +84,13 @@ Adding a new species (without specifying a new feed- and graphics-method):
                 Movable terrain.
             """
 
-            return 3, {"H": True, "L": True, "D": True, "W": True}
+            return {"stride": 3,
+                    "movable": {"H": True, "L": True, "M": True, "W": True}}
 
 Here a new species called "Bird" is added. The bird-species has a modified stride-size of 3
 (moves three tiles per year) and can move on all terrain-types.
 
-Adding a new terrain-type ("M" for "Mountain"):
+Adding a new terrain-type ("D" for "Desert"):
 -----------------------------------------------
 
 * :code:`default_fodder_parameters`
@@ -104,7 +108,7 @@ Adding a new terrain-type ("M" for "Mountain"):
                 A dictionary with the default fodder parameters for the different terrain types.
             """
 
-            return {"H": 300, "L": 800, "D": 0, "W": 0, "M": 100}
+            return {"H": 300, "L": 800, "M": 0, "W": 0, "D": 100}
 
 * :code:`get_fodder_parameters`
 
@@ -128,9 +132,9 @@ Adding a new terrain-type ("M" for "Mountain"):
 
             return {"H": cls.H,
                     "L": cls.L,
-                    "D": cls.D,
+                    "M": cls.M,
                     "W": cls.W,
-                    "M": cls.M}[terrain_type]
+                    "D": cls.D}[terrain_type]
 
 From island to mainland:
 ------------------------
@@ -150,7 +154,8 @@ If it is desired to create a mainland-map, it is also necessary to modify :code:
 Notes on changing the GUI:
 --------------------------
 
-If it is desired to change the GUI, contact the authors of this package or try modifying the code
-yourself. As the GUI was meant as a fun side-project, it was not prioritised when it came to
-generalising the code, and was therefore buildt for the specific case of Herbivores and
-Carnivores on an island of terrain-types Lowland, Highland, Desert and Water.
+If it is desired to change the GUI, contact the author (Hallvard H. Lavik) of this package or try
+modifying the code yourself. As the GUI was meant as a fun side-project and for the
+ECOL100-course, it is not as generalised as the rest of the package. It was buildt for
+the specific case of Herbivores and Carnivores on an island of terrain-types Lowland, Highland,
+Mountain and Water.

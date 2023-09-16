@@ -271,10 +271,11 @@ class Island:
 
         Notes
         -----
-        - In order to prevent animals from moving multiple times (say an animal moves from (1,
+        In order to prevent animals from moving multiple times (say an animal moves from (1,
         1) -> (1, 2), we don't want the animal to be able to move again), the movements are
         executed after each cell has been iterated through.
-        - 50% chance of moving if no neighboring cells are preffered.
+
+        50% chance of moving if no neighboring cells are preffered.
         """
         migrating_animals = []
         for cell, pos in self.inhabited_cells.items():
@@ -482,7 +483,7 @@ class Cell:
         self.animals = {cls.__name__: [] for cls in Animal.__subclasses__()}
 
     def grow_fodder(self):
-        """
+        r"""
         Grows fodder in the cell.
 
         Notes
@@ -491,7 +492,9 @@ class Cell:
 
         .. math::
 
-            f_{new} = min(f_{old} + v_max * (1 - \alpha * (f_{max} - f_{old}) / f_{max}), f_{max})
+            f_{\text{new}} = min(f_{\text{old}} + v_{\text{max}} * (1 - \alpha * (f_{\text{max}} - f_{\text{old}}) / f_{
+            \text{max}}), f_{\text{max}})
+
         """
         f_max = Island.get_fodder_parameter(self.cell_type)
         alpha = Island.get_fodder_parameter("alpha")
