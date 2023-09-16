@@ -640,8 +640,8 @@ class Graphics:
         self._carn_plot.cmap.set_bad((1, 1, 1))
 
         if year % 15 == 0:
-            herbs = np.nanmax(herb) + 50
-            carns = np.nanmax(carn) + 50
+            herbs = np.nanmax(herb) + 10
+            carns = np.nanmax(carn) + 10
             self._herb_plot.set_clim(0, herbs)
             self._carn_plot.set_clim(0, carns)
 
