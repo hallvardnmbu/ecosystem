@@ -78,7 +78,7 @@ class Animal:
                 raise TypeError("Stride should be a number.") from err
         else:
             try:
-                stride = cls.stride
+                stride = cls.stride  # noqa
             except AttributeError:
                 cls.stride = cls.default_motion()["stride"]
 
@@ -90,7 +90,7 @@ class Animal:
                 cls.movable[key] = boolean
         else:
             try:
-                movable = cls.movable
+                movable = cls.movable  # noqa
             except AttributeError:
                 cls.movable = cls.default_motion()["movable"]
 

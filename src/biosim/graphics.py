@@ -256,10 +256,10 @@ class Graphics:
                                                    vmin=0,
                                                    vmax=self.cmax_herb)
             self._herb_plot.cmap.set_bad((0, 0, 0))
-            bar = self._fig.colorbar(self._herb_plot,
-                                     ax=self._herb_ax,
-                                     fraction=0.046, pad=0.04)
-            bar.ax.tick_params(labelsize=7)
+            cbar = self._fig.colorbar(self._herb_plot,
+                                      ax=self._herb_ax,
+                                      fraction=0.046, pad=0.04)
+            cbar.ax.tick_params(labelsize=7)
 
         if self._carn_ax is None:
             self._carn_ax = self._fig.add_subplot(self.gridspec[4:7, 18:27])
@@ -280,10 +280,10 @@ class Graphics:
                                                    vmin=0,
                                                    vmax=self.cmax_carn)
             self._carn_plot.cmap.set_bad((0, 0, 0))
-            bar = self._fig.colorbar(self._carn_plot,
-                                     ax=self._carn_ax,
-                                     fraction=0.046, pad=0.04)
-            bar.ax.tick_params(labelsize=7)
+            cbar = self._fig.colorbar(self._carn_plot,
+                                      ax=self._carn_ax,
+                                      fraction=0.046, pad=0.04)
+            cbar.ax.tick_params(labelsize=7)
 
         if self.hist_specs is not None:
             for feature, specs in self.hist_specs.items():
@@ -410,7 +410,7 @@ class Graphics:
         self._update_year_counter(year)
         self._update_line_plot(year, n_species)
         self._update_heatmap(year, n_species_cells)
-        _history = self._update_animal_features(animals, year)
+        _history = self._update_animal_features(animals)
 
         if not canvas:
             self._fig.canvas.flush_events()
@@ -428,6 +428,7 @@ class Graphics:
 
         if history:
             return _history
+        return None
 
     def make_movie(self, movie_fmt="mp4"):
         """
@@ -460,7 +461,7 @@ class Graphics:
                                        '-pix_fmt', 'yuv420p',
                                        f'{_movie_base}.{movie_fmt}'])
             except subprocess.CalledProcessError as err:
-                raise RuntimeError(f'ERROR: convert failed with: {err}')
+                raise RuntimeError(f'ERROR: convert failed with: {err}') from err
         elif movie_fmt == 'gif':
             try:
                 subprocess.check_call([_MAGICK_BINARY,
@@ -469,13 +470,16 @@ class Graphics:
                                        f'{self._img_base}_*.{self._img_fmt}',
                                        f'{_movie_base}.{movie_fmt}'])
             except subprocess.CalledProcessError as err:
-                raise RuntimeError(f'ERROR: convert failed with: {err}')
+                raise RuntimeError(f'ERROR: convert failed with: {err}') from err
         else:
             raise ValueError(f'Unknown movie format: {movie_fmt}')
 
     def reset_counts(self):
         """Resets the animal count plot."""
-        self._line_ax.remove()
+        try:
+            self._line_ax.remove()
+        except AttributeError:
+            return
         self._line_ax = None
 
     def reset_graphics(self):
@@ -513,8 +517,7 @@ class Graphics:
         if self._img_base is None or step % self._img_years != 0:
             return
 
-        plt.savefig('{base}_{num:05d}.{type}'.format(base=self._img_base, num=self._img_ctr,
-                                                     type=self._img_fmt))
+        plt.savefig(f'{self._img_base}_{self._img_ctr:05d}.{self._img_fmt}')
         self._img_ctr += 1
 
     def _update_year_counter(self, year):
@@ -648,13 +651,12 @@ class Graphics:
             self._herb_plot.set_clim(0, herbs)
             self._carn_plot.set_clim(0, carns)
 
-    def _update_animal_features(self, animals, year):
+    def _update_animal_features(self, animals):
         """
         Update the histograms of animal features.
 
         Parameters
         ----------
-        year : int
         animals : dict
             A dictionary with species as keys and lists of animal objects as values.
 
@@ -689,15 +691,13 @@ class Graphics:
         self._fitness_herb.set_data(herbs_fitness)
         self._fitness_carn.set_data(carns_fitness)
 
-        if year % 15 == 0:
+        _age_ylim = max(max(max(herbs_age), max(carns_age)) * 1.1, 0.1)
+        _weight_ylim = max(max(max(herbs_weight), max(carns_weight)) * 1.1, 0.1)
+        _fitness_ylim = max(max(max(herbs_fitness), max(carns_fitness)) * 1.1, 0.1)
 
-            _age_ylim = max(max(max(herbs_age), max(carns_age)) * 1.5, 0.1)
-            _weight_ylim = max(max(max(herbs_weight), max(carns_weight)) * 1.5, 0.1)
-            _fitness_ylim = max(max(max(herbs_fitness), max(carns_fitness)) * 1.5, 0.1)
-
-            self._age_ax.set_ylim([0, _age_ylim])
-            self._weight_ax.set_ylim([0, _weight_ylim])
-            self._fitness_ax.set_ylim([0, _fitness_ylim])
+        self._age_ax.set_ylim([-_age_ylim*0.03, _age_ylim])
+        self._weight_ax.set_ylim([-_weight_ylim*0.03, _weight_ylim])
+        self._fitness_ax.set_ylim([-_fitness_ylim*0.03, _fitness_ylim])
 
         n_herbs = len(herbs)
         n_carns = len(carns)

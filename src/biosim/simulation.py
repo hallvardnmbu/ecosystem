@@ -242,6 +242,8 @@ class BioSim:
 
         if history:
             return self.history
+        else:
+            return None
 
     def add_population(self, population):
         """

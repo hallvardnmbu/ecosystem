@@ -26,7 +26,7 @@ from .island import Island
 
 
 VARIABLE = {"island": ["W" * 21 for _ in range(21)],
-            "selected": [(None, None), None, None],
+            "selected": [(None, None), None, "R-selected"],
             "biosim": None,
             "colours": {"W": "#95CBCC",
                         "H": "#E8EC9E",
@@ -107,6 +107,7 @@ VARIABLE["parameters"]["Fodder"] = {{v: k for k, v
 
 
 class BioSimGUI:
+    """Class for the graphical user interface."""
     def __init__(self):
         """
         Initialises and starts the application.
@@ -150,14 +151,14 @@ class BioSimGUI:
 
             # Remove top row(s) if it is only water.
             i = 0
-            while (all([cell == "W" for cell in island[i]]) and
-                   all([cell == "W" for cell in island[i+1]])):
+            while (all(cell == "W" for cell in island[i]) and
+                   all(cell == "W" for cell in island[i+1])):
                 island = island[1:]
 
             # Remove bottom row(s) if it is only water.
             j = len(island) - 1
-            while (all([cell == "W" for cell in island[j]]) and
-                   all([cell == "W" for cell in island[j-1]])):
+            while (all(cell == "W" for cell in island[j]) and
+                   all(cell == "W" for cell in island[j-1])):
                 island = island[:-1]
                 j -= 1
 
@@ -186,6 +187,7 @@ class BioSimGUI:
 
     @staticmethod
     def restart():
+        """Restart the simulation."""
         VARIABLE["island"] = BioSimGUI.shrink(VARIABLE["island"])
         geogr = "\n".join(VARIABLE["island"])
         try:
@@ -195,7 +197,7 @@ class BioSimGUI:
         VARIABLE["biosim"] = BioSim(island_map=geogr)
         Herbivore.set_parameters(VARIABLE["selection"]["Herbivore"]["R-selected"])
         Carnivore.set_parameters(VARIABLE["selection"]["Carnivore"]["R-selected"])
-        VARIABLE["selected"] = [(None, None), None, None]
+        VARIABLE["selected"] = [(None, None), None, "R-selected"]
         VARIABLE["history"].clear()
 
 
@@ -493,6 +495,10 @@ class Map(QGraphicsView):
         if event.mimeData().hasText():
             event.acceptProposedAction()
 
+    def dragLeaveEvent(self, event):
+        """Prevents warning message when dragged into map and then out again."""
+        return
+
     def dragMoveEvent(self, event):
         if event.mimeData().hasText():
             event.acceptProposedAction()
@@ -511,7 +517,7 @@ class Map(QGraphicsView):
                 item.setPos(i * self.size, j * self.size)
                 self.scene.addItem(item)
 
-                VARIABLE["selected"] = [(i, j), event.mimeData().text(), None]
+                VARIABLE["selected"] = [(i, j), event.mimeData().text(), "R-selected"]
 
                 num_animals, ok = QInputDialog.getInt(self, "Number of Animals",
                                                       "How many?",
@@ -574,6 +580,7 @@ class Species(QLabel):
         self.species = species
 
     def mousePressEvent(self, event):
+        """Handles the mouse press event."""
         if event.button() == Qt.LeftButton:
             drag = QDrag(self)
             mime_data = QMimeData()
@@ -592,6 +599,7 @@ class Species(QLabel):
             VARIABLE["selected"][1] = self.species
 
     def mouseMoveEvent(self, event):
+        """Handles the mouse move event."""
         if event.buttons() == Qt.LeftButton:
             drag = QDrag(self)
             mime_data = QMimeData()
@@ -821,6 +829,7 @@ class Simulate(QWidget):
     @staticmethod
     def restart_years():
         """Clears the population list."""
+        Simulate.stop()
         VARIABLE["biosim"].island.year = 0
         VARIABLE["biosim"].graphics.reset_counts()
         VARIABLE["history"] = {"Herbivore": {"Age": [],
@@ -855,12 +864,18 @@ class Simulate(QWidget):
     @staticmethod
     def faster():
         """Increase plot update speed."""
-        VARIABLE["biosim"].graphics._speed /= 2
+        try:
+            VARIABLE["biosim"].graphics._speed /= 2
+        except TypeError:
+            return
 
     @staticmethod
     def slower():
         """Decrease plot update speed."""
-        VARIABLE["biosim"].graphics._speed *= 2
+        try:
+            VARIABLE["biosim"].graphics._speed *= 2
+        except TypeError:
+            return
 
     def reset(self):
         """Reset the simulation."""

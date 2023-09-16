@@ -176,7 +176,7 @@ class Island:
             animals = location_animals["pop"]
             for animal in animals:
 
-                if animal["species"] not in self.species_map.keys():
+                if animal["species"] not in self.species_map:
                     raise ValueError(f"Invalid species: {animal}.")
                 species = animal["species"]
 
@@ -361,8 +361,7 @@ class Island:
 
         if random.random() < probability:
             return self.cells[new_pos]
-        else:
-            return None
+        return None
 
     def _update_inhabited_cells(self):
         """
@@ -452,7 +451,7 @@ class Island:
         n_animals_per_species = {cls.__name__: 0 for cls in Animal.__subclasses__()}
         n_animals_per_species_per_cell = {pos: {cls.__name__: 0
                                                 for cls in Animal.__subclasses__()}
-                                          for pos in self.cells.keys()}
+                                          for pos in self.cells}
 
         for cell, pos in self.inhabited_cells.items():
             for animal in itertools.chain(*cell.animals.values()):
