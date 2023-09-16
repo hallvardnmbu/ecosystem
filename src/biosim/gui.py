@@ -7,7 +7,7 @@ Released under the MIT License, see included LICENSE file.
 """
 
 
-import os
+import sys
 import datetime
 from PyQt5.QtCore import Qt, QRect, QRectF, QMimeData, QSize
 from PyQt5.QtGui import QPainter, QPen, QBrush, QColor, QDrag, QPixmap
@@ -62,7 +62,8 @@ VARIABLE = {"island": ["W" * 21 for _ in range(21)],
                                          "zeta": 6.8,
                                          "F": 20,
                                          "beta": 0.9,
-                                         "mu": 0.1}}}
+                                         "mu": 0.1}},
+            "dir": str(sys._MEIPASS) if getattr(sys, 'frozen', False) else "src/biosim/static"}
 
 VARIABLE["parameters"]["Herbivore"].update({"Movement": Herbivore.default_motion()})
 VARIABLE["parameters"]["Carnivore"].update({"Movement": Carnivore.default_motion()})
@@ -416,9 +417,7 @@ class Map(QGraphicsView):
                     msg.exec_()
                     return
 
-                path = os.path.dirname(os.path.abspath(__file__))
-                path = os.path.join(path, f"static/{selected}.jpg")
-                image = QPixmap(path).scaled(self.size, self.size)
+                image = QPixmap(VARIABLE["dir"] + f"/{selected}.jpg").scaled(self.size, self.size)
 
                 item = QGraphicsPixmapItem(image)
                 item.setPos(i * self.size, j * self.size)
@@ -454,9 +453,8 @@ class Map(QGraphicsView):
             j = int(position.y() // self.size)
 
             if VARIABLE["island"][j][i] != "W":
-                path = os.path.dirname(os.path.abspath(__file__))
-                path = os.path.join(path, f"static/{event.mimeData().text()}.jpg")
-                image = QPixmap(path).scaled(self.size, self.size)
+                selected = event.mimeData().text()
+                image = QPixmap(VARIABLE["dir"] + f"/{selected}.jpg").scaled(self.size, self.size)
 
                 item = QGraphicsPixmapItem(image)
                 item.setPos(i * self.size, j * self.size)
@@ -587,9 +585,8 @@ class Populate(QWidget):
         species = QGroupBox()
         _species = QVBoxLayout()
         species.setLayout(_species)
-        path = os.path.dirname(os.path.abspath(__file__))
-        herbivore = Species(QPixmap(os.path.join(path, "static/Herbivore.jpg")), "Herbivore")
-        carnivore = Species(QPixmap(os.path.join(path, "static/Carnivore.jpg")), "Carnivore")
+        herbivore = Species(QPixmap(VARIABLE["dir"] + "/Herbivore.jpg"), "Herbivore")
+        carnivore = Species(QPixmap(VARIABLE["dir"] + "/Carnivore.jpg"), "Carnivore")
         _species.addWidget(herbivore)
         _species.addWidget(carnivore)
         _species.setAlignment(Qt.AlignHCenter)
