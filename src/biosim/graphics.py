@@ -256,9 +256,10 @@ class Graphics:
                                                    vmin=0,
                                                    vmax=self.cmax_herb)
             self._herb_plot.cmap.set_bad((0, 0, 0))
-            self._fig.colorbar(self._herb_plot,
-                               ax=self._herb_ax,
-                               fraction=0.046, pad=0.04)
+            bar = self._fig.colorbar(self._herb_plot,
+                                     ax=self._herb_ax,
+                                     fraction=0.046, pad=0.04)
+            bar.ax.tick_params(labelsize=7)
 
         if self._carn_ax is None:
             self._carn_ax = self._fig.add_subplot(self.gridspec[4:7, 18:27])
@@ -279,9 +280,10 @@ class Graphics:
                                                    vmin=0,
                                                    vmax=self.cmax_carn)
             self._carn_plot.cmap.set_bad((0, 0, 0))
-            self._fig.colorbar(self._carn_plot,
-                               ax=self._carn_ax,
-                               fraction=0.046, pad=0.04)
+            bar = self._fig.colorbar(self._carn_plot,
+                                     ax=self._carn_ax,
+                                     fraction=0.046, pad=0.04)
+            bar.ax.tick_params(labelsize=7)
 
         if self.hist_specs is not None:
             for feature, specs in self.hist_specs.items():
