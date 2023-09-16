@@ -3,6 +3,7 @@
 
 import os
 import csv
+import warnings
 import subprocess
 import numpy as np
 from matplotlib import patches
@@ -10,6 +11,8 @@ import matplotlib.pyplot as plt
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QTimer, QEventLoop
 
+
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 _DEFAULT_GRAPHICS_DIR = os.path.join('../..', 'data')
 _FFMPEG_BINARY = "ffmpeg"
@@ -29,9 +32,9 @@ class Graphics:
     ymax_animals : int
         Number specifying y-axis limit for graph showing animal numbers
     cmax_animals : dict
-        Color-scale limits for animal densities, see below
+        Color-scale limits for animal densities.
     hist_specs : dict
-        Specifications for histograms, see below
+        Specifications for histograms.
     img_years : int
         Years between visualizations saved to files (default: vis_years)
     img_dir : str
@@ -312,7 +315,8 @@ class Graphics:
                                                  lw=2)
             self._age_ax.set_ylim([0, 100])
             self._age_ax.set_xlabel('Age')
-            self._age_ax.set_ylabel('')
+            self._age_ax.set_ylabel('# Animals', rotation=90)
+            self._age_ax.set_yticks([])
 
         if self._weight_ax is None:
             weight_counts = np.zeros_like(self.weight_bins[:-1], dtype=float)
@@ -328,6 +332,7 @@ class Graphics:
             self._weight_ax.set_ylim([0, 50])
             self._weight_ax.set_xlabel('Weight')
             self._weight_ax.set_ylabel('')
+            self._weight_ax.set_yticks([])
 
         if self._fitness_ax is None:
             fitness_counts = np.zeros_like(self.fitness_bins[:-1], dtype=float)
@@ -343,6 +348,7 @@ class Graphics:
             self._fitness_ax.set_ylim([0, 100])
             self._fitness_ax.set_xlabel('Fitness')
             self._fitness_ax.set_ylabel('')
+            self._fitness_ax.set_yticks([])
 
         self.setup_log_file() if self._log_file is not None else None
 
@@ -401,7 +407,7 @@ class Graphics:
         """
         self._update_year_counter(year)
         self._update_line_plot(year, n_species)
-        self._update_heatmap(n_species_cells)
+        self._update_heatmap(year, n_species_cells)
         _history = self._update_animal_features(animals, year)
 
         if not canvas:
@@ -615,7 +621,7 @@ class Graphics:
 
         return herb, carn
 
-    def _update_heatmap(self, n_species_cells,):
+    def _update_heatmap(self, year, n_species_cells,):
         """
         Update the heatmap of animal distributions.
 
@@ -632,6 +638,12 @@ class Graphics:
 
         self._herb_plot.cmap.set_bad((1, 1, 1))
         self._carn_plot.cmap.set_bad((1, 1, 1))
+
+        if year % 15 == 0:
+            herbs = np.nanmax(herb) + 50
+            carns = np.nanmax(carn) + 50
+            self._herb_plot.set_clim(0, herbs)
+            self._carn_plot.set_clim(0, carns)
 
     def _update_animal_features(self, animals, year):
         """

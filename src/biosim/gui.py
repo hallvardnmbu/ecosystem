@@ -50,14 +50,14 @@ VARIABLE = {"island": ["W" * 21 for _ in range(21)],
                         "zeta": 0.22,  # Barn hvis vekt > 3.08 kg
                         "xi": 0.42,  # Mister ~ 1.1 kg ved fødsel.
                         "gamma": 1,  # Føder med p = fitness * gamma.
-                        "F": 20,  # Appetitt.
-                        "beta": 0.05,  # Vektøkning ved mat ~ 1 kg.
+                        "F": 100,  # Appetitt.
+                        "beta": 0.01,  # Vektøkning ved mat ~ 1 kg.
                         "eta": 0.1,  # Mister 10% av vekten per år.
 
                         "phi_age": 5,  # Levetid ~ 5 år. Fitness synker.
                         "a_half": 2.5,
-                        "phi_weight": 0.2,
-                        "w_half": 1,
+                        "phi_weight": 0.09,
+                        "w_half": 3,
 
                         "mu": 17,  # Høy spredningsevne.
                         "omega": 0.3
@@ -293,6 +293,7 @@ class Main(QMainWindow):
             self.populate.plot.update()
         elif self.previous == 2 and index != 2:
             self.simulate.stop()
+            self.history.update()
 
         self.previous = index
 
@@ -418,6 +419,7 @@ class Map(QGraphicsView):
         self.size = 100
 
         self.scene = QGraphicsScene(self)
+        self.scene.setBackgroundBrush(QBrush(QColor(VARIABLE['colours']["W"])))
         self.setScene(self.scene)
         self.setRenderHint(QPainter.Antialiasing)
         self.setFixedSize(800, 800)
@@ -431,8 +433,7 @@ class Map(QGraphicsView):
     def update(self):
         """Update the scene."""
         self.scene.clear()
-        pen = QPen(Qt.black)
-        pen.setWidthF(0.1)
+        pen = QPen(Qt.NoPen)
         for j, row in enumerate(VARIABLE["island"]):
             for i, cell in enumerate(row):
                 brush = QBrush(QColor(VARIABLE['colours'][cell]))
@@ -535,8 +536,7 @@ class Map(QGraphicsView):
                                          self.terrain +
                                          VARIABLE["island"][j][i + 1:])
 
-                pen = QPen(Qt.black)
-                pen.setWidthF(0.1)
+                pen = QPen(Qt.NoPen)
                 self.scene.addRect(
                     i * self.size, j * self.size,
                     self.size, self.size,
