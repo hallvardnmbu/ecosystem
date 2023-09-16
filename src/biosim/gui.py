@@ -49,10 +49,10 @@ VARIABLE = {"island": ["W" * 21 for _ in range(21)],
                         "sigma_birth": 4,
                         "zeta": 0.22,  # Barn hvis vekt > 3.08 kg
                         "xi": 0.42,  # Mister ~ 1.1 kg ved fødsel.
-                        "gamma": 1,  # Føder med p = fitness * gamma.
-                        "F": 100,  # Appetitt.
-                        "beta": 0.01,  # Vektøkning ved mat ~ 1 kg.
-                        "eta": 0.1,  # Mister 10% av vekten per år.
+                        "gamma": 0.9,  # Føder med p = fitness * gamma.
+                        "F": 20,  # Appetitt.
+                        "beta": 0.05,  # Vektøkning ved mat ~ 1 kg.
+                        "eta": 0.2,  # Mister 10% av vekten per år.
 
                         "phi_age": 5,  # Levetid ~ 5 år. Fitness synker.
                         "a_half": 2.5,
@@ -60,7 +60,7 @@ VARIABLE = {"island": ["W" * 21 for _ in range(21)],
                         "w_half": 3,
 
                         "mu": 17,  # Høy spredningsevne.
-                        "omega": 0.3
+                        "omega": 0.4
                     },
                     "K-selected": {
                         "w_birth": 10,  # Babyvekt ~ 280.0 kg
