@@ -191,7 +191,7 @@ class Graphics:
 
         if self._year_ax is None:
             self._year_ax = self._fig.add_subplot(self.gridspec[1:2, :1])
-            self._year_ax.set_xlabel("Year count")
+            self._year_ax.set_xlabel("Iteration count")
             self._year_ax.axis("off")
 
         if self._line_ax is None:
@@ -366,7 +366,7 @@ class Graphics:
 
             with open(self._log_file, "w") as file:
                 write = csv.writer(file)
-                write.writerow(["Year", "Herbivores", "Carnivores"])
+                write.writerow(["Iteration", "Herbivores", "Carnivores"])
 
     def update_graphics(self, year, n_species, n_species_cells, animals,
                         canvas=None, history=True):
@@ -517,7 +517,7 @@ class Graphics:
         ----------
         year : int
         """
-        text = "Year: {}"
+        text = "Iteration: {}"
         if hasattr(self, "txt"):
             self.txt.remove()
 

@@ -780,12 +780,12 @@ class Simulate(QWidget):
         slower = QPushButton("Slower")
         slower.clicked.connect(self.slower)
 
-        reset = QPushButton("Reset years")
+        reset = QPushButton("Reset iteration count")
         reset.clicked.connect(self.restart_years)
         reset.setFixedWidth(200)
 
         simulation = QHBoxLayout()
-        simulation.addWidget(QLabel("Number of years to simulate:"))
+        simulation.addWidget(QLabel("Iterations to simulate:"))
         simulation.addWidget(self.years)
         simulation.addWidget(self.year)
         simulation.addWidget(simulate_button)
@@ -922,7 +922,7 @@ class History(QWidget):
                  color=(0.71764, 0.749, 0.63137))
         fit.plot(years, VARIABLE["history"]["Carnivore"]["Fitness"],
                  color=(0.949, 0.7647, 0.56078))
-        fit.set_xlabel("Year")
+        fit.set_xlabel("Iteration")
 
         self.canvas.draw()
 
