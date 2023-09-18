@@ -656,10 +656,12 @@ class Populate(QWidget):
         selection = QHBoxLayout()
         for name in ["R-selected", "K-selected"]:
             button = QPushButton(name)
-            button.setFixedSize(100, 100)
+            button.setFixedSize(95, 95)
             button.setStyleSheet("background-color: #FBFAF5; color: black;")
             button.clicked.connect(lambda _, name=name: self.selection(name))
             selection.addWidget(button)
+            if name == "R-selected":
+                selection.addSpacing(10)
             self.buttons.append(button)
 
         bottom.addLayout(selection)
