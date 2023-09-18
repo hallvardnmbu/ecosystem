@@ -329,12 +329,12 @@ class Draw(QWidget):
 
         bigger_button = QPushButton("Bigger")
         bigger_button.setFixedSize(120, 120)
-        bigger_button.setStyleSheet("background-color: #FBFAF5")
+        bigger_button.setStyleSheet("background-color: #FBFAF5; color: black;")
         bigger_button.clicked.connect(self.bigger)
 
         smaller_button = QPushButton("Smaller")
         smaller_button.setFixedSize(120, 120)
-        smaller_button.setStyleSheet("background-color: #FBFAF5")
+        smaller_button.setStyleSheet("background-color: #FBFAF5; color: black;")
         smaller_button.clicked.connect(self.smaller)
 
         buttons.addWidget(bigger_button)
@@ -347,7 +347,7 @@ class Draw(QWidget):
         for name, color in VARIABLE["colours"].items():
             button = QPushButton(color_map[name])
             button.setFixedSize(120, 120)
-            button.setStyleSheet(f"background-color: {color}")
+            button.setStyleSheet(f"background-color: {color}; color: black;")
             button.clicked.connect(lambda _, name=name: self.color_clicked(name))
             buttons.addWidget(button)
             buttons.addSpacing(5)
@@ -368,11 +368,12 @@ class Draw(QWidget):
         for button in self.selection:
             if button.text()[0] == name:
                 button.setStyleSheet(
-                    f"background-color: {VARIABLE['colours'][name[0]]}; border: 2px solid black"
+                    f"background-color: {VARIABLE['colours'][name[0]]}; color: black; "
+                    f"border: 2px solid black"
                 )
             else:
                 button.setStyleSheet(
-                    f"background-color: {VARIABLE['colours'][button.text()[0]]}"
+                    f"background-color: {VARIABLE['colours'][button.text()[0]]}; color: black;"
                 )
 
     def bigger(self):
@@ -656,7 +657,7 @@ class Populate(QWidget):
         for name in ["R-selected", "K-selected"]:
             button = QPushButton(name)
             button.setFixedSize(100, 100)
-            button.setStyleSheet("background-color: #FBFAF5")
+            button.setStyleSheet("background-color: #FBFAF5; color: black;")
             button.clicked.connect(lambda _, name=name: self.selection(name))
             selection.addWidget(button)
             self.buttons.append(button)
@@ -667,7 +668,7 @@ class Populate(QWidget):
         reset = QHBoxLayout()
         _reset = QPushButton("Slaughter population")
         _reset.setFixedSize(200, 100)
-        _reset.setStyleSheet("background-color: #FBFAF5")
+        _reset.setStyleSheet("background-color: #FBFAF5; color: black;")
         _reset.clicked.connect(self.reset)
         reset.addWidget(_reset)
 
@@ -694,9 +695,10 @@ class Populate(QWidget):
         """
         for button in self.buttons:
             if button.text() == name:
-                button.setStyleSheet("background-color: #B7BFA1; border: 4px solid #a4ab90")
+                button.setStyleSheet("background-color: #B7BFA1; color: black; "
+                                     "border: 4px solid #a4ab90")
             else:
-                button.setStyleSheet("background-color: #FBFAF5")
+                button.setStyleSheet("background-color: #FBFAF5; color: black;")
         VARIABLE["history"].clear()
         VARIABLE["selected"][2] = name
 
