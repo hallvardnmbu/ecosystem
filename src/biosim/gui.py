@@ -26,7 +26,8 @@ from .island import Island
 
 
 VARIABLE = {"island": ["W" * 21 for _ in range(21)],
-            "selected": [(None, None), None, "R-selected"],
+            "selected": {"pos": (int, int), "species": str, "amount": int,
+                         "selection": "R-selected"},
             "biosim": None,
             "colours": {"W": "#95CBCC",
                         "H": "#E8EC9E",
@@ -197,7 +198,6 @@ class BioSimGUI:
         VARIABLE["biosim"] = BioSim(island_map=geogr)
         Herbivore.set_parameters(VARIABLE["selection"]["Herbivore"]["R-selected"])
         Carnivore.set_parameters(VARIABLE["selection"]["Carnivore"]["R-selected"])
-        VARIABLE["selected"] = [(None, None), None, "R-selected"]
         VARIABLE["history"].clear()
 
 
@@ -457,40 +457,7 @@ class Map(QGraphicsView):
             self.mouseMoveEvent(event)
             return
 
-        # Handles selection of cell when populating the island.
-        if event.buttons() == Qt.LeftButton and self.terrain == "SELECT":
-            position = self.mapToScene(event.pos())
-            i = int(position.x() // self.size)
-            j = int(position.y() // self.size)
-
-            if VARIABLE["island"][j][i] != "W":
-                selected = VARIABLE["selected"][1]
-                if selected is None:
-                    msg = QMessageBox()
-                    msg.setText("Please select a species by clicking or drag-dropping to the map.")
-                    msg.exec_()
-                    return
-
-                image = QPixmap(VARIABLE["dir"] + f"/{selected}.jpg").scaled(self.size, self.size)
-
-                item = QGraphicsPixmapItem(image)
-                item.setPos(i * self.size, j * self.size)
-                self.scene.addItem(item)
-
-                VARIABLE["selected"][0] = (i, j)
-
-                num_animals, ok = QInputDialog.getInt(self, "Number of Animals",
-                                                      "How many?",
-                                                      1, 1, 1000)
-                if ok:
-                    VARIABLE["selected"][2] = num_animals
-                    Populate.populate()
-                else:
-                    VARIABLE["selected"][2] = None
-            else:
-                msg = QMessageBox()
-                msg.setText("Cannot place animals in water.")
-                msg.exec_()
+        self.dropEvent(event)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasText():
@@ -505,33 +472,45 @@ class Map(QGraphicsView):
             event.acceptProposedAction()
 
     def dropEvent(self, event):
-        if event.mimeData().hasText():
-            position = self.mapToScene(event.pos())
-            i = int(position.x() // self.size)
-            j = int(position.y() // self.size)
+        position = self.mapToScene(event.pos())
+        i = int(position.x() // self.size)
+        j = int(position.y() // self.size)
 
-            if VARIABLE["island"][j][i] != "W":
-                selected = event.mimeData().text()
-                image = QPixmap(VARIABLE["dir"] + f"/{selected}.jpg").scaled(self.size, self.size)
+        if VARIABLE["island"][j][i] != "W":
+            try:
+                species = event.mimeData().text()
+            except AttributeError:
+                species = VARIABLE["selected"]["species"]
 
-                item = QGraphicsPixmapItem(image)
-                item.setPos(i * self.size, j * self.size)
-                self.scene.addItem(item)
-
-                VARIABLE["selected"] = [(i, j), event.mimeData().text(), "R-selected"]
-
-                num_animals, ok = QInputDialog.getInt(self, "Number of Animals",
-                                                      "How many?",
-                                                      1, 1, 1000)
-                if ok:
-                    VARIABLE["selected"][2] = num_animals
-                    Populate.populate()
-                else:
-                    VARIABLE["selected"][2] = None
+            if species == "Herbivore":
+                selection = "_" + VARIABLE["selected"]["selection"][0]
             else:
-                msg = QMessageBox()
-                msg.setText("Cannot place animals in water.")
-                msg.exec_()
+                selection = ""
+
+            image = QPixmap(VARIABLE["dir"] + f"/{species + selection}.png").scaled(self.size,
+                                                                                    self.size)
+
+            item = QGraphicsPixmapItem(image)
+            item.setPos(i * self.size, j * self.size)
+            self.scene.addItem(item)
+
+            num_animals, ok = QInputDialog.getInt(self, "Number of Animals",
+                                                  "How many?",
+                                                  1, 1, 1000)
+            if ok:
+                VARIABLE["selected"] = {
+                    "pos": (i, j),
+                    "species": species,
+                    "amount": num_animals,
+                    "selection": VARIABLE["selected"]["selection"]
+                }
+                Populate.populate()
+            else:
+                self.scene.removeItem(item)
+        else:
+            msg = QMessageBox()
+            msg.setText("Cannot place animals in water.")
+            msg.exec_()
 
     def mouseMoveEvent(self, event):
         """Executed when the mouse is pressed-moved."""
@@ -574,7 +553,7 @@ class Species(QLabel):
         self.setFixedSize(180, 180)
         self.setScaledContents(True)
         self.setAcceptDrops(True)
-        self.setStyleSheet("background-color: white;")
+        self.setStyleSheet("background-color: #DEDEDE;")
 
         # Define the size attribute.
         self.size = 10
@@ -592,12 +571,15 @@ class Species(QLabel):
             drag.exec_(Qt.CopyAction)
 
             if Species.selected is not None:
-                Species.selected.setStyleSheet("")
+                try:
+                    Species.selected.setStyleSheet("")
+                except RuntimeError:
+                    pass
 
             Species.selected = self
             self.setStyleSheet("border: 4px solid #a4ab90")
 
-            VARIABLE["selected"][1] = self.species
+            VARIABLE["selected"]["species"] = self.species
 
     def mouseMoveEvent(self, event):
         """Handles the mouse move event."""
@@ -622,6 +604,8 @@ class Populate(QWidget):
         self.setWindowTitle("Model herbivores and carnivores on an island")
 
         self.plot = None
+        self.species = None
+        self.herbivore = None
         self.buttons = []
 
         self.initialise()
@@ -641,16 +625,16 @@ class Populate(QWidget):
         bottom = QVBoxLayout()
 
         # Species selection.
-        species = QGroupBox()
-        _species = QVBoxLayout()
-        species.setLayout(_species)
-        herbivore = Species(QPixmap(VARIABLE["dir"] + "/Herbivore.jpg"), "Herbivore")
-        carnivore = Species(QPixmap(VARIABLE["dir"] + "/Carnivore.jpg"), "Carnivore")
-        _species.addWidget(herbivore)
-        _species.addWidget(carnivore)
-        _species.setAlignment(Qt.AlignHCenter)
+        _species = QGroupBox()
+        self.species = QVBoxLayout()
+        _species.setLayout(self.species)
+        self.herbivore = Species(QPixmap(VARIABLE["dir"] + "/Herbivore_R.png"), "Herbivore")
+        carnivore = Species(QPixmap(VARIABLE["dir"] + "/Carnivore.png"), "Carnivore")
+        self.species.addWidget(carnivore)
+        self.species.addWidget(self.herbivore)
+        self.species.setAlignment(Qt.AlignHCenter)
 
-        top.addWidget(species)
+        top.addWidget(_species)
 
         # R- and K-selected herbivore buttons.
         selection = QHBoxLayout()
@@ -701,8 +685,14 @@ class Populate(QWidget):
                                      "border: 4px solid #a4ab90")
             else:
                 button.setStyleSheet("background-color: #FBFAF5; color: black;")
+
         VARIABLE["history"].clear()
-        VARIABLE["selected"][2] = name
+        VARIABLE["selected"]["selection"] = name
+
+        self.species.removeWidget(self.herbivore)
+        img_name = "Herbivore_" + name[0]
+        self.herbivore = Species(QPixmap(VARIABLE["dir"] + f"/{img_name}.png"), "Herbivore")
+        self.species.addWidget(self.herbivore)
 
         try:
             if VARIABLE["biosim"].island.year != 0:
@@ -719,17 +709,34 @@ class Populate(QWidget):
                 msg = QMessageBox()
                 msg.setText("Simulation and population has been reset.")
                 msg.exec_()
-
         except AttributeError:
             pass
 
         Herbivore.set_parameters(VARIABLE["selection"]["Herbivore"][name])
         Carnivore.set_parameters(VARIABLE["selection"]["Carnivore"][name])
 
+        self.update()
+
+    def update(self):
+        """Update the map to correspond with the current selection."""
+        selection = VARIABLE["selected"]["selection"][0]
+
+        herb = QPixmap(VARIABLE["dir"] + f"/Herbivore_{selection}.png").scaled(self.plot.size,
+                                                                               self.plot.size)
+        carn = QPixmap(VARIABLE["dir"] + "/Carnivore.png").scaled(self.plot.size,
+                                                                  self.plot.size).toImage()
+
+        for item in self.plot.scene.items():
+            if isinstance(item, QGraphicsPixmapItem):
+                if item.pixmap().toImage() == herb.toImage() or item.pixmap().toImage() == carn:
+                    pass
+                else:
+                    item.setPixmap(herb)
+
     @staticmethod
     def populate():
         """Populate the island with animals."""
-        j, i = VARIABLE["selected"][0]
+        j, i = VARIABLE["selected"]["pos"]
 
         if i is None or j is None:
             msg = QMessageBox()
@@ -737,7 +744,7 @@ class Populate(QWidget):
             msg.exec_()
             return
 
-        species = VARIABLE["selected"][1]
+        species = VARIABLE["selected"]["species"]
         if species is None:
             msg = QMessageBox()
             msg.setText("Please select a species by clicking or drag-dropping to the map.")
@@ -746,7 +753,7 @@ class Populate(QWidget):
 
         age = 0
         weight = None
-        amount = VARIABLE["selected"][2] if VARIABLE["selected"][2] is not None else 1
+        amount = VARIABLE["selected"]["amount"] if VARIABLE["selected"]["amount"] is not None else 1
 
         animals = [{
             "loc": (int(i) + 1, int(j) + 1),
@@ -756,10 +763,13 @@ class Populate(QWidget):
 
         VARIABLE["biosim"].add_population(animals)
 
-    @staticmethod
-    def reset():
+    def reset(self):
         """Reset the population on the island."""
         VARIABLE["biosim"].island.slaughter()
+
+        for item in self.plot.scene.items():
+            if isinstance(item, QGraphicsPixmapItem):
+                self.plot.scene.removeItem(item)
 
 
 class Simulate(QWidget):
@@ -1220,7 +1230,7 @@ class Advanced(QWidget):
                 )
         else:
             if species == "Herbivore":
-                current = VARIABLE["selected"][2]
+                current = VARIABLE["selected"]["selection"]
                 Herbivore.set_parameters({
                     parameter: VARIABLE["selection"][species][current][parameter]
                 })
@@ -1245,7 +1255,7 @@ class Advanced(QWidget):
 
     def reset_all_parameters(self):
         """Reset all parameters to their default values."""
-        current = VARIABLE["selected"][2]
+        current = VARIABLE["selected"]["selection"]
         Herbivore.set_parameters(VARIABLE["selection"]["Herbivore"][current])
         Herbivore.set_motion(new_stride=Herbivore.default_motion()["stride"],
                              new_movable=Herbivore.default_motion()["movable"])
