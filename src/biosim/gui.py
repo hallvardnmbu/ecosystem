@@ -98,7 +98,7 @@ VARIABLE = {"island": ["W" * 21 for _ in range(21)],
                     }
                 }
             },
-            "dir": str(sys._MEIPASS) if getattr(sys, 'frozen', False) else "src/biosim/static"}
+            "dir": str(sys._MEIPASS) if getattr(sys, 'frozen', False) else "src/biosim/_static"}
 
 VARIABLE["parameters"]["Herbivore"].update({"Movement": Herbivore.default_motion()})
 VARIABLE["parameters"]["Carnivore"].update({"Movement": Carnivore.default_motion()})
