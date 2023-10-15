@@ -139,8 +139,10 @@ class Graphics:
         self.n_carns = None
         self._herb_ax = None
         self._herb_plot = None
+        self._herb_cbar = None
         self._carn_ax = None
         self._carn_plot = None
+        self._carn_cbar = None
 
         self._fitness_ax = None
         self._fitness_plot = None
@@ -260,10 +262,10 @@ class Graphics:
                                                    vmin=0,
                                                    vmax=self.cmax_herb)
             self._herb_plot.cmap.set_bad((0, 0, 0))
-            cbar = self._fig.colorbar(self._herb_plot,
-                                      ax=self._herb_ax,
-                                      fraction=0.046, pad=0.04)
-            cbar.ax.tick_params(labelsize=7)
+            self._herb_cbar = self._fig.colorbar(self._herb_plot,
+                                                 ax=self._herb_ax,
+                                                 fraction=0.046, pad=0.04)
+            self._herb_cbar.ax.tick_params(labelsize=7)
 
         if self._carn_ax is None:
             self._carn_ax = self._fig.add_subplot(self.gridspec[4:7, 18:27])
@@ -284,10 +286,10 @@ class Graphics:
                                                    vmin=0,
                                                    vmax=self.cmax_carn)
             self._carn_plot.cmap.set_bad((0, 0, 0))
-            cbar = self._fig.colorbar(self._carn_plot,
-                                      ax=self._carn_ax,
-                                      fraction=0.046, pad=0.04)
-            cbar.ax.tick_params(labelsize=7)
+            self._carn_cbar = self._fig.colorbar(self._carn_plot,
+                                                 ax=self._carn_ax,
+                                                 fraction=0.046, pad=0.04)
+            self._carn_cbar.ax.tick_params(labelsize=7)
 
         if self.hist_specs is not None:
             for feature, specs in self.hist_specs.items():
@@ -484,7 +486,9 @@ class Graphics:
             self._line_ax.remove()
         except AttributeError:
             return
+        self._line_ax2.remove()
         self._line_ax = None
+        self._line_ax2 = None
 
     def reset_graphics(self):
         """Resets the graphics."""
@@ -494,14 +498,18 @@ class Graphics:
             return
 
         self._line_ax = None
+        self._line_ax2.remove()
+        self._line_ax2 = None
         self._year_ax.remove()
         self._year_ax = None
         self._map_plot.remove()
         self._map_plot = None
         self._herb_ax.remove()
         self._herb_ax = None
+        self._herb_cbar.remove()
         self._carn_ax.remove()
         self._carn_ax = None
+        self._carn_cbar.remove()
         self._fitness_ax.remove()
         self._fitness_ax = None
         self._age_ax.remove()

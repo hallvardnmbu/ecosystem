@@ -8,11 +8,13 @@ Released under the MIT License, see included LICENSE file.
 
 
 import sys
+import math
 import datetime
+from perlin_noise import PerlinNoise
 from PyQt5.QtCore import Qt, QRect, QRectF, QMimeData, QSize
 from PyQt5.QtGui import QPainter, QPen, QBrush, QColor, QDrag, QPixmap
 from PyQt5.QtWidgets import (QMainWindow, QTabWidget, QApplication, QWidget,
-                             QHBoxLayout, QVBoxLayout, QGroupBox,
+                             QHBoxLayout, QVBoxLayout, QGroupBox, QGridLayout,
                              QLabel, QPushButton, QComboBox, QSlider,
                              QGraphicsView, QGraphicsScene,
                              QMessageBox, QTableWidget, QTableWidgetItem,
@@ -24,11 +26,12 @@ from .simulation import BioSim
 from .animals import Herbivore, Carnivore
 from .island import Island
 
-
 VARIABLE = {"island": ["W" * 21 for _ in range(21)],
+            "perlin": {"octaves": 4, "lower": -0.23, "middle": 0.0, "upper": 0.2},
             "selected": {"pos": (int, int), "species": str, "amount": int,
                          "selection": "R-selected"},
             "biosim": None,
+            "speed": 1e-6,
             "colours": {"W": "#95CBCC",
                         "H": "#E8EC9E",
                         "L": "#B9D687",
@@ -84,12 +87,14 @@ VARIABLE = {"island": ["W" * 21 for _ in range(21)],
                 },
                 "Carnivore": {
                     "R-selected": {
+                        "phi_age": 0.2,  # TODO
                         "beta": 0.75,  # Vektøkning ved mat ~ 1.95 kg.
-                        "omega": 0.8,  # Høy dødelighet.
+                        "omega": 0.5,  # Høy dødelighet.
                         "DeltaPhiMax": 10,  # Høy aggressivitet.
                         "F": 50  # Appetitt.
                     },
                     "K-selected": {
+                        "phi_age": 0.3,  # TODO
                         "beta": 0.09,  # Vektøkning ved mat ~ 108 kg.
                         "omega": 0.25,  # Lav dødelighet.
                         "DeltaPhiMax": 10,
@@ -264,22 +269,23 @@ class Main(QMainWindow):
     def change(self, index):
         """Switching to new tabs executes the following."""
         if index == 0:  # Switching to draw page.
-            msg_box = QMessageBox()
-            msg_box.setIcon(QMessageBox.Warning)
-            msg_box.setText(
-                "Are you sure you want to switch to the draw page? This will reset everything."
-            )
-            msg_box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-            msg_box.setDefaultButton(QMessageBox.Cancel)
-            result = msg_box.exec_()
-            if result == QMessageBox.Cancel:
-                self.tabs.setCurrentIndex(self.previous)
-                return
+            if any(cell != "W" for row in VARIABLE["island"] for cell in row):
+                msg_box = QMessageBox()
+                msg_box.setIcon(QMessageBox.Warning)
+                msg_box.setText(
+                    "Are you sure you want to switch to the draw page? This will reset everything."
+                )
+                msg_box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+                msg_box.setDefaultButton(QMessageBox.Cancel)
+                result = msg_box.exec_()
+                if result == QMessageBox.Cancel:
+                    self.tabs.setCurrentIndex(self.previous)
+                    return
 
-            self.simulate.reset()
-            VARIABLE["modified"].clear()
-            VARIABLE["history"].clear()
-            VARIABLE["island"] = ["W" * 21 for _ in range(21)]
+                self.simulate.reset()
+                VARIABLE["modified"].clear()
+                VARIABLE["history"].clear()
+                VARIABLE["island"] = ["W" * 21 for _ in range(21)]
             self.draw.plot.update()
         elif index == 1:  # Switching to populate page.
             self.populate.plot.update()
@@ -327,33 +333,58 @@ class Draw(QWidget):
         """Add buttons to the window."""
         buttons = QVBoxLayout()
 
+        size = 120
+
+        modification_layout = QGridLayout()
+        terrain_layout = QGridLayout()
+
         bigger_button = QPushButton("Bigger")
-        bigger_button.setFixedSize(120, 120)
+        bigger_button.setFixedSize(size, size)
         bigger_button.setStyleSheet("background-color: #FBFAF5; color: black;")
         bigger_button.clicked.connect(self.bigger)
 
         smaller_button = QPushButton("Smaller")
-        smaller_button.setFixedSize(120, 120)
+        smaller_button.setFixedSize(size, size)
         smaller_button.setStyleSheet("background-color: #FBFAF5; color: black;")
         smaller_button.clicked.connect(self.smaller)
 
-        buttons.addWidget(bigger_button)
-        buttons.addSpacing(5)
-        buttons.addWidget(smaller_button)
-        buttons.addStretch(1)
+        autocomplete_button = QPushButton("Autocomplete")
+        autocomplete_button.setFixedSize(size, size)
+        autocomplete_button.setStyleSheet("background-color: #FBFAF5; color: black;")
+        autocomplete_button.clicked.connect(self.autocomplete)
 
-        # Select terrain type:
+        clear_button = QPushButton("Clear")
+        clear_button.setFixedSize(size, size)
+        clear_button.setStyleSheet("background-color: #FBFAF5; color: black;")
+        clear_button.clicked.connect(self.clear)
+
+        modification_layout.addWidget(bigger_button, 0, 0)
+        modification_layout.addWidget(smaller_button, 0, 1)
+        modification_layout.addWidget(autocomplete_button, 1, 0)
+        modification_layout.addWidget(clear_button, 1, 1)
+
+        # Select a terrain type:
         color_map = {"W": "Water", "H": "Highland", "L": "Lowland", "M": "Mountain"}
+        terrain_buttons = {}
         for name, color in VARIABLE["colours"].items():
             button = QPushButton(color_map[name])
-            button.setFixedSize(120, 120)
+            button.setFixedSize(size, size)
             button.setStyleSheet(f"background-color: {color}; color: black;")
             button.clicked.connect(lambda _, name=name: self.color_clicked(name))
-            buttons.addWidget(button)
-            buttons.addSpacing(5)
+            terrain_buttons[name] = button
             self.selection.append(button)
 
+        # Add terrain buttons to the grid layout
+        terrain_layout.addWidget(terrain_buttons["W"], 0, 0)
+        terrain_layout.addWidget(terrain_buttons["H"], 0, 1)
+        terrain_layout.addWidget(terrain_buttons["L"], 1, 0)
+        terrain_layout.addWidget(terrain_buttons["M"], 1, 1)
+
+        buttons.addLayout(modification_layout)
+        buttons.addStretch(1)
+        buttons.addLayout(terrain_layout)
         buttons.setAlignment(Qt.AlignCenter)
+
         self.layout.addLayout(buttons)
 
     def color_clicked(self, name):
@@ -402,6 +433,66 @@ class Draw(QWidget):
         new.append("W" * (len(VARIABLE["island"][0]) - 2))
 
         VARIABLE["island"] = new
+        self.plot.update()
+
+    @staticmethod
+    def center():
+        """Computes the dynamic center based on user's drawings."""
+        drawn = [(i, j) for i, row in enumerate(VARIABLE["island"])
+                 for j, cell in enumerate(row) if cell != "W"]
+
+        if not drawn:
+            return len(VARIABLE["island"]) // 2, len(VARIABLE["island"][0]) // 2
+
+        avg_i = sum(i for i, _ in drawn) / len(drawn)
+        avg_j = sum(j for _, j in drawn) / len(drawn)
+
+        return int(avg_i), int(avg_j)
+
+    def autocomplete(self):
+        """
+        Autocomplete the map based on Perlin noise.
+
+        Notes
+        -----
+        The Perlin noise is based on the distance from the center of the map if the map is empty.
+        If the map contains drawn cells, the Perlin noise is based on the distance from the
+        center of these.
+        """
+        size = len(VARIABLE["island"])
+        center_i, center_j = self.center()
+
+        noise = PerlinNoise(octaves=VARIABLE["perlin"]["octaves"])
+        for i in range(1, size - 1):
+            for j in range(1, size - 1):
+
+                if VARIABLE["island"][i][j] != "W":
+                    continue
+
+                # Perlin noice based on distance from the center of the map (or drawn cells).
+                distance = (math.sqrt((i - center_i) ** 2 + (j - center_j) ** 2) /
+                            math.sqrt(2 * size ** 2))
+                perlin = noise([i / size, j / size]) - distance
+
+                if perlin < VARIABLE["perlin"]["lower"]:
+                    terrain = "W"
+                elif VARIABLE["perlin"]["lower"] <= perlin < VARIABLE["perlin"]["middle"]:
+                    terrain = "L"
+                elif VARIABLE["perlin"]["middle"] <= perlin < VARIABLE["perlin"]["upper"]:
+                    terrain = "H"
+                else:
+                    terrain = "M"
+
+                VARIABLE["island"][i] = (VARIABLE["island"][i][:j] +
+                                         terrain +
+                                         VARIABLE["island"][i][j + 1:])
+
+        self.plot.update()
+
+    def clear(self):
+        """Clear the map."""
+        VARIABLE["island"] = ["W" * len(VARIABLE["island"][0])
+                              for _ in range(len(VARIABLE["island"]))]
         self.plot.update()
 
 
@@ -866,6 +957,7 @@ class Simulate(QWidget):
         years = int(self.years.value())
         VARIABLE["biosim"].should_stop = False
 
+        VARIABLE["biosim"].graphics._speed = VARIABLE["speed"]
         VARIABLE["history"] = VARIABLE["biosim"].simulate(years,
                                                           figure=self.fig, canvas=self.canvas,
                                                           history=True)
@@ -880,6 +972,7 @@ class Simulate(QWidget):
         """Increase plot update speed."""
         try:
             VARIABLE["biosim"].graphics._speed /= 2
+            VARIABLE["speed"] = VARIABLE["biosim"].graphics._speed
         except TypeError:
             return
 
@@ -888,6 +981,7 @@ class Simulate(QWidget):
         """Decrease plot update speed."""
         try:
             VARIABLE["biosim"].graphics._speed *= 2
+            VARIABLE["speed"] = VARIABLE["biosim"].graphics._speed
         except TypeError:
             return
 
@@ -937,23 +1031,37 @@ class History(QWidget):
         fit = self.fig.add_subplot(313)
 
         # set the titles of the subplots
-        old.set_title("Age")
-        thick.set_title("Weight")
-        fit.set_title("Fitness")
+        old.set_title("Average age")
+        thick.set_title("Average weight")
+        fit.set_title("Average fitness")
 
-        old.plot(years, VARIABLE["history"]["Herbivore"]["Age"],
-                 label="Herbivore", color=(0.71764, 0.749, 0.63137))
-        old.plot(years, VARIABLE["history"]["Carnivore"]["Age"],
-                 label="Carnivore", color=(0.949, 0.7647, 0.56078))
-        old.legend()
-        old.set_xticks([])
+        # Plotting the Age data
+        herbivore_age_axis = old
+        herbivore_age_axis.plot(years, VARIABLE["history"]["Herbivore"]["Age"],
+                                label="Herbivore Age", color=(0.71764, 0.749, 0.63137))
 
-        thick.plot(years, VARIABLE["history"]["Herbivore"]["Weight"],
-                   color=(0.71764, 0.749, 0.63137))
-        thick.plot(years, VARIABLE["history"]["Carnivore"]["Weight"],
-                   color=(0.949, 0.7647, 0.56078))
-        thick.set_ylabel("Mean value")
-        thick.set_xticks([])
+        carnivore_age_axis = old.twinx()
+        carnivore_age_axis.plot(years, VARIABLE["history"]["Carnivore"]["Age"],
+                                label="Carnivore Age", color=(0.949, 0.7647, 0.56078))
+
+        herbivore_age_axis.set_ylabel("Herbivore Age")
+        carnivore_age_axis.set_ylabel("Carnivore Age")
+        herbivore_age_axis.legend(loc='upper left', bbox_to_anchor=(0, 1.2))
+        carnivore_age_axis.legend(loc='upper right', bbox_to_anchor=(1, 1.2))
+        herbivore_age_axis.set_xticks([])
+
+        # Plotting the Weight data
+        herbivore_weight_axis = thick
+        herbivore_weight_axis.plot(years, VARIABLE["history"]["Herbivore"]["Weight"],
+                                   label="Herbivore Weight", color=(0.71764, 0.749, 0.63137))
+
+        carnivore_weight_axis = thick.twinx()
+        carnivore_weight_axis.plot(years, VARIABLE["history"]["Carnivore"]["Weight"],
+                                   label="Carnivore Weight", color=(0.949, 0.7647, 0.56078))
+
+        herbivore_weight_axis.set_ylabel("Herbivore Weight")
+        carnivore_weight_axis.set_ylabel("Carnivore Weight")
+        herbivore_weight_axis.set_xticks([])
 
         fit.plot(years, VARIABLE["history"]["Herbivore"]["Fitness"],
                  color=(0.71764, 0.749, 0.63137))

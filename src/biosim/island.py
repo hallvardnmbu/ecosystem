@@ -229,7 +229,7 @@ class Island:
     def feed(self):
         """
         Iterates through all the animals on the island.
-        Herbivores eat before carnivores, and eat fodder. The fittest herbivores eat first.
+        Herbivores eat before carnivores and eat fodder. The fittest herbivores eat first.
         Carnivores eat herbivores. They hunt in random order and prey on the weakest herbivores
         first.
         """
