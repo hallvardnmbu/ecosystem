@@ -1,5 +1,5 @@
 """
-Improved graphical user interface for BioSim.
+Graphical user interface for the BioSim package.
 
 Copyright (c) 2023 Hallvard Høyland Lavik / NMBU
 This file is part of the BioSim-package, adding a more intuitive GUI.
@@ -27,7 +27,10 @@ from .animals import Herbivore, Carnivore
 from .island import Island
 
 VARIABLE = {"island": ["W" * 21 for _ in range(21)],
-            "perlin": {"octaves": 4, "lower": -0.23, "middle": 0.0, "upper": 0.2},
+            "perlin": {"octaves": 4,            # Density of land (higher = more 'islands').
+                       "lower": -0.23,          # Water < 'lower'.
+                       "middle": 0.0,           # 'lower' < Lowland < 'middle'.
+                       "upper": 0.2},           # 'middle' < Highland < 'upper'. Otherwise Mountain.
             "selected": {"pos": (int, int), "species": str, "amount": int,
                          "selection": "R-selected"},
             "biosim": None,
@@ -49,56 +52,56 @@ VARIABLE = {"island": ["W" * 21 for _ in range(21)],
             "selection": {
                 "Herbivore": {
                     "R-selected": {
-                        "w_birth": 10,  # Babyvekt ~ 2.6 kg
+                        "w_birth": 10,          # Babyweight ~ 2.6 kg.
                         "sigma_birth": 4,
-                        "zeta": 0.22,  # Barn hvis vekt > 3.08 kg
-                        "xi": 0.42,  # Mister ~ 1.1 kg ved fødsel.
-                        "gamma": 0.9,  # Føder med p = fitness * gamma.
-                        "F": 20,  # Appetitt.
-                        "beta": 0.05,  # Vektøkning ved mat ~ 1 kg.
-                        "eta": 0.2,  # Mister 10% av vekten per år.
+                        "zeta": 0.22,           # Baby if weight > 3.08 kg.
+                        "xi": 0.42,             # Weightloss ~ 1.1 kg at birth.
+                        "gamma": 0.9,           # Birthprobability p = fitness * gamma.
+                        "F": 20,                # Appetite.
+                        "beta": 0.05,           # Weightincrease when eating ~ 1 kg.
+                        "eta": 0.2,             # Weightloss 10% per year.
 
-                        "phi_age": 5,  # Levetid ~ 5 år. Fitness synker.
+                        "phi_age": 5,           # Life span ~ 5 år. Fitness decreases.
                         "a_half": 2.5,
                         "phi_weight": 0.09,
                         "w_half": 3,
 
-                        "mu": 17,  # Høy spredningsevne.
+                        "mu": 17,               # Rapid movement.
                         "omega": 0.4
                     },
                     "K-selected": {
-                        "w_birth": 10,  # Babyvekt ~ 280.0 kg
+                        "w_birth": 10,          # Babyweight ~ 280.0 kg.
                         "sigma_birth": 0.03,
-                        "zeta": 35,  # Barn hvis vekt > 350 kg
-                        "xi": 0.3,  # Mister ~ 84 kg ved fødsel.
-                        "gamma": 1.2,  # Føder med p = fitness * gamma.
-                        "F": 75,  # Appetitt.
-                        "beta": 2,  # Vektøkning ved mat ~ 150 kg.
-                        "eta": 0.05,  # Mister 5% av vekten per år.
+                        "zeta": 35,             # Baby if weight > 350 kg.
+                        "xi": 0.3,              # Weightloss ~ 84 kg at birth.
+                        "gamma": 1.2,           # Birthprobability p = fitness * gamma.
+                        "F": 75,                # Appetite.
+                        "beta": 2,              # Weightincrease when eating ~ 150 kg.
+                        "eta": 0.05,            # Weightloss 5% per year.
 
-                        "phi_age": 0.1,  # Fitness.
+                        "phi_age": 0.1,         # Fitness.
                         "a_half": 14,
                         "phi_weight": 0.4,
                         "w_half": 2,
 
-                        "mu": 5,  # Spredningsevne.
-                        "omega": 0.09  # Lav dødelighet (lever lenger).
+                        "mu": 5,                # Low movement.
+                        "omega": 0.09           # Low mortality (high life span).
                     }
                 },
                 "Carnivore": {
                     "R-selected": {
-                        "phi_age": 0.2,  # TODO
-                        "beta": 0.75,  # Vektøkning ved mat ~ 1.95 kg.
-                        "omega": 0.5,  # Høy dødelighet.
-                        "DeltaPhiMax": 10,  # Høy aggressivitet.
-                        "F": 50  # Appetitt.
+                        "phi_age": 0.45,
+                        "beta": 0.75,           # Weightincrease when eating ~ 1.95 kg.
+                        "omega": 0.5,           # High mortality.
+                        "DeltaPhiMax": 10,      # High agressivity.
+                        "F": 50                 # Appetite.
                     },
                     "K-selected": {
-                        "phi_age": 0.3,  # TODO
-                        "beta": 0.09,  # Vektøkning ved mat ~ 108 kg.
-                        "omega": 0.25,  # Lav dødelighet.
+                        "phi_age": 0.3,
+                        "beta": 0.09,           # Weightincrease when eating ~ 108 kg.
+                        "omega": 0.25,          # Low mortality.
                         "DeltaPhiMax": 10,
-                        "F": 1200,  # Appetitt.
+                        "F": 1200,              # Appetite.
                         "phi_weight": 7
                     }
                 }
