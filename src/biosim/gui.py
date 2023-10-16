@@ -341,6 +341,8 @@ class Draw(QWidget):
         modification_layout = QGridLayout()
         terrain_layout = QGridLayout()
 
+        # Modification buttons.
+
         bigger_button = QPushButton("Bigger")
         bigger_button.setFixedSize(size, size)
         bigger_button.setStyleSheet("background-color: #FBFAF5; color: black;")
@@ -366,7 +368,8 @@ class Draw(QWidget):
         modification_layout.addWidget(autocomplete_button, 1, 0)
         modification_layout.addWidget(clear_button, 1, 1)
 
-        # Select a terrain type:
+        # Brush selection.
+
         color_map = {"W": "Water", "H": "Highland", "L": "Lowland", "M": "Mountain"}
         terrain_buttons = {}
         for name, color in VARIABLE["colours"].items():
@@ -377,11 +380,12 @@ class Draw(QWidget):
             terrain_buttons[name] = button
             self.selection.append(button)
 
-        # Add terrain buttons to the grid layout
         terrain_layout.addWidget(terrain_buttons["W"], 0, 0)
         terrain_layout.addWidget(terrain_buttons["H"], 0, 1)
         terrain_layout.addWidget(terrain_buttons["L"], 1, 0)
         terrain_layout.addWidget(terrain_buttons["M"], 1, 1)
+
+        # Combining the buttons.
 
         buttons.addLayout(modification_layout)
         buttons.addStretch(1)

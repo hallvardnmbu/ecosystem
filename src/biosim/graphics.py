@@ -182,7 +182,7 @@ class Graphics:
         n_species_cells : dict
             Initial animal population (per cell).
         speed : float
-            Pause between visualisation updates (seconds). Only works when not using the GUI.
+            Pause between visualization updates (seconds). Only works when not using the GUI.
         figure : plt.Figure
             Used for the GUI.
         """

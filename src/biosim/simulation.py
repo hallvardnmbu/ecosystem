@@ -233,6 +233,7 @@ class BioSim:
                         for species, _parameter in _history.items():
                             for parameter, value in _parameter.items():
                                 self.history[species][parameter].append(value)
+                                self.history["n_species"] = self.n_species
             else:
                 if self.log_file:
                     _, self.n_species, _ = self.island.animals()

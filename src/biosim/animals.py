@@ -17,7 +17,7 @@ class Animal:
     Raises
     ------
     ValueError
-        If age or weight are invalid values.
+        If age or weight is invalid values.
     """
     @classmethod
     def birthweight(cls):
@@ -176,9 +176,7 @@ class Animal:
 
     @classmethod
     def _update_w_procreate(cls):
-        """
-        Updates the weight condition of procreation for the species.
-        """
+        """Updates the weight condition of procreation for the species."""
         cls.w_procreate = cls.zeta * (cls.w_birth + cls.sigma_birth)
 
     def __init__(self, weight, age):
@@ -346,7 +344,7 @@ class Herbivore(Animal):
         Parameters
         ----------
         available_fodder : float
-            The amount of fodder available at current location.
+            The amount of fodder available at the current location.
 
         Returns
         -------
