@@ -41,6 +41,7 @@ VARIABLE = {"island": ["W" * 21 for _ in range(21)],
                         "M": "#808080"},
             "parameters": {"Herbivore": Herbivore.default_parameters(),
                            "Carnivore": Carnivore.default_parameters(),
+                           "Fodder": {None},
                            "rename": {"Highland": "H",
                                       "Lowland": "L",
                                       "Mountain": "M",
@@ -61,7 +62,7 @@ VARIABLE = {"island": ["W" * 21 for _ in range(21)],
                         "beta": 0.05,           # Weightincrease when eating ~ 1 kg.
                         "eta": 0.2,             # Weightloss 10% per year.
 
-                        "phi_age": 5,           # Life span ~ 5 år. Fitness decreases.
+                        "phi_age": 5,           # Life span ~ 5 years. Fitness decreases.
                         "a_half": 2.5,
                         "phi_weight": 0.09,
                         "w_half": 3,
@@ -91,8 +92,9 @@ VARIABLE = {"island": ["W" * 21 for _ in range(21)],
                 "Carnivore": {
                     "R-selected": {
                         "phi_age": 0.45,
-                        "beta": 0.75,           # Weightincrease when eating ~ 1.95 kg.
-                        "omega": 0.5,           # High mortality.
+                        "phi_weight": 0.28,
+                        "beta": 0.85,           # Weightincrease when eating ~ 1.95 kg.
+                        "omega": 0.3,           # High mortality.
                         "DeltaPhiMax": 10,      # High agressivity.
                         "F": 50                 # Appetite.
                     },
@@ -288,7 +290,6 @@ class Main(QMainWindow):
                 self.simulate.reset()
                 VARIABLE["modified"].clear()
                 VARIABLE["history"].clear()
-                VARIABLE["island"] = ["W" * 21 for _ in range(21)]
             self.draw.plot.update()
         elif index == 1:  # Switching to populate page.
             self.populate.plot.update()
