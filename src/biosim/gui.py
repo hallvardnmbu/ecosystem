@@ -586,8 +586,11 @@ class Map(QGraphicsView):
             else:
                 selection = ""
 
-            image = QPixmap(VARIABLE["dir"] + f"/{species + selection}.png").scaled(self.size,
-                                                                                    self.size)
+            try:
+                image = QPixmap(VARIABLE["dir"] + f"/{species + selection}.png").scaled(self.size,
+                                                                                        self.size)
+            except TypeError:
+                return
 
             item = QGraphicsPixmapItem(image)
             item.setPos(i * self.size, j * self.size)
