@@ -8,11 +8,12 @@ Released under the MIT License, see included LICENSE file.
 
 
 import sys
+import time
 import math
 import datetime
 from perlin_noise import PerlinNoise
 from PyQt5.QtCore import Qt, QRect, QRectF, QMimeData, QSize
-from PyQt5.QtGui import QPainter, QPen, QBrush, QColor, QDrag, QPixmap
+from PyQt5.QtGui import QPainter, QPen, QBrush, QColor, QDrag, QPixmap, QIcon
 from PyQt5.QtWidgets import (QMainWindow, QTabWidget, QApplication, QWidget,
                              QHBoxLayout, QVBoxLayout, QGroupBox, QGridLayout,
                              QLabel, QPushButton, QComboBox, QSlider,
@@ -93,17 +94,17 @@ VARIABLE = {"island": ["W" * 21 for _ in range(21)],
                     "R-selected": {
                         "phi_age": 0.45,
                         "phi_weight": 0.28,
-                        "beta": 0.85,           # Weightincrease when eating ~ 1.95 kg.
+                        "beta": 0.6,           # Weightincrease when eating ~ X kg.
                         "omega": 0.3,           # High mortality.
                         "DeltaPhiMax": 10,      # High agressivity.
-                        "F": 50                 # Appetite.
+                        "F": 70                 # Appetite.
                     },
                     "K-selected": {
                         "phi_age": 0.3,
-                        "beta": 0.09,           # Weightincrease when eating ~ 108 kg.
+                        "beta": 0.03,           # Weightincrease when eating ~ X kg.
                         "omega": 0.25,          # Low mortality.
                         "DeltaPhiMax": 10,
-                        "F": 1200,              # Appetite.
+                        "F": 2000,              # Appetite.
                         "phi_weight": 7
                     }
                 }
@@ -132,6 +133,11 @@ class BioSimGUI:
         Carnivore.set_parameters(Carnivore.default_parameters())
 
         app = QApplication([])
+        app.setStyleSheet("""
+            QPushButton {
+                background-color: #FBFAF5;
+            }
+        """)
         window = Main()
         window.show()
         app.exec_()
@@ -217,7 +223,7 @@ class Main(QMainWindow):
         super().__init__()
 
         self.setGeometry(400, 200, 1000, 820)
-        self.setWindowTitle("Model herbivores and carnivores on an island")
+        self.setWindowTitle("Modeller plante- og kjøttetere på en øy")
 
         # Create the tabs:
         self.tabs = QTabWidget()
@@ -230,7 +236,7 @@ class Main(QMainWindow):
 
         self.draw = Draw()
         draw_layout.addWidget(self.draw)
-        self.tabs.addTab(self.draw, 'Draw')
+        self.tabs.addTab(self.draw, 'Tegn')
 
         # Populate:
         populate_widget = QWidget()
@@ -239,7 +245,7 @@ class Main(QMainWindow):
 
         self.populate = Populate()
         populate_layout.addWidget(self.populate)
-        self.tabs.addTab(self.populate, 'Populate')
+        self.tabs.addTab(self.populate, 'Befolk')
 
         # Simulate:
         simulate_widget = QWidget()
@@ -248,7 +254,7 @@ class Main(QMainWindow):
 
         self.simulate = Simulate()
         simulate_layout.addWidget(self.simulate)
-        self.tabs.addTab(self.simulate, 'Simulate')
+        self.tabs.addTab(self.simulate, 'Simuler')
 
         # History:
         history_widget = QWidget()
@@ -257,7 +263,7 @@ class Main(QMainWindow):
 
         self.history = History()
         history_layout.addWidget(self.history)
-        self.tabs.addTab(self.history, 'History')
+        self.tabs.addTab(self.history, 'Historie')
 
         # Advanced:
         advanced_widget = QWidget()
@@ -266,7 +272,7 @@ class Main(QMainWindow):
 
         self.advanced = Advanced()
         advanced_layout.addWidget(self.advanced)
-        self.tabs.addTab(self.advanced, 'Advanced settings')
+        self.tabs.addTab(self.advanced, 'Innstillinger')
 
         self.previous = 0
         self.tabs.currentChanged.connect(self.change)
@@ -278,7 +284,7 @@ class Main(QMainWindow):
                 msg_box = QMessageBox()
                 msg_box.setIcon(QMessageBox.Warning)
                 msg_box.setText(
-                    "Are you sure you want to switch to the draw page? This will reset everything."
+                    "Er du sikker på at du vil tegne? Dette nullstiller alt."
                 )
                 msg_box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
                 msg_box.setDefaultButton(QMessageBox.Cancel)
@@ -294,9 +300,15 @@ class Main(QMainWindow):
         elif index == 1:  # Switching to populate page.
             self.populate.plot.update()
         elif index == 2:  # Switching to simulate page.
+            if not VARIABLE["biosim"]:
+                BioSimGUI.restart()
             try:
                 VARIABLE["biosim"].should_stop = False
             except AttributeError:
+                pass
+            try:
+                self.simulate.simulate()
+            except:
                 pass
         elif index == 3:  # Switching to history page.
             self.history.update()
@@ -304,9 +316,13 @@ class Main(QMainWindow):
             self.advanced.update()
         if self.previous == 0 and index != 0:  # Switching from draw page.
             BioSimGUI.restart()
-            self.populate.plot.update()
+            try:
+                self.populate.plot.update()
+            except AttributeError:
+                pass
         elif self.previous == 2 and index != 2:
             self.simulate.stop()
+            time.sleep(2)
             self.history.update()
 
         self.previous = index
@@ -318,7 +334,7 @@ class Draw(QWidget):
         super().__init__()
 
         self.setGeometry(400, 200, 1000, 800)
-        self.setWindowTitle("Model herbivores and carnivores on an island")
+        self.setWindowTitle("Modeller plante- og kjøttetere på en øy")
 
         self.layout = QHBoxLayout()
 
@@ -344,23 +360,31 @@ class Draw(QWidget):
 
         # Modification buttons.
 
-        bigger_button = QPushButton("Bigger")
+        bigger_button = QPushButton()
         bigger_button.setFixedSize(size, size)
+        bigger_button.setIcon(QIcon(VARIABLE["dir"] + "/zoom-out.png"))
+        bigger_button.setIconSize(QSize(size//3, size//3))
         bigger_button.setStyleSheet("background-color: #FBFAF5; color: black;")
         bigger_button.clicked.connect(self.bigger)
 
-        smaller_button = QPushButton("Smaller")
+        smaller_button = QPushButton()
         smaller_button.setFixedSize(size, size)
+        smaller_button.setIcon(QIcon(VARIABLE["dir"] + "/zoom-in.png"))
+        smaller_button.setIconSize(QSize(size//3, size//3))
         smaller_button.setStyleSheet("background-color: #FBFAF5; color: black;")
         smaller_button.clicked.connect(self.smaller)
 
-        autocomplete_button = QPushButton("Autocomplete")
+        autocomplete_button = QPushButton()
         autocomplete_button.setFixedSize(size, size)
+        autocomplete_button.setIcon(QIcon(VARIABLE["dir"] + "/stars.png"))
+        autocomplete_button.setIconSize(QSize(size // 2, size // 2))
         autocomplete_button.setStyleSheet("background-color: #FBFAF5; color: black;")
         autocomplete_button.clicked.connect(self.autocomplete)
 
-        clear_button = QPushButton("Clear")
+        clear_button = QPushButton()
         clear_button.setFixedSize(size, size)
+        clear_button.setIcon(QIcon(VARIABLE["dir"] + "/delete.png"))
+        clear_button.setIconSize(QSize(size // 3, size // 3))
         clear_button.setStyleSheet("background-color: #FBFAF5; color: black;")
         clear_button.clicked.connect(self.clear)
 
@@ -371,9 +395,11 @@ class Draw(QWidget):
 
         # Brush selection.
 
-        color_map = {"W": "Water", "H": "Highland", "L": "Lowland", "M": "Mountain"}
+        color_map = {"V": "Vann", "H": "Høyland", "L": "Lavland", "F": "Fjell"}
+        mapping = {"W": "V", "H": "H", "L": "L", "M": "F"}
         terrain_buttons = {}
         for name, color in VARIABLE["colours"].items():
+            name = mapping[name]
             button = QPushButton(color_map[name])
             button.setFixedSize(size, size)
             button.setStyleSheet(f"background-color: {color}; color: black;")
@@ -381,10 +407,10 @@ class Draw(QWidget):
             terrain_buttons[name] = button
             self.selection.append(button)
 
-        terrain_layout.addWidget(terrain_buttons["W"], 0, 0)
+        terrain_layout.addWidget(terrain_buttons["V"], 0, 0)
         terrain_layout.addWidget(terrain_buttons["H"], 0, 1)
         terrain_layout.addWidget(terrain_buttons["L"], 1, 0)
-        terrain_layout.addWidget(terrain_buttons["M"], 1, 1)
+        terrain_layout.addWidget(terrain_buttons["F"], 1, 1)
 
         # Combining the buttons.
 
@@ -403,16 +429,18 @@ class Draw(QWidget):
         ----------
         name : str
         """
-        self.plot.terrain = name[0]
+        mapping = {"V": "W", "H": "H", "L": "L", "F": "M"}
+        self.plot.terrain = mapping[name[0]]
         for button in self.selection:
             if button.text()[0] == name:
                 button.setStyleSheet(
-                    f"background-color: {VARIABLE['colours'][name[0]]}; color: black; "
+                    f"background-color: {VARIABLE['colours'][mapping[name[0]]]}; color: black; "
                     f"border: 2px solid black"
                 )
             else:
                 button.setStyleSheet(
-                    f"background-color: {VARIABLE['colours'][button.text()[0]]}; color: black;"
+                    f"background-color: {VARIABLE['colours'][mapping[button.text()[0]]]}; color: "
+                    f"black;"
                 )
 
     def bigger(self):
@@ -596,8 +624,8 @@ class Map(QGraphicsView):
             item.setPos(i * self.size, j * self.size)
             self.scene.addItem(item)
 
-            num_animals, ok = QInputDialog.getInt(self, "Number of Animals",
-                                                  "How many?",
+            num_animals, ok = QInputDialog.getInt(self, "Antall dyr",
+                                                  "Hvor mange?",
                                                   1, 1, 1000)
             if ok:
                 VARIABLE["selected"] = {
@@ -611,7 +639,7 @@ class Map(QGraphicsView):
                 self.scene.removeItem(item)
         else:
             msg = QMessageBox()
-            msg.setText("Cannot place animals in water.")
+            msg.setText("Dyr kan ikke plasseres i vann.")
             msg.exec_()
 
     def mouseMoveEvent(self, event):
@@ -739,9 +767,13 @@ class Populate(QWidget):
         top.addWidget(_species)
 
         # R- and K-selected herbivore buttons.
+        text = QLabel("SELEKSJON")
+        text.setAlignment(Qt.AlignCenter)
+        text.setStyleSheet("font-size: 20px;"
+                           "font-weight: bold;")
         selection = QHBoxLayout()
         for name in ["R-selected", "K-selected"]:
-            button = QPushButton(name)
+            button = QPushButton(name[0])
             button.setFixedSize(95, 95)
             button.setStyleSheet("background-color: #FBFAF5; color: black;")
             button.clicked.connect(lambda _, name=name: self.selection(name))
@@ -750,11 +782,12 @@ class Populate(QWidget):
                 selection.addSpacing(10)
             self.buttons.append(button)
 
+        bottom.addWidget(text)
         bottom.addLayout(selection)
 
         # Reset button.
         reset = QHBoxLayout()
-        _reset = QPushButton("Slaughter population")
+        _reset = QPushButton("Nullstill")
         _reset.setFixedSize(200, 100)
         _reset.setStyleSheet("background-color: #FBFAF5; color: black;")
         _reset.clicked.connect(self.reset)
@@ -782,7 +815,7 @@ class Populate(QWidget):
             Text of the button that was clicked.
         """
         for button in self.buttons:
-            if button.text() == name:
+            if button.text() == name[0]:
                 button.setStyleSheet("background-color: #B7BFA1; color: black; "
                                      "border: 4px solid #a4ab90")
             else:
@@ -809,7 +842,7 @@ class Populate(QWidget):
                 VARIABLE["biosim"].graphics.hist_specs = hist_spec[name]
 
                 msg = QMessageBox()
-                msg.setText("Simulation and population has been reset.")
+                msg.setText("Simulasjon og populasjon har blitt nullstilt.")
                 msg.exec_()
         except AttributeError:
             pass
@@ -896,31 +929,31 @@ class Simulate(QWidget):
         self.years = QSlider(Qt.Horizontal)
         self.years.setMinimum(1)
         self.years.setMaximum(1000)
-        self.years.setValue(100)
+        self.years.setValue(200)
         self.years.valueChanged.connect(self._years)
         self.years.setFixedWidth(200)
         self.year = QLabel()
         self.year.setFixedWidth(40)
         self._years()
 
-        simulate_button = QPushButton("Simulate")
+        simulate_button = QPushButton("Simulér")
         simulate_button.clicked.connect(self.simulate)
 
         pause = QPushButton("Pause")
         pause.clicked.connect(self.stop)
 
-        faster = QPushButton("Faster")
+        faster = QPushButton("Raskere")
         faster.clicked.connect(self.faster)
 
-        slower = QPushButton("Slower")
+        slower = QPushButton("Treigere")
         slower.clicked.connect(self.slower)
 
-        reset = QPushButton("Reset iteration count")
+        reset = QPushButton("Nullstill")
         reset.clicked.connect(self.restart_years)
         reset.setFixedWidth(200)
 
         simulation = QHBoxLayout()
-        simulation.addWidget(QLabel("Iterations to simulate:"))
+        simulation.addWidget(QLabel("Iterasjoner å simulere:"))
         simulation.addWidget(self.years)
         simulation.addWidget(self.year)
         simulation.addWidget(simulate_button)
@@ -942,12 +975,11 @@ class Simulate(QWidget):
         self.canvas = FigureCanvas(self.fig)
         self.layout().addWidget(self.canvas)
 
-    @staticmethod
-    def restart_years():
+    def restart_years(self):
         """Clears the population list."""
         Simulate.stop()
         VARIABLE["biosim"].island.year = 0
-        VARIABLE["biosim"].graphics.reset_counts()
+        # VARIABLE["biosim"].graphics.reset_counts()
         VARIABLE["history"] = {"Herbivore": {"Age": [],
                                              "Weight": [],
                                              "Fitness": []},
@@ -955,6 +987,15 @@ class Simulate(QWidget):
                                              "Weight": [],
                                              "Fitness": []}}
         VARIABLE["biosim"].history = VARIABLE["history"]
+
+        animals, n_species, n_species_cell = VARIABLE["biosim"].island.animals()
+        VARIABLE["biosim"].graphics.reset_counts()
+        VARIABLE["biosim"].graphics.setup(1, n_species_cell, VARIABLE["speed"], self.fig)
+        VARIABLE["biosim"].graphics.update_graphics(0,
+                                      n_species,
+                                      n_species_cell,
+                                      animals,
+                                      canvas=self.canvas)
 
     def simulate(self):
         """
@@ -1005,7 +1046,16 @@ class Simulate(QWidget):
                                "Carnivore": {"Age": [],
                                              "Weight": [],
                                              "Fitness": []}}
-        self.fig.clear()
+        # self.fig.clear()
+        animals, n_species, n_species_cell = VARIABLE["biosim"].island.animals()
+        VARIABLE["biosim"].graphics.reset_counts()
+
+        VARIABLE["biosim"].graphics.setup(1, n_species_cell, VARIABLE["speed"], self.fig)
+        VARIABLE["biosim"].graphics.update_graphics(0,
+                                                    n_species,
+                                                    n_species_cell,
+                                                    animals,
+                                                    canvas=self.canvas)
 
 
 class History(QWidget):
@@ -1042,21 +1092,21 @@ class History(QWidget):
         fit = self.fig.add_subplot(313)
 
         # set the titles of the subplots
-        old.set_title("Average age")
-        thick.set_title("Average weight")
-        fit.set_title("Average fitness")
+        old.set_title("Gjennomsnittlig alder")
+        thick.set_title("Gjennomsnittlig vekt")
+        fit.set_title("Gjennomsnittlig form")
 
         # Plotting the Age data
         herbivore_age_axis = old
         herbivore_age_axis.plot(years, VARIABLE["history"]["Herbivore"]["Age"],
-                                label="Herbivore Age", color=(0.71764, 0.749, 0.63137))
+                                label="Planteeter", color=(0.71764, 0.749, 0.63137))
 
         carnivore_age_axis = old.twinx()
         carnivore_age_axis.plot(years, VARIABLE["history"]["Carnivore"]["Age"],
-                                label="Carnivore Age", color=(0.949, 0.7647, 0.56078))
+                                label="Kjøtteter", color=(0.949, 0.7647, 0.56078))
 
-        herbivore_age_axis.set_ylabel("Herbivore Age")
-        carnivore_age_axis.set_ylabel("Carnivore Age")
+        herbivore_age_axis.set_ylabel("Planteeter alder")
+        carnivore_age_axis.set_ylabel("Kjøtteter alder")
         herbivore_age_axis.legend(loc='upper left', bbox_to_anchor=(0, 1.2))
         carnivore_age_axis.legend(loc='upper right', bbox_to_anchor=(1, 1.2))
         herbivore_age_axis.set_xticks([])
@@ -1064,21 +1114,21 @@ class History(QWidget):
         # Plotting the Weight data
         herbivore_weight_axis = thick
         herbivore_weight_axis.plot(years, VARIABLE["history"]["Herbivore"]["Weight"],
-                                   label="Herbivore Weight", color=(0.71764, 0.749, 0.63137))
+                                   label="Planteeter vekt", color=(0.71764, 0.749, 0.63137))
 
         carnivore_weight_axis = thick.twinx()
         carnivore_weight_axis.plot(years, VARIABLE["history"]["Carnivore"]["Weight"],
-                                   label="Carnivore Weight", color=(0.949, 0.7647, 0.56078))
+                                   label="Kjøtteter vekt", color=(0.949, 0.7647, 0.56078))
 
-        herbivore_weight_axis.set_ylabel("Herbivore Weight")
-        carnivore_weight_axis.set_ylabel("Carnivore Weight")
+        herbivore_weight_axis.set_ylabel("Planteeter vekt")
+        carnivore_weight_axis.set_ylabel("Kjøtteter vekt")
         herbivore_weight_axis.set_xticks([])
 
         fit.plot(years, VARIABLE["history"]["Herbivore"]["Fitness"],
                  color=(0.71764, 0.749, 0.63137))
         fit.plot(years, VARIABLE["history"]["Carnivore"]["Fitness"],
                  color=(0.949, 0.7647, 0.56078))
-        fit.set_xlabel("Iteration")
+        fit.set_xlabel("Iterasjon")
 
         self.canvas.draw()
 

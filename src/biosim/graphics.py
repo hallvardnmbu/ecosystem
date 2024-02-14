@@ -201,25 +201,25 @@ class Graphics:
 
         if self._line_ax is None:
             self._line_ax = self._fig.add_subplot(self.gridspec[:3, 4:])
-            self._line_ax2 = self._line_ax.twinx()
-            self._line_ax.set_title('Number of animals')
-            self._line_ax.set_ylabel("# Herbivores")
-            self._line_ax2.set_ylabel("# Carnivores")
+            # self._line_ax2 = self._line_ax.twinx()
+            self._line_ax.set_title('Populasjon over tid')
+            self._line_ax.set_ylabel("Antall dyr")
+            # self._line_ax2.set_ylabel("# Carnivores")
             self._line_ax.set_ylim(0, self.ymax_animals)
-            self._line_ax2.set_ylim(0, self.ymax_animals)
+            # self._line_ax2.set_ylim(0, self.ymax_animals)
             self._line_ax.set_xlim(0, final_year)
             self.herbs = np.arange(0, final_year+1, self.vis_years)
             self.n_herbs = self._line_ax.plot(self.herbs,
                                               np.full_like(self.herbs, np.nan, dtype=float),
                                               linestyle="-",
                                               color=(0.71764, 0.749, 0.63137),
-                                              label="Herbivore")[0]
+                                              label="Planteetere")[0]
             self.carns = np.arange(0, final_year+1, self.vis_years)
-            self.n_carns = self._line_ax2.plot(self.carns,
-                                               np.full_like(self.carns, np.nan, dtype=float),
-                                               linestyle="-",
-                                               color=(0.949, 0.7647, 0.56078),
-                                               label="Carnivore")[0]
+            self.n_carns = self._line_ax.plot(self.carns,
+                                              np.full_like(self.carns, np.nan, dtype=float),
+                                              linestyle="-",
+                                              color=(0.949, 0.7647, 0.56078),
+                                              label="Kjøttetere")[0]
             self._line_ax.legend(handles=[self.n_herbs, self.n_carns])
         else:
             old_x_herb, old_y_herb = self.n_herbs.get_data()
@@ -237,7 +237,7 @@ class Graphics:
         if self._map_plot is None:
             self._map_plot = self._fig.add_subplot(self.gridspec[4:7, :9])
             self._island_map(self.my_colours, self.terrain_patches)
-            self._map_plot.set_title("Island map")
+            self._map_plot.set_title("Kart over øya")
 
         herb, carn = self._animal_data(n_species_cells)
         herbivore_colour = (0.71764, 0.749, 0.63137)
@@ -245,7 +245,7 @@ class Graphics:
 
         if self._herb_ax is None:
             self._herb_ax = self._fig.add_subplot(self.gridspec[4:7, 9:18])
-            self._herb_ax.set_title("Herbivore density")
+            self._herb_ax.set_title("Planteeter-tetthet")
             self._herb_ax.axis("off")
             self._herb_ax.set_xlim(-0.75, len(self.geography[0]))
             self._herb_ax.set_ylim(-0.75, len(self.geography))
@@ -269,7 +269,7 @@ class Graphics:
 
         if self._carn_ax is None:
             self._carn_ax = self._fig.add_subplot(self.gridspec[4:7, 18:27])
-            self._carn_ax.set_title("Carnivore density")
+            self._carn_ax.set_title("Kjøtteter-tetthet")
             self._carn_ax.axis("off")
             self._carn_ax.set_xlim(-0.75, len(self.geography[0]))
             self._carn_ax.set_ylim(-0.75, len(self.geography))
@@ -322,8 +322,8 @@ class Graphics:
                                                  color=carnivore_colour,
                                                  lw=2)
             self._age_ax.set_ylim([0, 100])
-            self._age_ax.set_xlabel('Age')
-            self._age_ax.set_ylabel('# Animals', rotation=90)
+            self._age_ax.set_xlabel('Alder')
+            self._age_ax.set_ylabel('Antall dyr', rotation=90)
             self._age_ax.set_yticks([])
 
         if self._weight_ax is None:
@@ -338,7 +338,7 @@ class Graphics:
                                                        color=carnivore_colour,
                                                        lw=2)
             self._weight_ax.set_ylim([0, 50])
-            self._weight_ax.set_xlabel('Weight')
+            self._weight_ax.set_xlabel('Vekt')
             self._weight_ax.set_ylabel('')
             self._weight_ax.set_yticks([])
 
@@ -354,7 +354,7 @@ class Graphics:
                                                          color=carnivore_colour,
                                                          lw=2)
             self._fitness_ax.set_ylim([0, 100])
-            self._fitness_ax.set_xlabel('Fitness')
+            self._fitness_ax.set_xlabel('Form')
             self._fitness_ax.set_ylabel('')
             self._fitness_ax.set_yticks([])
 
@@ -486,9 +486,9 @@ class Graphics:
             self._line_ax.remove()
         except AttributeError:
             return
-        self._line_ax2.remove()
+        # self._line_ax2.remove()
         self._line_ax = None
-        self._line_ax2 = None
+        # self._line_ax2 = None
 
     def reset_graphics(self):
         """Resets the graphics."""
@@ -498,8 +498,8 @@ class Graphics:
             return
 
         self._line_ax = None
-        self._line_ax2.remove()
-        self._line_ax2 = None
+        # self._line_ax2.remove()
+        # self._line_ax2 = None
         self._year_ax.remove()
         self._year_ax = None
         self._map_plot.remove()
@@ -541,7 +541,7 @@ class Graphics:
         year : int
         """
         length = len(str(self.final_year)) - len(str(year)) + 3
-        text = "Iteration: {:>{}} {:>15}"
+        text = "Iterasjon: {:>{}} {:>15}"
         if hasattr(self, "txt"):
             self.txt.remove()
 
@@ -571,11 +571,12 @@ class Graphics:
         self.n_carns.set_ydata(y_carns)
 
         if not self.ymax_animals:
-            _y_herb = max(max(y_herbs) * 1.1, self._line_ax.get_ylim()[1])
-            self._line_ax.set_ylim(0, _y_herb)
+            _y_max = max(max(y_herbs) * 1.1, max(y_carns) * 1.1)
+            _y_max = max(_y_max, self._line_ax.get_ylim()[1])
+            self._line_ax.set_ylim(0, _y_max)
 
-            _y_carn = max(max(y_carns) * 1.1, self._line_ax2.get_ylim()[1])
-            self._line_ax2.set_ylim(0, _y_carn)
+            # _y_carn = max(max(y_carns) * 1.1, self._line_ax2.get_ylim()[1])
+            # self._line_ax2.set_ylim(0, _y_carn)
 
     def _island_map(self, my_colours, terrain_patches):
         """
@@ -604,7 +605,9 @@ class Graphics:
         self._map_plot.set_yticks([])
 
         if terrain_patches:
-            patch_list = [patches.Rectangle((0, 0), 1, 1, color=val, label=key)
+            mapping = {"L": "L", "H": "H", "M": "F", "W": "V"}
+            patch_list = [patches.Rectangle((0, 0), 1, 1, color=val,
+                                            label=mapping[key])
                           for key, val in colours.items()]
             self._map_plot.legend(handles=patch_list, frameon=False,
                                   bbox_to_anchor=(1, 1), loc=2,
