@@ -136,6 +136,7 @@ class BioSimGUI:
         app.setStyleSheet("""
             QPushButton {
                 background-color: #FBFAF5;
+                color: black;
             }
         """)
         window = Main()
