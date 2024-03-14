@@ -56,8 +56,24 @@ class BioSimGUI:
 
         app = QApplication([])
         app.setStyleSheet("""
+            QTabWidget::pane {
+                border: 1px solid black;
+            }
             QWidget {
                 background-color: #FBFAF5;
+                color: black;
+            }
+            QSlider::groove:horizontal {
+                border: 1px solid;
+                height: 10px;
+                margin: 0px;
+            }
+            QSlider::handle:horizontal {
+                background-color: black;
+                border: 1px solid;
+                height: 10px;
+                width: 10px;
+                margin: -15px 0px;
             }
             QPushButton {
                 background-color: #FBFAF5;
