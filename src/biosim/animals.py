@@ -318,7 +318,7 @@ class Herbivore(Animal):
         -------
         dict
         """
-        return {"w_birth": 10.0,        # Babyweight ~ 2.6 kg.
+        return {"w_birth": 14.0,        # Babyweight ~ 2.6 kg.
                 "sigma_birth": 4.0,
                 "beta": 0.05,           # Weightincrease when eating ~ 1 kg.
                 "eta": 0.2,             # Weightloss 10% per year.
@@ -328,7 +328,7 @@ class Herbivore(Animal):
                 "phi_weight": 0.09,
                 "mu": 17.0,             # Rapid movement.
                 "gamma": 0.9,           # Birthprobability p = fitness * gamma.
-                "zeta": 0.22,           # Baby if weight > 3.08 kg.
+                "zeta": 0.15,           # Baby if weight > 3.08 kg.
                 "xi": 0.42,             # Weightloss ~ 1.1 kg at birth.
                 "omega": 0.4,
                 "F": 20.0,              # Appetite.
@@ -384,7 +384,7 @@ class Carnivore(Animal):
         movable : dict
             Movable terrain.
         """
-        return {"stride": 1,
+        return {"stride": 3,
                 "movable": {"H": True, "L": True, "M": True, "W": False}}
 
     @classmethod
@@ -396,9 +396,9 @@ class Carnivore(Animal):
         -------
         dict
         """
-        return {"w_birth": 6.0,
+        return {"w_birth": 9.0,
                 "sigma_birth": 1.0,
-                "beta": 0.6,
+                "beta": 0.8,
                 "eta": 0.125,
                 "a_half": 40.0,
                 "phi_age": 0.45,
@@ -409,7 +409,7 @@ class Carnivore(Animal):
                 "zeta": 3.5,
                 "xi": 1.1,
                 "omega": 0.3,           # "High" mortality.
-                "F": 70.0,              # Appetite.
+                "F": 60.0,              # Appetite.
                 "DeltaPhiMax": 10.0}
 
     def __init__(self, age=None, weight=None):
@@ -456,7 +456,6 @@ class Carnivore(Animal):
                 prob = 1
 
             if random.random() < prob:
-
                 herbivores.remove(herbivore)
                 rest = self.F - eaten
                 if herbivore.w < rest:

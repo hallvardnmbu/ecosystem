@@ -16,13 +16,12 @@ from PyQt5.QtGui import QPainter, QPen, QBrush, QColor, QDrag, QPixmap, QIcon
 from PyQt5.QtWidgets import (QMainWindow, QTabWidget, QApplication, QWidget, QHBoxLayout,
                              QVBoxLayout, QGroupBox, QGridLayout, QLabel, QPushButton, QSlider,
                              QGraphicsView, QGraphicsScene, QMessageBox, QGraphicsPixmapItem,
-                             QInputDialog)
+                             QInputDialog, QTextEdit)
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
 from .simulation import BioSim
 from .animals import Herbivore, Carnivore
-from .island import Island
 
 VARIABLE = {"island": ["W" * 21 for _ in range(21)],
             "perlin": {"octaves": 4,            # Density of land (higher = more 'islands').
@@ -31,29 +30,14 @@ VARIABLE = {"island": ["W" * 21 for _ in range(21)],
                        "upper": 0.2},           # 'middle' < Highland < 'upper'. Otherwise Mountain.
             "selected": {"pos": (int, int), "species": str, "amount": int},
             "biosim": None,
-            "speed": 8e-6,
+            "speed": 1e-6,
             "colours": {"W": "#95CBCC",
                         "H": "#E8EC9E",
                         "L": "#B9D687",
                         "M": "#808080"},
-            "parameters": {"Herbivore": Herbivore.default_parameters(),
-                           "Carnivore": Carnivore.default_parameters(),
-                           "Fodder": {},
-                           "rename": {"Highland": "H",
-                                      "Lowland": "L",
-                                      "Mountain": "M",
-                                      "Water": "W",
-                                      "Growth reduction (alpha)": "alpha",
-                                      "Growth factor (v_max)": "v_max"}},
             "modified": {},
             "history": {},
             "dir": str(sys._MEIPASS) if getattr(sys, 'frozen', False) else "src/biosim/_static"}
-
-VARIABLE["parameters"]["Herbivore"].update({"Movement": Herbivore.default_motion()})
-VARIABLE["parameters"]["Carnivore"].update({"Movement": Carnivore.default_motion()})
-VARIABLE["parameters"]["Fodder"] = {{v: k for k, v
-                                     in VARIABLE["parameters"]["rename"].items()}.get(k, k): v
-                                    for k, v in Island.default_fodder_parameters().items()}
 
 
 class BioSimGUI:
@@ -77,6 +61,9 @@ class BioSimGUI:
                 color: black;
                 border: 1px solid black;
                 border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #f5f6fb;
             }
         """)
         window = Main()
@@ -265,9 +252,6 @@ class Draw(QWidget):
     """Class for drawing the island."""
     def __init__(self):
         super().__init__()
-
-        self.setGeometry(400, 200, 1000, 800)
-        self.setWindowTitle("Modeller plante- og kjøttetere på en øy")
 
         self.layout = QHBoxLayout()
 
@@ -637,7 +621,7 @@ class Species(QLabel):
                     pass
 
             Species.selected = self
-            self.setStyleSheet("border: 4px solid #a4ab90")
+            self.setStyleSheet("border: 4px solid black;")
 
             VARIABLE["selected"]["species"] = self.species
 

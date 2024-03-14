@@ -7,8 +7,6 @@ import textwrap
 import random
 import math
 
-import numpy as np
-
 from .animals import Animal
 
 
@@ -306,7 +304,7 @@ class Island:
 
         Parameters
         ----------
-        position : tuple
+        position : tuple[int, int]
         animal : Animal
 
         Returns
@@ -315,48 +313,32 @@ class Island:
 
         Notes
         -----
-        - See notes in :meth:`migrate`.
+        - See notes in :math:`migrate`.
         """
-        i, j = position
         propensity = {}
-        possibilities = []
+        possibilities = self._possibilities(position, animal)
 
-        for move_i, move_j in [(animal.stride, 0), (-animal.stride, 0),
-                               (0, animal.stride), (0, -animal.stride)]:
+        if not possibilities:
+            return None
 
-            zero_i, zero_j = (i + move_i - 1, j + move_j - 1)
-            if zero_i < 0 or zero_j < 0:
-                continue
-
-            try:
-                if not animal.movable[self.geography[zero_i][zero_j]]:
-                    continue
-            except IndexError:
-                continue
-
+        for i, j in possibilities:
             if animal.__class__.__name__ == "Herbivore":
-                fodder = self.cells[(i + move_i, j + move_j)].fodder
+                fodder = self.cells[(i, j)].fodder
             elif animal.__class__.__name__ == "Carnivore":
                 fodder = 0
-                for herbivore in self.cells[(i + move_i, j + move_j)].animals["Herbivore"]:
+                for herbivore in self.cells[(i, j)].animals["Herbivore"]:
                     fodder += herbivore.w
             else:
                 raise ValueError("Update migration to account for new species.")
 
-            population = len(self.cells[(i + move_i, j + move_j)].animals[
-                                 animal.__class__.__name__])
+            population = len(self.cells[(i, j)].animals[animal.__class__.__name__])
             abundance = fodder / max(((population + 1) * animal.F),
                                      population + 1,
                                      animal.F,
                                      1)
+            propensity[(i, j)] = math.exp(abundance)
 
-            possibilities.append((i + move_i, j + move_j))
-            propensity[(i + move_i, j + move_j)] = math.exp(abundance)
-
-        if possibilities:
-            new_pos = random.choice(possibilities)
-        else:
-            return None
+        new_pos = random.choice(possibilities)
 
         try:
             probability = propensity[new_pos] / sum(propensity.values())
@@ -366,6 +348,56 @@ class Island:
         if random.random() < probability:
             return self.cells[new_pos]
         return None
+
+    def _possibilities(self, position, animal):
+        """
+        Determines the possible cells an animal can migrate to based on its stride.
+
+        Parameters
+        ----------
+        position : tuple[int, int]
+        animal : Animal
+
+        Returns
+        -------
+        list
+            A list of the possible cells the animal can migrate to.
+        """
+        stride = animal.stride
+        possible = []
+        x, y = position[0] - 1, position[1] - 1
+        for i in range(x - stride, x + stride + 1):
+            for j in range(y - stride, y + stride + 1):
+
+                if not (0 <= i < len(self.geography[0]) and 0 <= j < len(self.geography)):
+                    continue
+                if not animal.movable[self.geography[i][j]]:
+                    continue
+                if (i - x) ** 2 + (j - y) ** 2 > stride ** 2 and stride != 1:
+                    continue
+
+                possible.append((i + 1, j + 1))
+
+        if animal.__class__.__name__ == "Herbivore":
+            possible.remove(position)
+            return possible
+
+        best = {}
+        for cell in possible:
+            herbivores = len(self.cells[cell].animals["Herbivore"])
+
+            if herbivores == 0:
+                continue
+
+            if len(best) < 4:
+                best[herbivores] = cell
+                continue
+
+            if herbivores > min(best):
+                best.pop(min(best))
+                best[herbivores] = cell
+
+        return list(best.values())
 
     def _update_inhabited_cells(self):
         """
