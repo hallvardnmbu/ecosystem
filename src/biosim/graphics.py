@@ -240,6 +240,8 @@ class Graphics:
             self._map_plot.set_title("Kart over øya")
 
         herb, carn = self._animal_data(n_species_cells)
+        herb = np.ma.masked_where(herb == 0, herb)
+        carn = np.ma.masked_where(carn == 0, carn)
         herbivore_colour = (0.71764, 0.749, 0.63137)
         carnivore_colour = (0.949, 0.7647, 0.56078)
 
@@ -261,7 +263,7 @@ class Graphics:
                                                    cmap="Greens",
                                                    vmin=0,
                                                    vmax=self.cmax_herb)
-            self._herb_plot.cmap.set_bad((0, 0, 0))
+            self._herb_plot.cmap.set_bad(color="#FBFAF5")
             self._herb_cbar = self._fig.colorbar(self._herb_plot,
                                                  ax=self._herb_ax,
                                                  fraction=0.046, pad=0.04)
@@ -285,7 +287,7 @@ class Graphics:
                                                    cmap="Oranges",
                                                    vmin=0,
                                                    vmax=self.cmax_carn)
-            self._carn_plot.cmap.set_bad((0, 0, 0))
+            self._carn_plot.cmap.set_bad("#FBFAF5")
             self._carn_cbar = self._fig.colorbar(self._carn_plot,
                                                  ax=self._carn_ax,
                                                  fraction=0.046, pad=0.04)
@@ -357,6 +359,10 @@ class Graphics:
             self._fitness_ax.set_xlabel('Form')
             self._fitness_ax.set_ylabel('')
             self._fitness_ax.set_yticks([])
+
+        self._fig.patch.set_facecolor("#FBFAF5")
+        for ax in self._fig.get_axes():
+            ax.set_facecolor("#FBFAF5")
 
         self.setup_log_file() if self._log_file is not None else None
 
@@ -660,8 +666,8 @@ class Graphics:
         self._herb_plot.set_data(herb[::-1])
         self._carn_plot.set_data(carn[::-1])
 
-        self._herb_plot.cmap.set_bad((1, 1, 1))
-        self._carn_plot.cmap.set_bad((1, 1, 1))
+        self._herb_plot.cmap.set_bad(color="#FBFAF5")
+        self._carn_plot.cmap.set_bad(color="#FBFAF5")
 
         if year % 15 == 0:
             herbs = np.nanmax(herb) + 10

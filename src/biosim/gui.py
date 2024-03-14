@@ -16,7 +16,7 @@ from PyQt5.QtGui import QPainter, QPen, QBrush, QColor, QDrag, QPixmap, QIcon
 from PyQt5.QtWidgets import (QMainWindow, QTabWidget, QApplication, QWidget, QHBoxLayout,
                              QVBoxLayout, QGroupBox, QGridLayout, QLabel, QPushButton, QSlider,
                              QGraphicsView, QGraphicsScene, QMessageBox, QGraphicsPixmapItem,
-                             QInputDialog, QTextEdit)
+                             QInputDialog)
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
@@ -56,6 +56,9 @@ class BioSimGUI:
 
         app = QApplication([])
         app.setStyleSheet("""
+            QWidget {
+                background-color: #FBFAF5;
+            }
             QPushButton {
                 background-color: #FBFAF5;
                 color: black;
@@ -598,6 +601,7 @@ class Species(QLabel):
         self.setFixedSize(180, 180)
         self.setScaledContents(True)
         self.setAcceptDrops(True)
+        self.setStyleSheet("background-color: transparent;")
 
         # Define the size attribute.
         self.size = 10
@@ -616,12 +620,12 @@ class Species(QLabel):
 
             if Species.selected is not None:
                 try:
-                    Species.selected.setStyleSheet("")
+                    Species.selected.setStyleSheet("background-color: transparent;")
                 except RuntimeError:
                     pass
 
             Species.selected = self
-            self.setStyleSheet("border: 4px solid black;")
+            self.setStyleSheet("background-color: transparent; border: 4px solid black;")
 
             VARIABLE["selected"]["species"] = self.species
 
@@ -649,7 +653,6 @@ class Populate(QWidget):
 
         self.plot = None
         self.species = None
-        self.herbivore = None
         self.buttons = []
 
         self.initialise()
@@ -899,6 +902,7 @@ class History(QWidget):
         self.setLayout(QVBoxLayout())
 
         self.fig = plt.Figure(figsize=(15, 10))
+        self.fig.set_facecolor("#FBFAF5")
         self.canvas = FigureCanvas(self.fig)
         self.layout().addWidget(self.canvas)
 
@@ -922,6 +926,10 @@ class History(QWidget):
         old = self.fig.add_subplot(311)
         thick = self.fig.add_subplot(312)
         fit = self.fig.add_subplot(313)
+
+        old.set_facecolor("#FBFAF5")
+        thick.set_facecolor("#FBFAF5")
+        fit.set_facecolor("#FBFAF5")
 
         # set the titles of the subplots
         old.set_title("Gjennomsnittlig alder")
