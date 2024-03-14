@@ -124,7 +124,7 @@ class Graphics:
 
         # The following will be initialized by setup
         self.gridspec = None
-        self._speed = None
+        self.speed = None
         self.final_year = None
         self._fig = None
         self._map_plot = None
@@ -360,7 +360,7 @@ class Graphics:
 
         self.setup_log_file() if self._log_file is not None else None
 
-        self._speed = speed
+        self.speed = speed
 
     def setup_log_file(self):
         """Sets up the log file for the simulation if specified."""
@@ -420,7 +420,7 @@ class Graphics:
 
         if not canvas:
             self._fig.canvas.flush_events()
-            plt.pause(self._speed)
+            plt.pause(self.speed)
 
             self._save_image(year)
             self.save_to_file(year, n_species) if self._log_file is not None else None
@@ -429,7 +429,7 @@ class Graphics:
             QApplication.processEvents()
 
             loop = QEventLoop()
-            QTimer.singleShot(int(self._speed * 1e8), loop.quit)
+            QTimer.singleShot(int(self.speed * 1e8), loop.quit)
             loop.exec_()
 
         if history:

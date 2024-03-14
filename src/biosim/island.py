@@ -7,6 +7,8 @@ import textwrap
 import random
 import math
 
+import numpy as np
+
 from .animals import Animal
 
 
@@ -217,13 +219,14 @@ class Island:
                 # Procreation may only take place if the following is satisfied:
                 if animal.w >= animal.w_procreate:
 
-                    if random.random() < min(1, animal.fitness * p_baby[animal.__class__.__name__]):
+                    if random.random() < animal.fitness * p_baby[animal.__class__.__name__]:
                         baby_weight = animal.birthweight()
 
                         # If the parents' weight is greater than the baby's weight * xi, the
                         # baby is born, and the parents' weight decreases accordingly ^:
                         if animal.lose_weight_birth(baby_weight):
                             baby = animal.__class__(age=0, weight=baby_weight)
+
                             cell.animals[baby.__class__.__name__].append(baby)
 
     def feed(self):

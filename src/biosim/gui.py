@@ -10,16 +10,13 @@ Released under the MIT License, see included LICENSE file.
 import sys
 import time
 import math
-import datetime
 from perlin_noise import PerlinNoise
 from PyQt5.QtCore import Qt, QRect, QRectF, QMimeData, QSize
 from PyQt5.QtGui import QPainter, QPen, QBrush, QColor, QDrag, QPixmap, QIcon
-from PyQt5.QtWidgets import (QMainWindow, QTabWidget, QApplication, QWidget,
-                             QHBoxLayout, QVBoxLayout, QGroupBox, QGridLayout,
-                             QLabel, QPushButton, QComboBox, QSlider,
-                             QGraphicsView, QGraphicsScene,
-                             QMessageBox, QTableWidget, QTableWidgetItem,
-                             QGraphicsPixmapItem, QInputDialog)
+from PyQt5.QtWidgets import (QMainWindow, QTabWidget, QApplication, QWidget, QHBoxLayout,
+                             QVBoxLayout, QGroupBox, QGridLayout, QLabel, QPushButton, QSlider,
+                             QGraphicsView, QGraphicsScene, QMessageBox, QGraphicsPixmapItem,
+                             QInputDialog)
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
@@ -32,17 +29,16 @@ VARIABLE = {"island": ["W" * 21 for _ in range(21)],
                        "lower": -0.23,          # Water < 'lower'.
                        "middle": 0.0,           # 'lower' < Lowland < 'middle'.
                        "upper": 0.2},           # 'middle' < Highland < 'upper'. Otherwise Mountain.
-            "selected": {"pos": (int, int), "species": str, "amount": int,
-                         "selection": "R-selected"},
+            "selected": {"pos": (int, int), "species": str, "amount": int},
             "biosim": None,
-            "speed": 1e-6,
+            "speed": 8e-6,
             "colours": {"W": "#95CBCC",
                         "H": "#E8EC9E",
                         "L": "#B9D687",
                         "M": "#808080"},
             "parameters": {"Herbivore": Herbivore.default_parameters(),
                            "Carnivore": Carnivore.default_parameters(),
-                           "Fodder": {None},
+                           "Fodder": {},
                            "rename": {"Highland": "H",
                                       "Lowland": "L",
                                       "Mountain": "M",
@@ -51,64 +47,6 @@ VARIABLE = {"island": ["W" * 21 for _ in range(21)],
                                       "Growth factor (v_max)": "v_max"}},
             "modified": {},
             "history": {},
-            "selection": {
-                "Herbivore": {
-                    "R-selected": {
-                        "w_birth": 10,          # Babyweight ~ 2.6 kg.
-                        "sigma_birth": 4,
-                        "zeta": 0.22,           # Baby if weight > 3.08 kg.
-                        "xi": 0.42,             # Weightloss ~ 1.1 kg at birth.
-                        "gamma": 0.9,           # Birthprobability p = fitness * gamma.
-                        "F": 20,                # Appetite.
-                        "beta": 0.05,           # Weightincrease when eating ~ 1 kg.
-                        "eta": 0.2,             # Weightloss 10% per year.
-
-                        "phi_age": 5,           # Life span ~ 5 years. Fitness decreases.
-                        "a_half": 2.5,
-                        "phi_weight": 0.09,
-                        "w_half": 3,
-
-                        "mu": 17,               # Rapid movement.
-                        "omega": 0.4
-                    },
-                    "K-selected": {
-                        "w_birth": 10,          # Babyweight ~ 280.0 kg.
-                        "sigma_birth": 0.03,
-                        "zeta": 35,             # Baby if weight > 350 kg.
-                        "xi": 0.3,              # Weightloss ~ 84 kg at birth.
-                        "gamma": 1.2,           # Birthprobability p = fitness * gamma.
-                        "F": 75,                # Appetite.
-                        "beta": 2,              # Weightincrease when eating ~ 150 kg.
-                        "eta": 0.05,            # Weightloss 5% per year.
-
-                        "phi_age": 0.1,         # Fitness.
-                        "a_half": 14,
-                        "phi_weight": 0.4,
-                        "w_half": 2,
-
-                        "mu": 5,                # Low movement.
-                        "omega": 0.09           # Low mortality (high life span).
-                    }
-                },
-                "Carnivore": {
-                    "R-selected": {
-                        "phi_age": 0.45,
-                        "phi_weight": 0.28,
-                        "beta": 0.6,           # Weightincrease when eating ~ X kg.
-                        "omega": 0.3,           # High mortality.
-                        "DeltaPhiMax": 10,      # High agressivity.
-                        "F": 70                 # Appetite.
-                    },
-                    "K-selected": {
-                        "phi_age": 0.3,
-                        "beta": 0.03,           # Weightincrease when eating ~ X kg.
-                        "omega": 0.25,          # Low mortality.
-                        "DeltaPhiMax": 10,
-                        "F": 2000,              # Appetite.
-                        "phi_weight": 7
-                    }
-                }
-            },
             "dir": str(sys._MEIPASS) if getattr(sys, 'frozen', False) else "src/biosim/_static"}
 
 VARIABLE["parameters"]["Herbivore"].update({"Movement": Herbivore.default_motion()})
@@ -126,7 +64,7 @@ class BioSimGUI:
 
         Notes
         -----
-        This is made to a class in order to have be visually pleasing (capital letters) without
+        This is made to a class in order to be visually pleasing (capital letters) without
         "raising" an error.
         """
         Herbivore.set_parameters(Herbivore.default_parameters())
@@ -137,6 +75,8 @@ class BioSimGUI:
             QPushButton {
                 background-color: #FBFAF5;
                 color: black;
+                border: 1px solid black;
+                border-radius: 5px;
             }
         """)
         window = Main()
@@ -213,8 +153,11 @@ class BioSimGUI:
         except (AttributeError, KeyError):
             pass
         VARIABLE["biosim"] = BioSim(island_map=geogr)
-        Herbivore.set_parameters(VARIABLE["selection"]["Herbivore"]["R-selected"])
-        Carnivore.set_parameters(VARIABLE["selection"]["Carnivore"]["R-selected"])
+        VARIABLE["biosim"].graphics.hist_specs = {
+            'age': {'max': 45, 'delta': 5},
+            'weight': {'max': 60, 'delta': 5},
+            'fitness': {'max': 1, 'delta': 0.1}
+        }
         VARIABLE["history"].clear()
 
 
@@ -266,15 +209,6 @@ class Main(QMainWindow):
         history_layout.addWidget(self.history)
         self.tabs.addTab(self.history, 'Historie')
 
-        # Advanced:
-        advanced_widget = QWidget()
-        advanced_layout = QVBoxLayout()
-        advanced_widget.setLayout(advanced_layout)
-
-        self.advanced = Advanced()
-        advanced_layout.addWidget(self.advanced)
-        self.tabs.addTab(self.advanced, 'Innstillinger')
-
         self.previous = 0
         self.tabs.currentChanged.connect(self.change)
 
@@ -313,8 +247,6 @@ class Main(QMainWindow):
                 pass
         elif index == 3:  # Switching to history page.
             self.history.update()
-        elif index == 4:  # Switching to advanced page.
-            self.advanced.update()
         if self.previous == 0 and index != 0:  # Switching from draw page.
             BioSimGUI.restart()
             try:
@@ -365,28 +297,24 @@ class Draw(QWidget):
         bigger_button.setFixedSize(size, size)
         bigger_button.setIcon(QIcon(VARIABLE["dir"] + "/zoom-out.png"))
         bigger_button.setIconSize(QSize(size//3, size//3))
-        bigger_button.setStyleSheet("background-color: #FBFAF5; color: black;")
         bigger_button.clicked.connect(self.bigger)
 
         smaller_button = QPushButton()
         smaller_button.setFixedSize(size, size)
         smaller_button.setIcon(QIcon(VARIABLE["dir"] + "/zoom-in.png"))
         smaller_button.setIconSize(QSize(size//3, size//3))
-        smaller_button.setStyleSheet("background-color: #FBFAF5; color: black;")
         smaller_button.clicked.connect(self.smaller)
 
         autocomplete_button = QPushButton()
         autocomplete_button.setFixedSize(size, size)
         autocomplete_button.setIcon(QIcon(VARIABLE["dir"] + "/stars.png"))
         autocomplete_button.setIconSize(QSize(size // 2, size // 2))
-        autocomplete_button.setStyleSheet("background-color: #FBFAF5; color: black;")
         autocomplete_button.clicked.connect(self.autocomplete)
 
         clear_button = QPushButton()
         clear_button.setFixedSize(size, size)
         clear_button.setIcon(QIcon(VARIABLE["dir"] + "/delete.png"))
         clear_button.setIconSize(QSize(size // 3, size // 3))
-        clear_button.setStyleSheet("background-color: #FBFAF5; color: black;")
         clear_button.clicked.connect(self.clear)
 
         modification_layout.addWidget(bigger_button, 0, 0)
@@ -400,12 +328,12 @@ class Draw(QWidget):
         mapping = {"W": "V", "H": "H", "L": "L", "M": "F"}
         terrain_buttons = {}
         for name, color in VARIABLE["colours"].items():
-            name = mapping[name]
-            button = QPushButton(color_map[name])
+            _name = mapping[name]
+            button = QPushButton(color_map[_name])
             button.setFixedSize(size, size)
-            button.setStyleSheet(f"background-color: {color}; color: black;")
-            button.clicked.connect(lambda _, name=name: self.color_clicked(name))
-            terrain_buttons[name] = button
+            button.setStyleSheet(f"background-color: {color};")
+            button.clicked.connect(lambda _, name=_name: self.color_clicked(name))
+            terrain_buttons[_name] = button
             self.selection.append(button)
 
         terrain_layout.addWidget(terrain_buttons["V"], 0, 0)
@@ -417,6 +345,11 @@ class Draw(QWidget):
 
         buttons.addLayout(modification_layout)
         buttons.addStretch(1)
+
+        text = QLabel("Velg terreng å tegne med:")
+        text.setAlignment(Qt.AlignCenter)
+        buttons.addWidget(text)
+
         buttons.addLayout(terrain_layout)
         buttons.setAlignment(Qt.AlignCenter)
 
@@ -435,13 +368,12 @@ class Draw(QWidget):
         for button in self.selection:
             if button.text()[0] == name:
                 button.setStyleSheet(
-                    f"background-color: {VARIABLE['colours'][mapping[name[0]]]}; color: black; "
-                    f"border: 2px solid black"
+                    f"background-color: {VARIABLE['colours'][mapping[name[0]]]}; "
+                    f"border: 3px solid black"
                 )
             else:
                 button.setStyleSheet(
-                    f"background-color: {VARIABLE['colours'][mapping[button.text()[0]]]}; color: "
-                    f"black;"
+                    f"background-color: {VARIABLE['colours'][mapping[button.text()[0]]]};"
                 )
 
     def bigger(self):
@@ -600,48 +532,46 @@ class Map(QGraphicsView):
             event.acceptProposedAction()
 
     def dropEvent(self, event):
+        try:
+            species = event.mimeData().text()
+        except AttributeError:
+            species = VARIABLE["selected"]["species"]
+
+        if species is str:
+            msg = QMessageBox()
+            msg.setText("Velg et dyr først.")
+            msg.exec_()
+            return
+
         position = self.mapToScene(event.pos())
         i = int(position.x() // self.size)
         j = int(position.y() // self.size)
 
-        if VARIABLE["island"][j][i] != "W":
-            try:
-                species = event.mimeData().text()
-            except AttributeError:
-                species = VARIABLE["selected"]["species"]
-
-            if species == "Herbivore":
-                selection = "_" + VARIABLE["selected"]["selection"][0]
-            else:
-                selection = ""
-
-            try:
-                image = QPixmap(VARIABLE["dir"] + f"/{species + selection}.png").scaled(self.size,
-                                                                                        self.size)
-            except TypeError:
-                return
-
-            item = QGraphicsPixmapItem(image)
-            item.setPos(i * self.size, j * self.size)
-            self.scene.addItem(item)
-
-            num_animals, ok = QInputDialog.getInt(self, "Antall dyr",
-                                                  "Hvor mange?",
-                                                  1, 1, 1000)
-            if ok:
-                VARIABLE["selected"] = {
-                    "pos": (i, j),
-                    "species": species,
-                    "amount": num_animals,
-                    "selection": VARIABLE["selected"]["selection"]
-                }
-                Populate.populate()
-            else:
-                self.scene.removeItem(item)
-        else:
+        if VARIABLE["island"][j][i] == "W":
             msg = QMessageBox()
             msg.setText("Dyr kan ikke plasseres i vann.")
             msg.exec_()
+            return
+
+        try:
+            image = QPixmap(VARIABLE["dir"] + f"/{species}.png").scaled(self.size, self.size)
+        except TypeError:
+            return
+
+        item = QGraphicsPixmapItem(image)
+        item.setPos(i * self.size, j * self.size)
+        self.scene.addItem(item)
+
+        num_animals, ok = QInputDialog.getInt(self, "Antall dyr", "Hvor mange?", 1, 1, 1000)
+        if ok:
+            VARIABLE["selected"] = {
+                "pos": (i, j),
+                "species": species,
+                "amount": num_animals
+            }
+            Populate.populate()
+        else:
+            self.scene.removeItem(item)
 
     def mouseMoveEvent(self, event):
         """Executed when the mouse is pressed-moved."""
@@ -684,7 +614,6 @@ class Species(QLabel):
         self.setFixedSize(180, 180)
         self.setScaledContents(True)
         self.setAcceptDrops(True)
-        self.setStyleSheet("background-color: #DEDEDE;")
 
         # Define the size attribute.
         self.size = 10
@@ -759,38 +688,20 @@ class Populate(QWidget):
         _species = QGroupBox()
         self.species = QVBoxLayout()
         _species.setLayout(self.species)
-        self.herbivore = Species(QPixmap(VARIABLE["dir"] + "/Herbivore_R.png"), "Herbivore")
+        herbivore = Species(QPixmap(VARIABLE["dir"] + "/Herbivore.png"), "Herbivore")
         carnivore = Species(QPixmap(VARIABLE["dir"] + "/Carnivore.png"), "Carnivore")
         self.species.addWidget(carnivore)
-        self.species.addWidget(self.herbivore)
+        self.species.addWidget(herbivore)
         self.species.setAlignment(Qt.AlignHCenter)
 
         top.addWidget(_species)
 
-        # R- and K-selected herbivore buttons.
-        text = QLabel("SELEKSJON")
-        text.setAlignment(Qt.AlignCenter)
-        text.setStyleSheet("font-size: 20px;"
-                           "font-weight: bold;")
-        selection = QHBoxLayout()
-        for name in ["R-selected", "K-selected"]:
-            button = QPushButton(name[0])
-            button.setFixedSize(95, 95)
-            button.setStyleSheet("background-color: #FBFAF5; color: black;")
-            button.clicked.connect(lambda _, name=name: self.selection(name))
-            selection.addWidget(button)
-            if name == "R-selected":
-                selection.addSpacing(10)
-            self.buttons.append(button)
-
-        bottom.addWidget(text)
-        bottom.addLayout(selection)
-
         # Reset button.
         reset = QHBoxLayout()
-        _reset = QPushButton("Nullstill")
+        _reset = QPushButton()
         _reset.setFixedSize(200, 100)
-        _reset.setStyleSheet("background-color: #FBFAF5; color: black;")
+        _reset.setIcon(QIcon(VARIABLE["dir"] + "/delete.png"))
+        _reset.setIconSize(QSize(100 // 3, 100 // 3))
         _reset.clicked.connect(self.reset)
         reset.addWidget(_reset)
 
@@ -804,70 +715,6 @@ class Populate(QWidget):
         layout.addLayout(specifications)
 
         self.setLayout(layout)
-        self.selection("R-selected")
-
-    def selection(self, name):
-        """
-        Executed when the selection changes.
-
-        Parameters
-        ----------
-        name : str
-            Text of the button that was clicked.
-        """
-        for button in self.buttons:
-            if button.text() == name[0]:
-                button.setStyleSheet("background-color: #B7BFA1; color: black; "
-                                     "border: 4px solid #a4ab90")
-            else:
-                button.setStyleSheet("background-color: #FBFAF5; color: black;")
-
-        VARIABLE["history"].clear()
-        VARIABLE["selected"]["selection"] = name
-
-        self.species.removeWidget(self.herbivore)
-        img_name = "Herbivore_" + name[0]
-        self.herbivore = Species(QPixmap(VARIABLE["dir"] + f"/{img_name}.png"), "Herbivore")
-        self.species.addWidget(self.herbivore)
-
-        try:
-            if VARIABLE["biosim"].island.year != 0:
-                BioSimGUI.restart()
-
-                hist_spec = {"K-selected": {'age': {'max': 45, 'delta': 5},
-                                            'weight': {'max': 300, 'delta': 20},
-                                            'fitness': {'max': 1, 'delta': 0.1}},
-                             "R-selected": {'age': {'max': 45, 'delta': 5},
-                                            'weight': {'max': 60, 'delta': 5},
-                                            'fitness': {'max': 1, 'delta': 0.1}}}
-                VARIABLE["biosim"].graphics.hist_specs = hist_spec[name]
-
-                msg = QMessageBox()
-                msg.setText("Simulasjon og populasjon har blitt nullstilt.")
-                msg.exec_()
-        except AttributeError:
-            pass
-
-        Herbivore.set_parameters(VARIABLE["selection"]["Herbivore"][name])
-        Carnivore.set_parameters(VARIABLE["selection"]["Carnivore"][name])
-
-        self.update()
-
-    def update(self):
-        """Update the map to correspond with the current selection."""
-        selection = VARIABLE["selected"]["selection"][0]
-
-        herb = QPixmap(VARIABLE["dir"] + f"/Herbivore_{selection}.png").scaled(self.plot.size,
-                                                                               self.plot.size)
-        carn = QPixmap(VARIABLE["dir"] + "/Carnivore.png").scaled(self.plot.size,
-                                                                  self.plot.size).toImage()
-
-        for item in self.plot.scene.items():
-            if isinstance(item, QGraphicsPixmapItem):
-                if item.pixmap().toImage() == herb.toImage() or item.pixmap().toImage() == carn:
-                    pass
-                else:
-                    item.setPixmap(herb)
 
     @staticmethod
     def populate():
@@ -993,10 +840,10 @@ class Simulate(QWidget):
         VARIABLE["biosim"].graphics.reset_counts()
         VARIABLE["biosim"].graphics.setup(1, n_species_cell, VARIABLE["speed"], self.fig)
         VARIABLE["biosim"].graphics.update_graphics(0,
-                                      n_species,
-                                      n_species_cell,
-                                      animals,
-                                      canvas=self.canvas)
+                                                    n_species,
+                                                    n_species_cell,
+                                                    animals,
+                                                    canvas=self.canvas)
 
     def simulate(self):
         """
@@ -1010,7 +857,7 @@ class Simulate(QWidget):
         years = int(self.years.value())
         VARIABLE["biosim"].should_stop = False
 
-        VARIABLE["biosim"].graphics._speed = VARIABLE["speed"]
+        VARIABLE["biosim"].graphics.speed = VARIABLE["speed"]
         VARIABLE["history"] = VARIABLE["biosim"].simulate(years,
                                                           figure=self.fig, canvas=self.canvas,
                                                           history=True)
@@ -1024,8 +871,8 @@ class Simulate(QWidget):
     def faster():
         """Increase plot update speed."""
         try:
-            VARIABLE["biosim"].graphics._speed /= 2
-            VARIABLE["speed"] = VARIABLE["biosim"].graphics._speed
+            VARIABLE["biosim"].graphics.speed /= 2
+            VARIABLE["speed"] = VARIABLE["biosim"].graphics.speed
         except TypeError:
             return
 
@@ -1033,8 +880,8 @@ class Simulate(QWidget):
     def slower():
         """Decrease plot update speed."""
         try:
-            VARIABLE["biosim"].graphics._speed *= 2
-            VARIABLE["speed"] = VARIABLE["biosim"].graphics._speed
+            VARIABLE["biosim"].graphics.speed *= 2
+            VARIABLE["speed"] = VARIABLE["biosim"].graphics.speed
         except TypeError:
             return
 
@@ -1132,327 +979,3 @@ class History(QWidget):
         fit.set_xlabel("Iterasjon")
 
         self.canvas.draw()
-
-
-class Advanced(QWidget):
-    """Class for visualising the advanced settings."""
-    def __init__(self):
-        super().__init__()
-
-        self.setGeometry(400, 200, 1000, 800)
-        self.setLayout(QVBoxLayout())
-
-        self.species = None
-        self.parameter = None
-        self.movement = None
-        self.movement_value = None
-        self.value = None
-        self.label = None
-        self.interval = None
-        self.values = {
-            "w_birth": (0, 20, 0.1),
-            "sigma_birth": (0, 10, 0.01),
-            "beta": (0, 5, 0.01),
-            "eta": (0, 3, 0.01),
-            "a_half": (0, 80, 0.5),
-            "phi_age": (0, 10, 0.001),
-            "w_half": (0, 20, 1),
-            "phi_weight": (0, 10, 0.001),
-            "mu": (0, 20, 0.1),
-            "gamma": (0, 3, 0.1),
-            "zeta": (0, 40, 0.1),
-            "xi": (0, 3, 0.1),
-            "omega": (0, 1.5, 0.01),
-            "F": (0, 100, 5),
-            "DeltaPhiMax": (0.1, 100, 0.1),
-            "Highland": (0, 1000, 10),
-            "H": (0, 1, 1),
-            "Lowland": (0, 1000, 10),
-            "L": (0, 1, 1),
-            "Mountain": (0, 1000, 10),
-            "M": (0, 1, 1),
-            "Water": (0, 1000, 10),
-            "W": (0, 1, 1),
-            "Stride": (0, len(VARIABLE["island"]), 1),
-            "Growth reduction (alpha)": (0, 1, 0.01),
-            "Growth factor (v_max)": (0, 1500, 10)
-        }
-
-        self.top = QHBoxLayout()
-        self.bottom = QHBoxLayout()
-
-        self.parameters()
-        self._parameter()
-
-        self.table = QTableWidget()
-        self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(["Time", "Species", "Parameter", "Value"])
-        self.bottom.addWidget(self.table)
-
-        reset = QPushButton("Clear history")
-        reset.clicked.connect(self.reset)
-        reset.setFixedWidth(200)
-        self.bottom.addWidget(reset)
-
-        self.layout().addLayout(self.top)
-        self.layout().addLayout(self.bottom)
-
-        self.update()
-
-    def update(self):
-        """Update the window."""
-        self.table.setRowCount(len(VARIABLE["modified"]))
-        for row, (time, (species, parameter, value)) in enumerate(
-                sorted(VARIABLE["modified"].items(), reverse=True)):
-            time_item = QTableWidgetItem(time.split()[0])
-            species_item = QTableWidgetItem(species)
-            parameter_item = QTableWidgetItem(parameter)
-            value_item = QTableWidgetItem(str(value))
-            self.table.setItem(row, 0, time_item)
-            self.table.setItem(row, 1, species_item)
-            self.table.setItem(row, 2, parameter_item)
-            self.table.setItem(row, 3, value_item)
-
-    def parameters(self):
-        """Add parameter selection to the window."""
-        self.species = QComboBox()
-        self.species.addItems(["Herbivore", "Carnivore", "Fodder"])
-        self.species.currentIndexChanged.connect(self._species)
-
-        self.parameter = QComboBox()
-        self.parameter.currentIndexChanged.connect(self._parameter)
-
-        self.movement = QComboBox()
-        self.movement.addItems(["Stride", "Highland", "Lowland", "Mountain", "Water"])
-        self.movement.currentIndexChanged.connect(self._movement)
-        self.movement.setVisible(False)
-        self.movement_value = QSlider(Qt.Horizontal)
-        self.movement_value.valueChanged.connect(self._value)
-        self.movement_value.setVisible(False)
-
-        self.value = QSlider(Qt.Horizontal)
-        self.value.valueChanged.connect(self._value)
-        self.label = QLabel()
-
-        add = QPushButton("Set parameter")
-        add.clicked.connect(self.set_parameter)
-        add.setFixedWidth(140)
-
-        reset_parameter = QPushButton("Reset parameter")
-        reset_parameter.clicked.connect(self.reset_parameter)
-        reset_parameter.setFixedWidth(140)
-
-        reset_all_parameters = QPushButton("Reset all")
-        reset_all_parameters.clicked.connect(self.reset_all_parameters)
-        reset_all_parameters.setFixedWidth(200)
-
-        parameters = QHBoxLayout()
-        parameters.addWidget(self.species)
-        parameters.addWidget(self.parameter)
-        parameters.addWidget(self.movement)
-        parameters.addWidget(self.movement_value)
-        parameters.addWidget(self.value)
-        parameters.addWidget(self.label)
-        parameters.addWidget(add)
-        parameters.addWidget(reset_parameter)
-        parameters.addSpacing(100)
-        parameters.addWidget(reset_all_parameters)
-        self.top.addLayout(parameters)
-
-        self._species()
-
-    def _species(self):
-        """Executed when the species selection changes."""
-        species = self.species.currentText()
-        self.parameter.clear()
-        self.parameter.addItems(VARIABLE["parameters"][species].keys())
-
-        self._parameter()
-
-    def _parameter(self):
-        """Executed when the parameter selection changes."""
-        parameter = self.parameter.currentText()
-        if parameter == "":
-            # This check is needed because the function is called when the species is changed,
-            # before the new species is 'selected'.
-            return
-
-        species = self.species.currentText()
-
-        if parameter == "Movement":
-            self.value.setVisible(False)
-            self.movement.setVisible(True)
-            self.movement_value.setVisible(True)
-
-            self._movement()
-            return
-
-        self.movement.setVisible(False)
-        self.movement_value.setVisible(False)
-        self.value.setVisible(True)
-
-        start, stop, self.interval = self.values[parameter]
-        default = VARIABLE["parameters"][species][parameter] / self.interval
-
-        self.value.setMinimum(int(start))
-        self.value.setMaximum(int(stop/self.interval))
-        self.value.setValue(int(default))
-
-        self._value()
-
-    def _movement(self):
-        """Executed when the movement selection changes."""
-        if self.parameter.currentText() == "":
-            # This check is needed because the function is called when the species is changed,
-            # before the new species is 'selected'.
-            return
-
-        parameter = self.movement.currentText()
-        parameter = parameter[0] if parameter != "Stride" else parameter
-
-        start, stop, self.interval = self.values[parameter]
-        self.movement_value.setMinimum(start)
-        self.movement_value.setMaximum(stop)
-        self.movement_value.setValue(1)
-
-        self._value()
-
-    def _value(self):
-        """Executed when the value selection changes."""
-        if self.parameter.currentText() != "Movement":
-            self.label.setText(f"{self.value.value() * self.interval:.2f}")
-            return
-
-        if self.movement.currentText() != "Stride":
-            values = {1: "True", 0: "False"}
-            self.label.setText(values[self.movement_value.value()])
-        else:
-            self.label.setText(f"{self.movement_value.value():.0f}")
-
-    def set_parameter(self):
-        """Set the parameter for the selected species."""
-        species = self.species.currentText()
-        parameter = self.parameter.currentText()
-
-        if parameter == "Movement":
-            mapping = {
-                "Herbivore": Herbivore,
-                "Carnivore": Carnivore,
-                "1": True,
-                "0": False
-            }
-
-            parameter = self.movement.currentText()
-            value = self.movement_value.value()
-
-            if parameter == "Stride":
-                mapping[species].set_motion(new_stride=int(value))
-            else:
-                parameter = parameter[0]
-                value = mapping[str(value)]
-                mapping[species].set_motion(new_movable={parameter: value})
-        else:
-            value = float(self.label.text())
-
-            if species == "Herbivore":
-                Herbivore.set_parameters({parameter: value})
-            elif species == "Carnivore":
-                Carnivore.set_parameters({parameter: value})
-            elif species == "Fodder":
-                parameter = VARIABLE["parameters"]["rename"][parameter]
-
-                Island.set_fodder_parameters({parameter: value})
-                self.values["Growth factor (v_max)"] = (
-                    0,
-                    max(value, self.values["Growth factor (v_max)"][1]),
-                    10
-                )
-
-        now = datetime.datetime.now()
-        when = f"{now.hour}:{now.minute}.{now.second} {now.microsecond}"
-        VARIABLE["modified"][when] = (species, parameter, value)
-
-        self.update()
-
-    def reset_parameter(self):
-        """Reset the parameter for the species."""
-        species = self.species.currentText()
-        parameter = self.parameter.currentText()
-
-        if parameter == "Movement":
-            mapping = {
-                "Herbivore": Herbivore,
-                "Carnivore": Carnivore,
-                1: "True",
-                0: "False"
-            }
-
-            parameter = self.movement.currentText()
-            value = self.movement_value.value()
-
-            if parameter == "Stride":
-                mapping[species].set_motion(new_stride=mapping[species].default_motion()["stride"])
-            else:
-                parameter = parameter[0]
-                value = mapping[value]
-                mapping[species].set_motion(
-                    new_movable={parameter: mapping[species].default_motion()["movable"][parameter]}
-                )
-        else:
-            if species == "Herbivore":
-                current = VARIABLE["selected"]["selection"]
-                Herbivore.set_parameters({
-                    parameter: VARIABLE["selection"][species][current][parameter]
-                })
-                value = Herbivore.default_parameters()[parameter]
-            elif species == "Carnivore":
-                Carnivore.set_parameters({
-                    parameter: Carnivore.default_parameters()[parameter]
-                })
-                value = Carnivore.default_parameters()[parameter]
-            elif species == "Fodder":
-                parameter = VARIABLE["parameters"]["rename"][parameter]
-                Island.set_fodder_parameters(
-                    {parameter: Island.default_fodder_parameters()[parameter]}
-                )
-                value = Island.default_fodder_parameters()[parameter]
-
-        now = datetime.datetime.now()
-        when = f"{now.hour}:{now.minute}.{now.second} {now.microsecond}"
-        VARIABLE["modified"][when] = (species, parameter, value)
-
-        self.update()
-
-    def reset_all_parameters(self):
-        """Reset all parameters to their default values."""
-        current = VARIABLE["selected"]["selection"]
-        Herbivore.set_parameters(VARIABLE["selection"]["Herbivore"][current])
-        Herbivore.set_motion(new_stride=Herbivore.default_motion()["stride"],
-                             new_movable=Herbivore.default_motion()["movable"])
-        Carnivore.set_parameters(Carnivore.default_parameters())
-        Carnivore.set_parameters(VARIABLE["selection"]["Carnivore"][current])
-        Carnivore.set_motion(new_stride=Carnivore.default_motion()["stride"],
-                             new_movable=Carnivore.default_motion()["movable"])
-        Island.set_fodder_parameters(Island.default_fodder_parameters())
-
-        now = datetime.datetime.now()
-        when = f"{now.hour}:{now.minute}.{now.second} {now.microsecond}"
-
-        i = 0
-        for species in ["Herbivore", "Carnivore", "Fodder"]:
-            for parameter, value in VARIABLE["parameters"][species].items():
-                if parameter != "Movement":
-                    VARIABLE["modified"][when + f"{i}"] = (species, parameter, value)
-                else:
-                    for parameter, value in VARIABLE["parameters"][species]["Movement"].items():
-                        VARIABLE["modified"][when + f"{i}"] = (species, parameter, value)
-                        i += 1
-                i += 1
-
-        self.update()
-
-    def reset(self):
-        """Reset the parameter history."""
-        VARIABLE["modified"].clear()
-
-        self.update()
