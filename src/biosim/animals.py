@@ -318,20 +318,20 @@ class Herbivore(Animal):
         -------
         dict
         """
-        return {"w_birth": 8.0,
-                "sigma_birth": 1.5,
-                "beta": 0.9,
-                "eta": 0.05,
-                "a_half": 40.0,
-                "phi_age": 0.6,
-                "w_half": 10.0,
-                "phi_weight": 0.1,
-                "mu": 0.25,
-                "gamma": 0.2,
-                "zeta": 3.5,
-                "xi": 1.2,
+        return {"w_birth": 10.0,        # Babyweight ~ 2.6 kg.
+                "sigma_birth": 4.0,
+                "beta": 0.05,           # Weightincrease when eating ~ 1 kg.
+                "eta": 0.2,             # Weightloss 10% per year.
+                "a_half": 2.5,
+                "phi_age": 5.0,         # Life span ~ 5 years. Fitness decreases.
+                "w_half": 3.0,
+                "phi_weight": 0.09,
+                "mu": 17.0,             # Rapid movement.
+                "gamma": 0.9,           # Birthprobability p = fitness * gamma.
+                "zeta": 0.22,           # Baby if weight > 3.08 kg.
+                "xi": 0.42,             # Weightloss ~ 1.1 kg at birth.
                 "omega": 0.4,
-                "F": 10.0,
+                "F": 20.0,              # Appetite.
                 "DeltaPhiMax": 10.0}
 
     def __init__(self, age=None, weight=None):
@@ -398,18 +398,18 @@ class Carnivore(Animal):
         """
         return {"w_birth": 6.0,
                 "sigma_birth": 1.0,
-                "beta": 0.75,
+                "beta": 0.6,
                 "eta": 0.125,
                 "a_half": 40.0,
-                "phi_age": 0.3,
+                "phi_age": 0.45,
                 "w_half": 4.0,
-                "phi_weight": 0.4,
+                "phi_weight": 0.28,
                 "mu": 0.4,
                 "gamma": 0.8,
                 "zeta": 3.5,
                 "xi": 1.1,
-                "omega": 0.8,
-                "F": 50.0,
+                "omega": 0.3,           # "High" mortality.
+                "F": 70.0,              # Appetite.
                 "DeltaPhiMax": 10.0}
 
     def __init__(self, age=None, weight=None):
