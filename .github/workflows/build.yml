@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [windows-latest, macos-latest, ubuntu-latest]
         python-version: [3.12]
 
     steps:
@@ -27,6 +27,8 @@ jobs:
           if (Test-Path application\${{ runner.os }}.exe) {
             rmdir -Force -Recurse application\${{ runner.os }}.exe
           }
+        } elseif ($env:RUNNER_OS -eq 'Linux') {
+          rm -rf application/${{ runner.os }}
         } else {
           rm -rf application/${{ runner.os }}.app
         }
