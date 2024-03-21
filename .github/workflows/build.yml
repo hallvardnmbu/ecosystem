@@ -68,12 +68,38 @@ jobs:
       run: |
         git config --global user.email "action@github.com"
         git config --global user.name "GitHub Action"
-        git lfs track "application/*"
-        git add application/*
+        
+        if ($env:RUNNER_OS -eq 'Windows') {
+          git lfs track application/${{ runner.os }}.exe
+          git add application/${{ runner.os }}.exe
+        } elseif ($env:RUNNER_OS -eq 'Linux') {
+          git lfs track application/${{ runner.os }}
+          git add application/${{ runner.os }}
+        } else {
+          git lfs track application/${{ runner.os }}.app
+          git add application/${{ runner.os }}.app
+        }
         git commit -m "${{ runner.os }}"
+        git diff --quiet && git diff --staged --quiet || git commit -m "${{ runner.os }}"
+        
         git fetch origin main
         git merge origin/main -m "${{ runner.os }}"
+        
         git pull --rebase origin main
-        git push https://github.com/hallvardnmbu/ecosystem.git main
+        while($true) {
+          $pushOutput = git push https://github.com/hallvardnmbu/ecosystem.git main 2>&1
+          if ($pushOutput -match "remote rejected") {
+            Write-Output "Push rejected by remote repository, retrying in 5 seconds..."
+            Start-Sleep -Seconds 5
+            git pull --rebase origin main
+          } elseif ($pushOutput -match "everything up-to-date") {
+            Write-Output "No changes to push, exiting loop..."
+            break
+          } else {
+            Write-Output "Push successful, exiting loop..."
+            break
+          }
+        }
+      shell: pwsh
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
