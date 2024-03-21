@@ -51,6 +51,8 @@ jobs:
         pyinstaller executable.py -F -w -n ${{ runner.os }} --add-data "src/biosim/_static/*.png:." --icon "src/biosim/_static/icon.ico" --distpath dist -p biosim
         if ($env:RUNNER_OS -eq 'Windows') {
           mv dist/${{ runner.os }}.exe application/
+        } elseif ($env:RUNNER_OS -eq 'Linux') {
+          mv dist/${{ runner.os }} application/
         } else {
           mv dist/${{ runner.os }}.app application/
         }
