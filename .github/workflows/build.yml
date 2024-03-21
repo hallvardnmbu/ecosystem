@@ -1,0 +1,74 @@
+name: Standalone executable applications
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'application/**'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    permissions:
+      contents: write
+
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+        python-version: [3.12]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Create application directory
+      run: |
+        if ($env:RUNNER_OS -eq 'Windows') {
+          if (Test-Path application\${{ runner.os }}.exe) {
+            rmdir -Force -Recurse application\${{ runner.os }}.exe
+          }
+        } else {
+          rm -rf application/${{ runner.os }}.app
+        }
+        if (-not (Test-Path -Path application/)) {
+          New-Item -Path application/ -ItemType Directory
+        }
+      shell: pwsh
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        pip install pyinstaller pillow numpy matplotlib PyQt5 perlin_noise
+
+    - name: Build executable
+      run: |
+        pyinstaller executable.py -F -w -n ${{ runner.os }} --add-data "src/biosim/_static/*.png:." --icon "src/biosim/_static/icon.ico".ico" --distpath dist -p biosim
+        if ($env:RUNNER_OS -eq 'Windows') {
+          mv dist/${{ runner.os }}.exe application/
+        } else {
+          mv dist/${{ runner.os }}.app application/
+        }
+      shell: pwsh
+
+    - name: Upload executable
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ runner.os }}
+        path: application/
+
+    - name: Commit and push executable
+      run: |
+        git config --global user.email "action@github.com"
+        git config --global user.name "GitHub Action"
+        git add application/*
+        git commit -m "${{ runner.os }}"
+        git fetch origin main
+        git merge origin/main -m "${{ runner.os }}"
+        git pull --rebase origin main
+        git push https://github.com/hallvardnmbu/ecosystem.git main
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
