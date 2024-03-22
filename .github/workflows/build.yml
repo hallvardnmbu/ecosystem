@@ -26,12 +26,13 @@ jobs:
     - name: Check commit messages for 'Build'
       id: commit-message-check
       run: |
-        contains_build="$(git log --grep='Build' --format=%B -n 1)"
-        if [ -n "$contains_build" ]; then
-          echo "::set-output name=contains_build::true"
-        else
-          echo "::set-output name=contains_build::false"
-        fi
+        $contains_build = git log --grep='Build' --format=%B -n 1
+        if ($null -ne $contains_build) {
+            echo "::set-output name=contains_build::true"
+        } else {
+            echo "::set-output name=contains_build::false"
+        }
+      shell: pwsh
 
     - name: Create application directory
       if: steps.commit-message-check.outputs.contains_build == 'true'
