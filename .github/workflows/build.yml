@@ -20,8 +20,21 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Check commit messages for 'Build'
+      id: commit-message-check
+      run: |
+        contains_build="$(git log --grep='Build' --format=%B -n 1)"
+        if [ -n "$contains_build" ]; then
+          echo "::set-output name=contains_build::true"
+        else
+          echo "::set-output name=contains_build::false"
+        fi
 
     - name: Create application directory
+      if: steps.commit-message-check.outputs.contains_build == 'true'
       run: |
         if ($env:RUNNER_OS -eq 'Windows') {
           if (Test-Path application\${{ runner.os }}.exe) {
@@ -43,10 +56,12 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
+      if: steps.commit-message-check.outputs.contains_build == 'true'
       run: |
         pip install pyinstaller pillow numpy matplotlib PyQt5 perlin_noise
 
     - name: Build executable
+      if: steps.commit-message-check.outputs.contains_build == 'true'
       run: |
         pyinstaller executable.py -F -w -n ${{ runner.os }} --add-data "src/biosim/_static/*.png:." --icon "src/biosim/_static/icon.ico" --distpath dist -p biosim
         if ($env:RUNNER_OS -eq 'Windows') {
@@ -65,17 +80,24 @@ jobs:
         path: application/
 
     - name: Commit and push executable
+      if: steps.commit-message-check.outputs.contains_build == 'true'
       run: |
         git config --global user.email "action@github.com"
         git config --global user.name "GitHub Action"
         
         if ($env:RUNNER_OS -eq 'Windows') {
+          git lfs untrack application/${{ runner.os }}.exe
+          git rm --cached application/${{ runner.os }}.exe
           git lfs track application/${{ runner.os }}.exe
           git add application/${{ runner.os }}.exe
         } elseif ($env:RUNNER_OS -eq 'Linux') {
+          git lfs untrack application/${{ runner.os }}
+          git rm --cached application/${{ runner.os }}
           git lfs track application/${{ runner.os }}
           git add application/${{ runner.os }}
         } else {
+          git lfs untrack application/${{ runner.os }}.app
+          git rm --cached application/${{ runner.os }}.app
           git lfs track application/${{ runner.os }}.app
           git add application/${{ runner.os }}.app
         }

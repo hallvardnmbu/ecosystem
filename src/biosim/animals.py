@@ -318,20 +318,20 @@ class Herbivore(Animal):
         -------
         dict
         """
-        return {"w_birth": 14.0,        # Babyweight ~ 2.6 kg.
+        return {"w_birth": 10.0,
                 "sigma_birth": 4.0,
-                "beta": 0.05,           # Weightincrease when eating ~ 1 kg.
-                "eta": 0.2,             # Weightloss 10% per year.
+                "beta": 0.05,
+                "eta": 0.2,
                 "a_half": 2.5,
-                "phi_age": 5.0,         # Life span ~ 5 years. Fitness decreases.
+                "phi_age": 5.0,
                 "w_half": 3.0,
                 "phi_weight": 0.09,
-                "mu": 17.0,             # Rapid movement.
-                "gamma": 0.9,           # Birthprobability p = fitness * gamma.
-                "zeta": 0.15,           # Baby if weight > 3.08 kg.
-                "xi": 0.42,             # Weightloss ~ 1.1 kg at birth.
+                "mu": 17.0,
+                "gamma": 0.9,
+                "zeta": 0.22,
+                "xi": 0.42,
                 "omega": 0.4,
-                "F": 20.0,              # Appetite.
+                "F": 20.0,
                 "DeltaPhiMax": 10.0}
 
     def __init__(self, age=None, weight=None):
@@ -396,9 +396,9 @@ class Carnivore(Animal):
         -------
         dict
         """
-        return {"w_birth": 9.0,
+        return {"w_birth": 6.0,
                 "sigma_birth": 1.0,
-                "beta": 0.8,
+                "beta": 0.6,
                 "eta": 0.125,
                 "a_half": 40.0,
                 "phi_age": 0.45,
@@ -408,8 +408,8 @@ class Carnivore(Animal):
                 "gamma": 0.8,
                 "zeta": 3.5,
                 "xi": 1.1,
-                "omega": 0.3,           # "High" mortality.
-                "F": 60.0,              # Appetite.
+                "omega": 0.3,
+                "F": 70.0,
                 "DeltaPhiMax": 10.0}
 
     def __init__(self, age=None, weight=None):

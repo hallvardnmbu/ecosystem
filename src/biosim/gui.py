@@ -159,6 +159,8 @@ class BioSimGUI:
         except (AttributeError, KeyError):
             pass
         VARIABLE["biosim"] = BioSim(island_map=geogr)
+        VARIABLE["biosim"].set_animal_parameters("Herbivore", Herbivore.default_parameters())
+        VARIABLE["biosim"].set_animal_parameters("Carnivore", Carnivore.default_parameters())
         VARIABLE["biosim"].graphics.hist_specs = {
             'age': {'max': 45, 'delta': 5},
             'weight': {'max': 60, 'delta': 5},

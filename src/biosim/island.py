@@ -373,7 +373,7 @@ class Island:
                     continue
                 if not animal.movable[self.geography[i][j]]:
                     continue
-                if (i - x) ** 2 + (j - y) ** 2 > stride ** 2 and stride != 1:
+                if (i - x) ** 2 + (j - y) ** 2 > stride ** 2:
                     continue
 
                 possible.append((i + 1, j + 1))
