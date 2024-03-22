@@ -44,7 +44,7 @@ jobs:
         } elseif ($env:RUNNER_OS -eq 'Linux') {
           rm -rf application/${{ runner.os }}
         } else {
-          rm -rf application/${{ runner.os }}.app
+          rm -rf application/${{ runner.os }}.tar.gz
         }
         if (-not (Test-Path -Path application/)) {
           New-Item -Path application/ -ItemType Directory
@@ -89,18 +89,25 @@ jobs:
         if ($env:RUNNER_OS -eq 'Windows') {
           git lfs untrack application/${{ runner.os }}.exe
           git rm --cached application/${{ runner.os }}.exe
-          git lfs track application/${{ runner.os }}.exe
+          if ((Get-Item application/${{ runner.os }}.exe).length / 1MB -gt 100) {
+            git lfs track application/${{ runner.os }}.exe
+          }
           git add application/${{ runner.os }}.exe
         } elseif ($env:RUNNER_OS -eq 'Linux') {
           git lfs untrack application/${{ runner.os }}
           git rm --cached application/${{ runner.os }}
-          git lfs track application/${{ runner.os }}
+          if (($(du -sm application/${{ runner.os }} | cut -f1)) -gt 100) {
+            git lfs track application/${{ runner.os }}
+          }
           git add application/${{ runner.os }}
         } else {
-          git lfs untrack application/${{ runner.os }}.app
-          git rm --cached application/${{ runner.os }}.app
-          git lfs track application/${{ runner.os }}.app
-          git add application/${{ runner.os }}.app
+          tar -czf application/${{ runner.os }}.tar.gz application/${{ runner.os }}.app
+          git lfs untrack application/${{ runner.os }}.tar.gz
+          git rm --cached application/${{ runner.os }}.tar.gz
+          if (($(du -sm application/${{ runner.os }}.tar.gz | cut -f1)) -gt 100) {
+            git lfs track application/${{ runner.os }}.tar.gz
+          }
+          git add application/${{ runner.os }}.tar.gz
         }
         git commit -m "${{ runner.os }}"
         git diff --quiet && git diff --staged --quiet || git commit -m "${{ runner.os }}"

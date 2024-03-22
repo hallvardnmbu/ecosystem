@@ -30,7 +30,7 @@ VARIABLE = {"island": ["W" * 21 for _ in range(21)],
                        "upper": 0.2},           # 'middle' < Highland < 'upper'. Otherwise Mountain.
             "selected": {"pos": (int, int), "species": str, "amount": int},
             "biosim": None,
-            "speed": 1e-6,
+            "speed": 1e-7,
             "colours": {"W": "#95CBCC",
                         "H": "#E8EC9E",
                         "L": "#B9D687",
@@ -58,6 +58,21 @@ class BioSimGUI:
         app.setStyleSheet("""
             QTabWidget::pane {
                 border: 1px solid black;
+                background-color: #FBFAF5;
+            }
+            QTabWidget::tab-bar {
+                left: 0px;
+            }
+            QTabBar::tab {
+                background: #FBFAF5;
+                border: 1px solid gray;
+                border-radius: 4px;
+                min-width: 8ex;
+                padding: 2px;
+                color: black;
+            }
+            QTabBar::tab:selected {
+                background: #F3F2EC;
             }
             QWidget {
                 background-color: #FBFAF5;
@@ -82,7 +97,7 @@ class BioSimGUI:
                 border-radius: 5px;
             }
             QPushButton:hover {
-                background-color: #f5f6fb;
+                background-color: #F3F2EC;
             }
         """)
         window = Main()
@@ -162,8 +177,8 @@ class BioSimGUI:
         VARIABLE["biosim"].set_animal_parameters("Herbivore", Herbivore.default_parameters())
         VARIABLE["biosim"].set_animal_parameters("Carnivore", Carnivore.default_parameters())
         VARIABLE["biosim"].graphics.hist_specs = {
-            'age': {'max': 45, 'delta': 5},
-            'weight': {'max': 60, 'delta': 5},
+            'age': {'max': 30, 'delta': 5},
+            'weight': {'max': 25, 'delta': 5},
             'fitness': {'max': 1, 'delta': 0.1}
         }
         VARIABLE["history"].clear()
@@ -779,15 +794,15 @@ class Simulate(QWidget):
 
     def simulation(self):
         """Add simulation selection to the window."""
-        self.years = QSlider(Qt.Horizontal)
-        self.years.setMinimum(1)
-        self.years.setMaximum(1000)
-        self.years.setValue(200)
-        self.years.valueChanged.connect(self._years)
-        self.years.setFixedWidth(200)
-        self.year = QLabel()
-        self.year.setFixedWidth(40)
-        self._years()
+        # self.years = QSlider(Qt.Horizontal)
+        # self.years.setMinimum(1)
+        # self.years.setMaximum(5000)
+        # self.years.setValue(1000)
+        # self.years.valueChanged.connect(self._years)
+        # self.years.setFixedWidth(200)
+        # self.year = QLabel()
+        # self.year.setFixedWidth(40)
+        # self._years()
 
         simulate_button = QPushButton("Simulér")
         simulate_button.clicked.connect(self.simulate)
@@ -806,9 +821,9 @@ class Simulate(QWidget):
         reset.setFixedWidth(200)
 
         simulation = QHBoxLayout()
-        simulation.addWidget(QLabel("Iterasjoner å simulere:"))
-        simulation.addWidget(self.years)
-        simulation.addWidget(self.year)
+        # simulation.addWidget(QLabel("Iterasjoner å simulere:"))
+        # simulation.addWidget(self.years)
+        # simulation.addWidget(self.year)
         simulation.addWidget(simulate_button)
         simulation.addWidget(pause)
         simulation.addWidget(faster)
@@ -859,7 +874,8 @@ class Simulate(QWidget):
         ValueError
             If number of years to simulate has not been specified.
         """
-        years = int(self.years.value())
+        # years = int(self.years.value())
+        years = 1000
         VARIABLE["biosim"].should_stop = False
 
         VARIABLE["biosim"].graphics.speed = VARIABLE["speed"]
