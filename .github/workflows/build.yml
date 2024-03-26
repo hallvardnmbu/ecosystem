@@ -27,15 +27,17 @@ jobs:
       id: commit-message-check
       run: |
         $contains_build = git log --grep='Build' --format=%B -n 1
-        if ($null -ne $contains_build) {
-            echo "::set-output name=contains_build::true"
+        if ($contains_build -like "*Build*") {
+            echo "contains_build=true" >> $GITHUB_ENV
         } else {
-            echo "::set-output name=contains_build::false"
+            echo "contains_build=false" >> $GITHUB_ENV
         }
       shell: pwsh
+      env:
+        GITHUB_ENV: ${{ github.env }}
 
     - name: Create application directory
-      if: steps.commit-message-check.outputs.contains_build == 'true'
+      if: ${{ env.contains_build == 'true' }}
       run: |
         if ($env:RUNNER_OS -eq 'Windows') {
           if (Test-Path application\${{ runner.os }}.exe) {
@@ -44,25 +46,33 @@ jobs:
         } elseif ($env:RUNNER_OS -eq 'Linux') {
           rm -rf application/${{ runner.os }}
         } else {
-          rm -rf application/${{ runner.os }}.tar.gz
+          rm -rf application/${{ runner.os }}.app
         }
         if (-not (Test-Path -Path application/)) {
           New-Item -Path application/ -ItemType Directory
         }
       shell: pwsh
+      env:
+        GITHUB_ENV: ${{ github.env }}
 
     - name: Set up Python ${{ matrix.python-version }}
+      if: ${{ env.contains_build == 'true' }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+      env:
+        GITHUB_ENV: ${{ github.env }}
 
     - name: Install dependencies
-      if: steps.commit-message-check.outputs.contains_build == 'true'
+      if: ${{ env.contains_build == 'true' }}
       run: |
-        pip install pyinstaller pillow numpy matplotlib PyQt5 perlin_noise
+        pip install pyinstaller pillow
+        pip install -r requirements.txt
+      env:
+        GITHUB_ENV: ${{ github.env }}
 
     - name: Build executable
-      if: steps.commit-message-check.outputs.contains_build == 'true'
+      if: ${{ env.contains_build == 'true' }}
       run: |
         pyinstaller executable.py -F -w -n ${{ runner.os }} --add-data "src/biosim/_static/*.png:." --icon "src/biosim/_static/icon.ico" --distpath dist -p biosim
         if ($env:RUNNER_OS -eq 'Windows') {
@@ -73,51 +83,53 @@ jobs:
           mv dist/${{ runner.os }}.app application/
         }
       shell: pwsh
+      env:
+        GITHUB_ENV: ${{ github.env }}
 
     - name: Upload executable
+      if: ${{ env.contains_build == 'true' }}
       uses: actions/upload-artifact@v2
       with:
         name: ${{ runner.os }}
         path: application/
+      env:
+        GITHUB_ENV: ${{ github.env }}
 
     - name: Commit and push executable
-      if: steps.commit-message-check.outputs.contains_build == 'true'
+      if: ${{ env.contains_build == 'true' }}
       run: |
         git config --global user.email "action@github.com"
         git config --global user.name "GitHub Action"
         
+        git fetch origin main
+        
         if ($env:RUNNER_OS -eq 'Windows') {
-          git lfs untrack application/${{ runner.os }}.exe
-          git rm --cached application/${{ runner.os }}.exe
-          if ((Get-Item application/${{ runner.os }}.exe).length / 1MB -gt 100) {
-            git lfs track application/${{ runner.os }}.exe
-          }
-          git add application/${{ runner.os }}.exe
+          $filePath = "application/${{ runner.os }}.exe"
+          $fileSize = (Get-Item $filePath).length / 1MB
         } elseif ($env:RUNNER_OS -eq 'Linux') {
-          git lfs untrack application/${{ runner.os }}
-          git rm --cached application/${{ runner.os }}
-          if (($(du -sm application/${{ runner.os }} | cut -f1)) -gt 100) {
-            git lfs track application/${{ runner.os }}
-          }
-          git add application/${{ runner.os }}
+          $filePath = "application/${{ runner.os }}"
+          $fileSize = $(du -sm $filePath | cut -f1)
         } else {
           tar -czf application/${{ runner.os }}.tar.gz application/${{ runner.os }}.app
-          git lfs untrack application/${{ runner.os }}.tar.gz
-          git rm --cached application/${{ runner.os }}.tar.gz
-          if (($(du -sm application/${{ runner.os }}.tar.gz | cut -f1)) -gt 100) {
-            git lfs track application/${{ runner.os }}.tar.gz
-          }
-          git add application/${{ runner.os }}.tar.gz
+          $filePath = "application/${{ runner.os }}.tar.gz"
+          $fileSize = $(du -sm $filePath | cut -f1)
         }
+        
+        git filter-branch --force --index-filter "git rm --cached --ignore-unmatch $filePath" --prune-empty --tag-name-filter cat -- --all
+        git for-each-ref --format="%(refname)" refs/original/ | xargs -I {} git update-ref -d {}
+        git gc --prune=now
+        git gc --aggressive --prune=now
+
+        if ($fileSize -gt 100) {
+          git lfs track $filePath
+        }
+        git add $filePath
         git commit -m "${{ runner.os }}"
-        git diff --quiet && git diff --staged --quiet || git commit -m "${{ runner.os }}"
-        
-        git fetch origin main
-        git merge origin/main -m "${{ runner.os }}"
-        
+
         git pull --rebase origin main
+        
         while($true) {
-          $pushOutput = git push https://github.com/hallvardnmbu/ecosystem.git main 2>&1
+          $pushOutput = git push origin --force --all 2>&1
           if ($pushOutput -match "remote rejected") {
             Write-Output "Push rejected by remote repository, retrying in 5 seconds..."
             Start-Sleep -Seconds 5
@@ -130,6 +142,9 @@ jobs:
             break
           }
         }
+
+        git push origin --force --tags
       shell: pwsh
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_ENV: ${{ github.env }}

@@ -233,7 +233,7 @@ class BioSim:
                         for species, _parameter in _history.items():
                             for parameter, value in _parameter.items():
                                 self.history[species][parameter].append(value)
-                                self.history["n_species"] = self.n_species
+                                # self.history["n_species"] = self.n_species
             else:
                 if self.log_file:
                     _, self.n_species, _ = self.island.animals()
@@ -241,10 +241,10 @@ class BioSim:
         if self.vis_years and not canvas:
             plt.draw()
 
-        if history:
-            return self.history
-        else:
-            return None
+        # if history:
+        #     return self.history
+        # else:
+        #     return None
 
     def add_population(self, population):
         """

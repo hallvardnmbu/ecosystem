@@ -16,7 +16,7 @@ from PyQt5.QtGui import QPainter, QPen, QBrush, QColor, QDrag, QPixmap, QIcon
 from PyQt5.QtWidgets import (QMainWindow, QTabWidget, QApplication, QWidget, QHBoxLayout,
                              QVBoxLayout, QGroupBox, QGridLayout, QLabel, QPushButton, QSlider,
                              QGraphicsView, QGraphicsScene, QMessageBox, QGraphicsPixmapItem,
-                             QInputDialog)
+                             QInputDialog, QScrollArea)
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
@@ -36,7 +36,6 @@ VARIABLE = {"island": ["W" * 21 for _ in range(21)],
                         "L": "#B9D687",
                         "M": "#808080"},
             "modified": {},
-            "history": {},
             "dir": str(sys._MEIPASS) if getattr(sys, 'frozen', False) else "src/biosim/_static"}
 
 
@@ -57,22 +56,29 @@ class BioSimGUI:
         app = QApplication([])
         app.setStyleSheet("""
             QTabWidget::pane {
-                border: 1px solid black;
+                border: transparent;
                 background-color: #FBFAF5;
             }
             QTabWidget::tab-bar {
-                left: 0px;
+                left: 20px;
             }
             QTabBar::tab {
                 background: #FBFAF5;
                 border: 1px solid gray;
                 border-radius: 4px;
-                min-width: 8ex;
-                padding: 2px;
+                min-width: 100px;
+                padding: 5px;
                 color: black;
             }
             QTabBar::tab:selected {
                 background: #F3F2EC;
+                border: 1.5px solid black;
+                border-radius: 4px;
+            }
+            QTabBar::tab:hover {
+                background: #F3F2EC;
+                border: 1.5px solid black;
+                border-radius: 4px;
             }
             QWidget {
                 background-color: #FBFAF5;
@@ -98,6 +104,7 @@ class BioSimGUI:
             }
             QPushButton:hover {
                 background-color: #F3F2EC;
+                border: 2px solid black;
             }
         """)
         window = Main()
@@ -181,7 +188,6 @@ class BioSimGUI:
             'weight': {'max': 25, 'delta': 5},
             'fitness': {'max': 1, 'delta': 0.1}
         }
-        VARIABLE["history"].clear()
 
 
 class Main(QMainWindow):
@@ -195,6 +201,10 @@ class Main(QMainWindow):
         # Create the tabs:
         self.tabs = QTabWidget()
         self.setCentralWidget(self.tabs)
+
+        # Information:
+        information = Information()
+        self.tabs.addTab(information, "Informasjon")
 
         # Draw:
         draw_widget = QWidget()
@@ -234,10 +244,26 @@ class Main(QMainWindow):
 
         self.previous = 0
         self.tabs.currentChanged.connect(self.change)
+        self.tabs.setCurrentIndex(0)
 
     def change(self, index):
         """Switching to new tabs executes the following."""
-        if index == 0:  # Switching to draw page.
+        if self.previous == 1 and index != 1:
+            # Switching from draw page.
+            BioSimGUI.restart()
+            try:
+                self.populate.plot.update()
+            except AttributeError:
+                pass
+        elif self.previous == 3 and index != 3:
+            # Switching from simulate page.
+            self.simulate.stop()
+            self.history.update()
+
+        self.previous = index
+
+        if index == 1:
+            # Switching to draw page.
             if any(cell != "W" for row in VARIABLE["island"] for cell in row):
                 msg_box = QMessageBox()
                 msg_box.setIcon(QMessageBox.Warning)
@@ -253,35 +279,189 @@ class Main(QMainWindow):
 
                 self.simulate.reset()
                 VARIABLE["modified"].clear()
-                VARIABLE["history"].clear()
+                VARIABLE["biosim"].reset_history() if VARIABLE["biosim"] else None
             self.draw.plot.update()
-        elif index == 1:  # Switching to populate page.
+        elif index == 2:
+            # Switching to populate page.
             self.populate.plot.update()
-        elif index == 2:  # Switching to simulate page.
+        elif index == 3:
+            # Switching to simulate page.
             if not VARIABLE["biosim"]:
                 BioSimGUI.restart()
             try:
-                VARIABLE["biosim"].should_stop = False
+                self.simulate.stop()
             except AttributeError:
                 pass
             try:
                 self.simulate.simulate()
             except:
                 pass
-        elif index == 3:  # Switching to history page.
-            self.history.update()
-        if self.previous == 0 and index != 0:  # Switching from draw page.
-            BioSimGUI.restart()
-            try:
-                self.populate.plot.update()
-            except AttributeError:
-                pass
-        elif self.previous == 2 and index != 2:
-            self.simulate.stop()
-            time.sleep(2)
+        elif index == 4:
+            # Switching to history page.
             self.history.update()
 
-        self.previous = index
+
+class Information(QWidget):
+    """Widget displaying help and information."""
+    def __init__(self):
+        super().__init__()
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.guide())
+        self.setLayout(layout)
+
+    @staticmethod
+    def guide():
+        guidance = QGroupBox()
+        content = QVBoxLayout()
+        scroll = QScrollArea()
+
+        guide = QLabel("""
+            Grundigere informasjon finnes <a href='https://github.com/hallvardnmbu/ecosystem/blob/main/information/informasjon.pdf'>her</a>.<br><br>
+            
+            Laget av Hallvard Høyland Lavik i samråd med Ronny Steen, basert på arbeidet til Hans 
+            Ekkehard Plesser.
+            <hr>
+            
+            <h3>Brukerveiledning</h3>
+            <hr>
+            <h4>Tegn</h4>
+            Når du har åpnet simuleringsverktøyet blir du møtt med siden Tegn. Her har du tomt 
+            lerret på venstre side og knapper på høyre side. På denne siden er det meningen 
+            at du tegner din egen øy, og det tomme lerretet består av vann-celler. For å 
+            begynne å tegne din egen øy må du først velge terrengtype å tegne med ved å 
+            klikke på den respektive knappen nede i høyre hjørne. Den valgte terrengtypen vil da 
+            få et tykkere omriss, og du kan begynne å tegne på lerretet ved å bruke musen 
+            enten ved å klikke for å tegne  ́en og  ́en celle, eller ved å holde museknappen 
+            og dra musen rundt. Merk deg at det ikke er mulig å tegne på kantene, i og med at 
+            landskapet skal være ei øy.<br><br>
+            Dersom du er lei av å tegne manuelt, kan du trykke på knappen med bilde av 
+            stjerner. Da vil den påbegynte øya (eller det tomme lerretet) bli fullført med 
+            tilfeldig generert terreng.<br><br>
+            Dersom du er misfornøyd med øya kan du nullstille lerretet ved å trykke på 
+            søppel-knappen. For å kunne tegne ei større eller mindre øy, 
+            kan forstørrelsesglass-knappene brukes.
+            <hr>
+            <h4>Befolk</h4>
+            Etter øya er ferdig tegnet kan den befolkes. Da trykker du på Befolk for å bytte 
+            til den riktige siden. Her kan du plassere plante- og kjøttetere på øya enten ved å 
+            dra-og-slippe dem eller ved å først trykke på arten og så en celle på kartet. For å 
+            nullstille dyrene på øya trykker du på søppel-knappen.<br><br>
+            En god tommelfinger-regel for å få en god simulering er å plassere artene i samme 
+            celle eller veldig nær hverandre til å begynne med. Å starte med for eksempel:<br><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<strong>10</strong> kjøttetere og <strong>100</strong> 
+            planteetere<br><br>
+            i samme celle gir som regel gode startbetingelser for begge arter. Dersom kjøttetere 
+            plasseres for langt unna planteetere vil de dø ut før de rekker å bevege seg til – og 
+            spise – planteeterne. Dersom kjøttetere hyppig dør ut, kan det hende at øya er for 
+            liten. Her gjelder det å prøve seg litt frem.
+            <hr>
+            <h4>Simuler</h4>
+            For å starte simuleringen byttes fanen til Simuler. Da vil simuleringen med de 
+            utplasserte dyrene begynne. Øverst på denne siden er knapper for å styre lengden og 
+            hastigheten på simuleringen. For å nullstille grafene, trykker du på Nullstill.<br><br>
+            Øverste rad av graf-vinduet viser populasjonsantallet per art over tid. Her tilsvarer 
+            x-aksen iterasjoner etter start av simuleringen. Hva en iterasjon betyr i denne 
+            sammenheng finner nederst på denne siden.<br><br>
+            Neste rad inneholder tre ulike grafer. Den første er statisk, og er et ”flyfoto” av 
+            øya. De to andre tilsvarer populasjonstettheten til de ulike artene. Posisjonen til 
+            tettheten tilsvarer posisjonen på kartet. Det vil si at mørkt fargede områder på 
+            tetthets-grafene tilsvarer en tett befolkning i disse cellene på øya.<br><br>
+            Siste rad er histogram av alder, vekt og form til dyrene på øya (gruppert etter art). 
+            Her er y-aksen antall dyr per x-verdi. For å gjøre grafene noe lesbare, er x-aksene 
+            delt opp gruppevis.
+            <hr>
+            <h4>Historie</h4>
+            Etter en simulasjon er pauset eller ferdig, finner du historikken over 
+            gjennomsnittlig alder, vekt og form for dyrene på øya per iterasjon, igjen gruppert 
+            etter art.
+            
+            <br><br>
+            
+            <h3>Iterasjon</h3>
+            <hr>
+            Visse forenklinger har som sagt blitt implementert for å gjøre simulasjonen kjørbar. 
+            Eksempler på dette er for eksempel at dyrene ikke har noe kjønn. En annen signifikant 
+            forskjell fra virkeligheten er tidsaksen, altså hva som skjer på øya for hvert tidssteg 
+            (eller iterasjon).<br><br>
+            Hver iterasjon vil alle dyrene på øya gjennomgå de følgende stegene i gitt rekkefølge:
+            <h4>1. Fødsel</h4>
+            Hvert enkelt dyr på øya har muligheten til å føde. Dette skjer ved en gitt 
+            sannsynlighet og er nærmere beskrevet ved formlene i informasjonsdokumentet.
+            <h4>2. Fôring</h4>
+            Etter fødsel vil dyrene forsøke å spise.<br><br>
+            Først vil alle planteetere forsøke å spise ønsket mengde fôr (gitt ved 
+            parameter F) fra cellen de befinner seg i. Her vil planteetere med høyest form få 
+            mulighet til å spise før dyrene med lavere form. Hver celle har en gitt mengde fôr 
+            tilgjengelig, hvilket blir bestemt ved formlene i informasjonsdokumentet.<br><br>
+            Deretter vil kjøttetere jakte på planteetere i cellen sin. Kjøtteter jakter i 
+            tilfeldig rekkefølge, men jakter på de svakeste planteeterne (etter form) før de 
+            sterkere. Hver kjøtteter vil prøve å jakte på alle gjenværende planteetere i cellen, 
+            helt til den har spist F mengde kjøtt eller den har førsøkt å jakte på alle 
+            planteetere i cellen.
+            <h4>3. Migrasjon</h4>
+            Så vil dyrene bevege seg rundt på øya. Hvert dyr får muligheten til å bevege seg. 
+            Planteetere kan kun bevege seg til naboceller, altså én celle per iterasjon, 
+            mens kjøttetere har mulighet til å bevege seg i et noe større område per iterasjon. 
+            Cellen som beveges til er nærmere beskrevet ved formlene i informasjonsdokumentet.
+            <h4>4. Aldring</h4>
+            Hver iterasjon økes alderen til dyret med  én verdi.
+            <h4>5. Vekttap</h4>
+            Vekten til hvert dyr minkes med faktoren eta hver iterasjon.
+            <h4>6. Død</h4>
+            Dyr hvis vekt har blitt negativ ved vekttap dør. Dyr dør også med en sannsynlighet 
+            som er avhengig av både faktoren omega og formen.
+        """)
+        guide.setOpenExternalLinks(True)
+        guide.setWordWrap(True)
+        guide.setStyleSheet("""
+            color: black; 
+            background-color: #F3F2EC;
+        """)
+        # font-family: 'Courier New', Courier, monospace;
+
+        content.addWidget(guide)
+
+        guidance.setLayout(content)
+        guidance.setObjectName("information")
+        guidance.setStyleSheet("""
+            QWidget#information {
+                border: 1px solid gray;
+                border-radius: 4px;
+                background-color: #F3F2EC;
+            }
+        """)
+
+        scroll.setWidget(guidance)
+        scroll.setObjectName("scroll")
+        scroll.setStyleSheet("""
+            QWidget#scroll {
+                border: transparent;
+                background-color: transparent;
+            }
+            QScrollBar {
+                margin: 0px 0px 0px 10px;
+            }
+            QScrollBar:vertical {
+                background: transparent;
+                width: 30px;
+            }
+            QScrollBar::handle:vertical {
+                border: 1px solid gray;
+                border-radius: 4px;
+                background: #F3F2EC;
+            }
+            QScrollBar::add-line:vertical {
+                background: none;
+            }
+            QScrollBar::sub-line:vertical {
+                background: none;
+            }
+        """)
+        scroll.setContentsMargins(0, 0, 20, 0)
+        scroll.setWidgetResizable(True)
+
+        return scroll
 
 
 class Draw(QWidget):
@@ -634,7 +814,6 @@ class Species(QLabel):
         self.setFixedSize(180, 180)
         self.setScaledContents(True)
         self.setAcceptDrops(True)
-        self.setStyleSheet("background-color: transparent;")
 
         # Define the size attribute.
         self.size = 10
@@ -653,12 +832,27 @@ class Species(QLabel):
 
             if Species.selected is not None:
                 try:
-                    Species.selected.setStyleSheet("background-color: transparent;")
+                    Species.selected.setStyleSheet("""
+                        QLabel {
+                            background-color: transparent;
+                        }
+                        QLabel::hover {
+                            background-color: transparent; 
+                            border: 2px solid black;
+                            border-radius: 4px;
+                        }
+                    """)
                 except RuntimeError:
                     pass
 
             Species.selected = self
-            self.setStyleSheet("background-color: transparent; border: 4px solid black;")
+            self.setStyleSheet("""
+                QLabel {
+                    background-color: transparent; 
+                    border: 2px solid black;
+                    border-radius: 4px;
+                }
+            """)
 
             VARIABLE["selected"]["species"] = self.species
 
@@ -713,6 +907,27 @@ class Populate(QWidget):
         self.species.addWidget(carnivore)
         self.species.addWidget(herbivore)
         self.species.setAlignment(Qt.AlignHCenter)
+
+        herbivore.setStyleSheet("""
+            QLabel {
+                background-color: transparent;
+            }
+            QLabel::hover {
+                background-color: transparent; 
+                border: 2px solid black;
+                border-radius: 4px;
+            }
+        """)
+        carnivore.setStyleSheet("""
+            QLabel {
+                background-color: transparent;
+            }
+            QLabel::hover {
+                background-color: transparent; 
+                border: 2px solid black;
+                border-radius: 4px;
+            }
+        """)
 
         top.addWidget(_species)
 
@@ -847,14 +1062,7 @@ class Simulate(QWidget):
         """Clears the population list."""
         Simulate.stop()
         VARIABLE["biosim"].island.year = 0
-        # VARIABLE["biosim"].graphics.reset_counts()
-        VARIABLE["history"] = {"Herbivore": {"Age": [],
-                                             "Weight": [],
-                                             "Fitness": []},
-                               "Carnivore": {"Age": [],
-                                             "Weight": [],
-                                             "Fitness": []}}
-        VARIABLE["biosim"].history = VARIABLE["history"]
+        VARIABLE["biosim"].reset_history()
 
         animals, n_species, n_species_cell = VARIABLE["biosim"].island.animals()
         VARIABLE["biosim"].graphics.reset_counts()
@@ -879,9 +1087,9 @@ class Simulate(QWidget):
         VARIABLE["biosim"].should_stop = False
 
         VARIABLE["biosim"].graphics.speed = VARIABLE["speed"]
-        VARIABLE["history"] = VARIABLE["biosim"].simulate(years,
-                                                          figure=self.fig, canvas=self.canvas,
-                                                          history=True)
+        VARIABLE["biosim"].simulate(years,
+                                    figure=self.fig, canvas=self.canvas,
+                                    history=True)
 
     @staticmethod
     def stop():
@@ -909,13 +1117,6 @@ class Simulate(QWidget):
     def reset(self):
         """Reset the simulation."""
         VARIABLE["biosim"].island.year = 0
-        VARIABLE["history"] = {"Herbivore": {"Age": [],
-                                             "Weight": [],
-                                             "Fitness": []},
-                               "Carnivore": {"Age": [],
-                                             "Weight": [],
-                                             "Fitness": []}}
-        # self.fig.clear()
         animals, n_species, n_species_cell = VARIABLE["biosim"].island.animals()
         VARIABLE["biosim"].graphics.reset_counts()
 
@@ -953,7 +1154,7 @@ class History(QWidget):
 
         self.fig.clear()
         try:
-            years = [year for year in range(len(VARIABLE["history"]["Herbivore"]["Age"]))]
+            years = [year for year in range(len(VARIABLE["biosim"].history["Herbivore"]["Age"]))]
         except KeyError:
             return
 
@@ -965,18 +1166,16 @@ class History(QWidget):
         thick.set_facecolor("#FBFAF5")
         fit.set_facecolor("#FBFAF5")
 
-        # set the titles of the subplots
         old.set_title("Gjennomsnittlig alder")
         thick.set_title("Gjennomsnittlig vekt")
         fit.set_title("Gjennomsnittlig form")
 
-        # Plotting the Age data
         herbivore_age_axis = old
-        herbivore_age_axis.plot(years, VARIABLE["history"]["Herbivore"]["Age"],
+        herbivore_age_axis.plot(years, VARIABLE["biosim"].history["Herbivore"]["Age"],
                                 label="Planteeter", color=(0.71764, 0.749, 0.63137))
 
         carnivore_age_axis = old.twinx()
-        carnivore_age_axis.plot(years, VARIABLE["history"]["Carnivore"]["Age"],
+        carnivore_age_axis.plot(years, VARIABLE["biosim"].history["Carnivore"]["Age"],
                                 label="Kjøtteter", color=(0.949, 0.7647, 0.56078))
 
         herbivore_age_axis.set_ylabel("Planteeter alder")
@@ -985,22 +1184,21 @@ class History(QWidget):
         carnivore_age_axis.legend(loc='upper right', bbox_to_anchor=(1, 1.2))
         herbivore_age_axis.set_xticks([])
 
-        # Plotting the Weight data
         herbivore_weight_axis = thick
-        herbivore_weight_axis.plot(years, VARIABLE["history"]["Herbivore"]["Weight"],
+        herbivore_weight_axis.plot(years, VARIABLE["biosim"].history["Herbivore"]["Weight"],
                                    label="Planteeter vekt", color=(0.71764, 0.749, 0.63137))
 
         carnivore_weight_axis = thick.twinx()
-        carnivore_weight_axis.plot(years, VARIABLE["history"]["Carnivore"]["Weight"],
+        carnivore_weight_axis.plot(years, VARIABLE["biosim"].history["Carnivore"]["Weight"],
                                    label="Kjøtteter vekt", color=(0.949, 0.7647, 0.56078))
 
         herbivore_weight_axis.set_ylabel("Planteeter vekt")
         carnivore_weight_axis.set_ylabel("Kjøtteter vekt")
         herbivore_weight_axis.set_xticks([])
 
-        fit.plot(years, VARIABLE["history"]["Herbivore"]["Fitness"],
+        fit.plot(years, VARIABLE["biosim"].history["Herbivore"]["Fitness"],
                  color=(0.71764, 0.749, 0.63137))
-        fit.plot(years, VARIABLE["history"]["Carnivore"]["Fitness"],
+        fit.plot(years, VARIABLE["biosim"].history["Carnivore"]["Fitness"],
                  color=(0.949, 0.7647, 0.56078))
         fit.set_xlabel("Iterasjon")
 
