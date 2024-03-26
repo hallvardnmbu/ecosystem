@@ -28,16 +28,16 @@ jobs:
       run: |
         $contains_build = git log --grep='Build' --format=%B -n 1
         if ($contains_build -like "*Build*") {
-            echo "contains_build=true" >> $GITHUB_ENV
+            echo "contains_build=true" >> $env:GITHUB_OUTPUT
         } else {
-            echo "contains_build=false" >> $GITHUB_ENV
+            echo "contains_build=false" >> $env:GITHUB_OUTPUT
         }
       shell: pwsh
       env:
         GITHUB_ENV: ${{ github.env }}
 
     - name: Create application directory
-      if: ${{ env.contains_build == 'true' }}
+      if: ${{ steps.commit-message-check.outputs.contains_build == 'true' }}
       run: |
         if ($env:RUNNER_OS -eq 'Windows') {
           if (Test-Path application\${{ runner.os }}.exe) {
@@ -56,7 +56,7 @@ jobs:
         GITHUB_ENV: ${{ github.env }}
 
     - name: Set up Python ${{ matrix.python-version }}
-      if: ${{ env.contains_build == 'true' }}
+      if: ${{ steps.commit-message-check.outputs.contains_build == 'true' }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
@@ -64,7 +64,7 @@ jobs:
         GITHUB_ENV: ${{ github.env }}
 
     - name: Install dependencies
-      if: ${{ env.contains_build == 'true' }}
+      if: ${{ steps.commit-message-check.outputs.contains_build == 'true' }}
       run: |
         pip install pyinstaller pillow
         pip install -r requirements.txt
@@ -72,7 +72,7 @@ jobs:
         GITHUB_ENV: ${{ github.env }}
 
     - name: Build executable
-      if: ${{ env.contains_build == 'true' }}
+      if: ${{ steps.commit-message-check.outputs.contains_build == 'true' }}
       run: |
         pyinstaller executable.py -F -w -n ${{ runner.os }} --add-data "src/biosim/_static/*.png:." --icon "src/biosim/_static/icon.ico" --distpath dist -p biosim
         if ($env:RUNNER_OS -eq 'Windows') {
@@ -87,7 +87,7 @@ jobs:
         GITHUB_ENV: ${{ github.env }}
 
     - name: Upload executable
-      if: ${{ env.contains_build == 'true' }}
+      if: ${{ steps.commit-message-check.outputs.contains_build == 'true' }}
       uses: actions/upload-artifact@v2
       with:
         name: ${{ runner.os }}
@@ -96,7 +96,7 @@ jobs:
         GITHUB_ENV: ${{ github.env }}
 
     - name: Commit and push executable
-      if: ${{ env.contains_build == 'true' }}
+      if: ${{ steps.commit-message-check.outputs.contains_build == 'true' }}
       run: |
         git config --global user.email "action@github.com"
         git config --global user.name "GitHub Action"
