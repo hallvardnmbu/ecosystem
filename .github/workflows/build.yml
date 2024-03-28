@@ -21,33 +21,24 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        fetch-depth: 0
+        fetch-depth: 1
 
     - name: Check commit messages for 'Build'
-      id: commit-message-check
+      id: messages
       run: |
-        $contains_build = git log --grep='Build' --format=%B -n 1
-        if ($contains_build -like "*Build*") {
-            echo "contains_build=true" >> $env:GITHUB_OUTPUT
+        $build = git log --format=%B -n 1
+        if ($build -like "*Build*") {
+            echo "build=true" >> $env:GITHUB_ENV
         } else {
-            echo "contains_build=false" >> $env:GITHUB_OUTPUT
+            echo "build=false" >> $env:GITHUB_ENV
         }
       shell: pwsh
       env:
         GITHUB_ENV: ${{ github.env }}
 
     - name: Create application directory
-      if: ${{ steps.commit-message-check.outputs.contains_build == 'true' }}
+      if: ${{ steps.messages.outputs.build == 'true' }}
       run: |
-        if ($env:RUNNER_OS -eq 'Windows') {
-          if (Test-Path application\${{ runner.os }}.exe) {
-            rmdir -Force -Recurse application\${{ runner.os }}.exe
-          }
-        } elseif ($env:RUNNER_OS -eq 'Linux') {
-          rm -rf application/${{ runner.os }}
-        } else {
-          rm -rf application/${{ runner.os }}.app
-        }
         if (-not (Test-Path -Path application/)) {
           New-Item -Path application/ -ItemType Directory
         }
@@ -56,7 +47,7 @@ jobs:
         GITHUB_ENV: ${{ github.env }}
 
     - name: Set up Python ${{ matrix.python-version }}
-      if: ${{ steps.commit-message-check.outputs.contains_build == 'true' }}
+      if: ${{ steps.messages.outputs.build == 'true' }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
@@ -64,38 +55,53 @@ jobs:
         GITHUB_ENV: ${{ github.env }}
 
     - name: Install dependencies
-      if: ${{ steps.commit-message-check.outputs.contains_build == 'true' }}
+      if: ${{ steps.messages.outputs.build == 'true' }}
       run: |
         pip install pyinstaller pillow numpy matplotlib PyQt5 perlin_noise
       env:
         GITHUB_ENV: ${{ github.env }}
 
     - name: Build executable
-      if: ${{ steps.commit-message-check.outputs.contains_build == 'true' }}
+      if: ${{ steps.messages.outputs.build == 'true' }}
       run: |
-        pyinstaller executable.py -F -w -n ${{ runner.os }} --add-data "src/biosim/_static/*.png:." --icon "src/biosim/_static/icon.ico" --distpath dist -p biosim
-        if ($env:RUNNER_OS -eq 'Windows') {
-          mv dist/${{ runner.os }}.exe application/
-        } elseif ($env:RUNNER_OS -eq 'Linux') {
-          mv dist/${{ runner.os }} application/
-        } else {
-          mv dist/${{ runner.os }}.app application/
-        }
-      shell: pwsh
+        pyinstaller executable.py -F -w -n ${{ runner.os }} --add-data "src/biosim/_static/*.png:." --icon "src/biosim/_static/icon.ico" --distpath application -p biosim
       env:
         GITHUB_ENV: ${{ github.env }}
 
-    - name: Upload executable
-      if: ${{ steps.commit-message-check.outputs.contains_build == 'true' }}
-      uses: actions/upload-artifact@v2
-      with:
-        name: ${{ runner.os }}
-        path: application/
+    - name: Remove executable history
+      if: ${{ steps.messages.outputs.build == 'true' }}
+      run: |
+        git config --global user.email "action@github.com"
+        git config --global user.name "GitHub Action"
+
+        git filter-branch --force --index-filter "git rm --cached --ignore-unmatch application/${{ runner.os }}*" --prune-empty --tag-name-filter cat -- --all
+        git for-each-ref --format="%(refname)" refs/original/ | xargs -I {} git update-ref -d {}
+        git gc --prune=now
+        git gc --aggressive --prune=now
+
+        while($true) {
+          $pushOutput = git push origin --force --all 2>&1
+          if ($pushOutput -match "remote rejected") {
+            Write-Output "Push rejected by remote repository, retrying in 5 seconds..."
+            Start-Sleep -Seconds 5
+            git pull --rebase origin main
+          } elseif ($pushOutput -match "everything up-to-date") {
+            Write-Output "No changes to push, exiting loop..."
+            break
+          } else {
+            Write-Output "Push successful, exiting loop..."
+            break
+          }
+        }
+
+        git push origin --force --tags
+      shell: pwsh
       env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_ENV: ${{ github.env }}
 
     - name: Commit and push executable
-      if: ${{ steps.commit-message-check.outputs.contains_build == 'true' }}
+      if: ${{ steps.messages.outputs.build == 'true' }}
       run: |
         git config --global user.email "action@github.com"
         git config --global user.name "GitHub Action"
@@ -113,11 +119,6 @@ jobs:
           $filePath = "application/${{ runner.os }}.tar.gz"
           $fileSize = $(du -sm $filePath | cut -f1)
         }
-        
-        git filter-branch --force --index-filter "git rm --cached --ignore-unmatch $filePath" --prune-empty --tag-name-filter cat -- --all
-        git for-each-ref --format="%(refname)" refs/original/ | xargs -I {} git update-ref -d {}
-        git gc --prune=now
-        git gc --aggressive --prune=now
 
         if ($fileSize -gt 100) {
           git lfs track $filePath
@@ -141,8 +142,6 @@ jobs:
             break
           }
         }
-
-        git push origin --force --tags
       shell: pwsh
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
