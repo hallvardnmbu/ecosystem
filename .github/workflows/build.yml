@@ -67,38 +67,6 @@ jobs:
       env:
         GITHUB_ENV: ${{ github.env }}
 
-    - name: Remove executable history
-      if: ${{ steps.messages.outputs.build == 'true' }}
-      run: |
-        git config --global user.email "action@github.com"
-        git config --global user.name "GitHub Action"
-
-        git filter-branch --force --index-filter "git rm --cached --ignore-unmatch application/${{ runner.os }}*" --prune-empty --tag-name-filter cat -- --all
-        git for-each-ref --format="%(refname)" refs/original/ | xargs -I {} git update-ref -d {}
-        git gc --prune=now
-        git gc --aggressive --prune=now
-
-        while($true) {
-          $pushOutput = git push origin --force --all 2>&1
-          if ($pushOutput -match "remote rejected") {
-            Write-Output "Push rejected by remote repository, retrying in 5 seconds..."
-            Start-Sleep -Seconds 5
-            git pull --rebase origin main
-          } elseif ($pushOutput -match "everything up-to-date") {
-            Write-Output "No changes to push, exiting loop..."
-            break
-          } else {
-            Write-Output "Push successful, exiting loop..."
-            break
-          }
-        }
-
-        git push origin --force --tags
-      shell: pwsh
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_ENV: ${{ github.env }}
-
     - name: Commit and push executable
       if: ${{ steps.messages.outputs.build == 'true' }}
       run: |
@@ -118,6 +86,11 @@ jobs:
           $filePath = "application/${{ runner.os }}.tar.gz"
           $fileSize = $(du -sm $filePath | cut -f1)
         }
+        
+        git filter-branch --force --index-filter "git rm --cached --ignore-unmatch $filePath" --prune-empty --tag-name-filter cat -- --all
+        git for-each-ref --format="%(refname)" refs/original/ | xargs -I {} git update-ref -d {}
+        git gc --prune=now
+        git gc --aggressive --prune=now
 
         if ($fileSize -gt 100) {
           git lfs track $filePath
@@ -141,6 +114,8 @@ jobs:
             break
           }
         }
+
+        git push origin --force --tags
       shell: pwsh
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
