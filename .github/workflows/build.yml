@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: [windows-latest, macos-latest]
         python-version: [3.12]
 
     steps:
@@ -63,7 +63,15 @@ jobs:
     - name: Build executable
       if: ${{ steps.messages.outputs.build == 'true' }}
       run: |
-        pyinstaller executable.py -F -w -n ${{ runner.os }} --add-data "src/biosim/_static/*.png:." --icon "src/biosim/_static/icon.ico" --distpath application -p biosim
+        pyinstaller executable.py -F -w -n ${{ runner.os }} --add-data "src/biosim/_static/*.png:." --icon "src/biosim/_static/icon.ico" --distpath dist -p biosim
+        if ($env:RUNNER_OS -eq 'Windows') {
+          mv dist/${{ runner.os }}.exe application/
+        } elseif ($env:RUNNER_OS -eq 'Linux') {
+          mv dist/${{ runner.os }} application/
+        } else {
+          mv dist/${{ runner.os }}.app application/
+        }
+      shell: pwsh
       env:
         GITHUB_ENV: ${{ github.env }}
 
@@ -93,8 +101,10 @@ jobs:
         git add $filePath
         git commit -m "${{ runner.os }}"
         
+        git pull --rebase origin main
+        
         while($true) {
-          $pushOutput = git push origin 2>&1
+          $pushOutput = git push origin --force --all 2>&1
           if ($pushOutput -match "remote rejected") {
             Write-Output "Push rejected by remote repository, retrying in 5 seconds..."
             Start-Sleep -Seconds 5
@@ -107,6 +117,8 @@ jobs:
             break
           }
         }
+        
+        git push origin --force --tags
       shell: pwsh
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
