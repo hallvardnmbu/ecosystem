@@ -23,7 +23,7 @@ jobs:
       with:
         fetch-depth: 1
 
-    - name: Check commit messages for 'Build'
+    - name: Check if commit message contains 'Build'
       id: messages
       run: |
         if (git log --oneline --grep="Build" -1) {
