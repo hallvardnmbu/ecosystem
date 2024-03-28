@@ -87,21 +87,14 @@ jobs:
           $fileSize = $(du -sm $filePath | cut -f1)
         }
         
-        git filter-branch --force --index-filter "git rm --cached --ignore-unmatch $filePath" --prune-empty --tag-name-filter cat -- --all
-        git for-each-ref --format="%(refname)" refs/original/ | xargs -I {} git update-ref -d {}
-        git gc --prune=now
-        git gc --aggressive --prune=now
-
         if ($fileSize -gt 100) {
           git lfs track $filePath
         }
         git add $filePath
         git commit -m "${{ runner.os }}"
-
-        git pull --rebase origin main
         
         while($true) {
-          $pushOutput = git push origin --force --all 2>&1
+          $pushOutput = git push origin 2>&1
           if ($pushOutput -match "remote rejected") {
             Write-Output "Push rejected by remote repository, retrying in 5 seconds..."
             Start-Sleep -Seconds 5
@@ -114,8 +107,6 @@ jobs:
             break
           }
         }
-
-        git push origin --force --tags
       shell: pwsh
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
